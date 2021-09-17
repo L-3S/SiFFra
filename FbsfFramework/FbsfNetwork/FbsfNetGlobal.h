@@ -1,0 +1,13 @@
+#ifndef FBSF_NET_VERSION_H
+#define FBSF_NET_VERSION_H
+
+#define VERSION "1.0"
+
+#define SERVER_PORT 5555
+
+#if defined FBSF_NETWORK
+    #define FBSF_INTERFACE Q_DECL_EXPORT
+#else
+    #define FBSF_INTERFACE Q_DECL_IMPORT
+#endif
+#endif // FBSF_NET_VERSION_H

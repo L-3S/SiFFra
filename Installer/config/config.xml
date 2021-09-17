@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Installer>
+    <Name>FBSF framework</Name>
+    <Version>1.9.0</Version>
+    <Title>FBSF Installer</Title>
+    <Publisher>L3S</Publisher>
+    <WizardStyle>Modern</WizardStyle>
+    <Logo>Logo.png</Logo>
+    <TargetDir>@HomeDir@/FBSF-V1.9.0</TargetDir>
+</Installer>

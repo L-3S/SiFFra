@@ -1,0 +1,118 @@
+{
+    "version": 1,
+    "supportedProjectTypes": [ "CMakeProjectManager.CMakeProject", "Qbs.QbsProject", "Qt4ProjectManager.Qt4Project" ],
+    "id": "F.FbsfModule Template",
+    "category": "F.Fbsf",
+    "trDescription": "Creates a simple fbsf manual module .",
+    "trDisplayName": "Fbsf Module",
+    "trDisplayCategory": "Fbsf",
+    "icon": "fbsf.png",
+    "enabled": "%{JS: [ %{Plugins} ].indexOf('CppEditor') >= 0 && ([ %{Plugins} ].indexOf('QmakeProjectManager') >= 0}",
+
+    "options":
+    [
+        { "key": "ProFileName", "value": "%{JS: Util.fileName('%{ProjectDirectory}/%{ProjectName}', 'pro')}" },
+        { "key": "CppFileName", "value": "%{JS: '%{ProjectName}.' + Util.preferredSuffix('text/x-c++src')}"},
+        { "key": "HdrFileName", "value": "%{JS: '%{ProjectName}.' + Util.preferredSuffix('text/x-c++hdr')}"},
+        { "key": "GlbHdrFileName", "value": "%{JS: '%{ProjectName}' + '_global.' + Util.preferredSuffix('text/x-c++hdr')}"},
+		{ "key": "GUARD", "value": "%{JS: Cpp.headerGuard('%{HdrFileName}')}" }
+    ],
+
+    "pages":
+    [
+        {
+            "trDisplayName": "Project Location",
+            "trShortTitle": "Location",
+            "typeId": "Project"
+        },
+        {
+            "trDisplayName": "Kit Selection",
+            "trShortTitle": "Kits",
+            "typeId": "Kits",
+            "enabled": "%{JS: ! %{IsSubproject}}",
+            "data": { "projectFilePath": "%{ProFileName}" }
+        }
+		,
+        {
+            "trDisplayName": "Module Configuration",
+            "trShortTitle": "Config",
+            "typeId": "Fields",
+			"data" :
+            [
+				 {
+					"name": "WithRunTime",
+					"trDisplayName": "Ajouter une configuration de simualtion",
+					"type": "CheckBox",
+					"data": {
+						"checked": false
+					}
+				},
+				{
+					"name": "FbsfPath",
+					"type": "PathChooser",
+					"trDisplayName": "FbsfPath:",
+					"mandatory": true,
+					"visible": "%{WithRunTime}",
+					"data":
+					{
+						"kind": "existingDirectory",
+						"basePath": "%{InitialPath}",
+						"path": "%{InitialPath}"
+					}
+				}
+			]
+        },
+        {
+            "trDisplayName": "Project Management",
+            "trShortTitle": "Summary",
+            "typeId": "Summary"
+        }
+    ],
+    "generators":
+    [
+        {
+            "typeId": "File",
+            "data":
+            [
+                {
+                    "source": "file.pro",
+                    "target": "%{ProFileName}",
+                    "openAsProject": true
+                },
+				{
+                    "source": "mymodule.h",
+                    "target": "%{HdrFileName}",
+                    "openInEditor": true
+                },
+                {
+                    "source": "mymodule_global.h",
+                    "target": "%{GlbHdrFileName}",
+                    "openInEditor": true
+                },
+                {
+                    "source": "mymodule.cpp",
+                    "target": "%{CppFileName}",
+                    "openInEditor": true
+                },
+				{
+                    "source": "simu.xml",
+                    "target": "simu.xml",
+					"condition": "%{WithRunTime}",
+                    "openInEditor": false
+                },
+				{
+                    "source": "env.bat",
+                    "target": "env.bat",
+					"condition": "%{WithRunTime}",
+                    "openInEditor": false
+                },
+				{
+                    "source": "plugins.xml",
+                    "target": "plugins.xml",
+					"condition": "%{WithRunTime}",
+                    "openInEditor": false
+                }
+            ]
+        }
+    ]
+}

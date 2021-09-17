@@ -1,0 +1,8 @@
+module GraphicComponents
+Slider              	1.0	ACTUATORS/Slider.qml
+SwitchOnOff         	1.0	ACTUATORS/SwitchOnOff.qml
+ImageLoader         	1.0	LOADER/ImageLoader.qml
+Navigation          	1.0	LOADER/Navigation.qml
+BarGraph            	1.0	SENSORS/BarGraph.qml
+BinnarySensor       	1.0	SENSORS/BinnarySensor.qml
+DigitalSensor       	1.0	SENSORS/DigitalSensor.qml

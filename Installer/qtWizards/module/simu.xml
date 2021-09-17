@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Items>
+    <simulation version="1.0">
+        <timestep>0.2</timestep>
+        <speedfactor>0.5</speedfactor>
+    </simulation>
+    <sequences>
+        <sequence>
+        <name>Main</name>
+        <iter>1</iter>
+            <models>
+                <model version="1.0">
+                    <module>%{ProjectName}</module>
+                    <name>testModule</name>
+                    <type>manual</type>
+                </model>
+            </models>
+        </sequence>
+    </sequences>
+</Items>
+
+
