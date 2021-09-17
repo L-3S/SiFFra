@@ -3,16 +3,13 @@ TEMPLATE    = app
 # Configuration full batch code
 BATCH {
     message( "Configuring FbsfFramework for BATCH build..." )
-    # Production path
-    DESTDIR = ../lib/batch
     TARGET  = FbsfBatch
     CONFIG  += console
     QT      += xml network
     DEFINES += MODE_BATCH
 }
 else {# Configuration gui code
-    # Production path
-    DESTDIR = ../lib
+
     TARGET = FbsfFramework
     QT      += gui qml quick xml widgets network
 }
@@ -56,7 +53,8 @@ SOURCES +=  \
             src/main.cpp \
             ../Installer/LicenceManager/LicenseManager.cpp
 
-
+# Production path
+DESTDIR = ../lib
 
 HEADERS +=  \
             src/FbsfExecutive.h \
