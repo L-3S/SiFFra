@@ -31,7 +31,6 @@ INCLUDEPATH += $$PWD/../FbsfBaseModel
 DEPENDPATH  += $$PWD/../FbsfBaseModel
 
 INCLUDEPATH += shared/include shared/parser
-INCLUDEPATH += $$PWD/../Installer/LicenceManager
 
 DEFINES     += FBSF_FRAMEWORK_LIBRARY
 DEFINES     += STANDALONE_XML_PARSER
@@ -51,7 +50,6 @@ SOURCES +=  \
             src/FbsfConfiguration.cpp \
             src/FbsfNode.cpp\
             src/main.cpp \
-            ../Installer/LicenceManager/LicenseManager.cpp
 
 # Production path
 DESTDIR = ../lib
