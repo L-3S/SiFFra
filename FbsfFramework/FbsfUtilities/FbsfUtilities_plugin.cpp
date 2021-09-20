@@ -1,7 +1,6 @@
 #include "FbsfUtilities_plugin.h"
 #include "FbsfFileIO.h"
 #include "FbsfMessageBox.h"
-#include "FbsfSolverLogic.h"
 
 #include <qqml.h>
 

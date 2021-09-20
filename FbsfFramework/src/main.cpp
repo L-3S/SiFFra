@@ -1,6 +1,5 @@
 #include "FbsfApplication.h"
 #include "FbsfConfiguration.h"
-#include "LicenseManager.h"
 
 #include <QDebug>
 #include <QObject>
@@ -60,15 +59,6 @@ int main(int argc, char **argv)
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Check application licensing
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    LicenseManager lm(FbsfApplication::sFrameworkHome+"FbsfFramework.lic");
-    if (!lm.check())
-    {
-        QString msg("Invalid license file, Please contact your software provider");
-#ifndef MODE_BATCH
-        QMessageBox::critical( nullptr, "[Fatal]", msg.toStdString().c_str());
-#endif
-        qFatal(msg.toStdString().c_str());
-    }
 #ifndef MODE_BATCH
     //~~~~~~~~~~ init resource from embedded qrc ~~~~~~~~~~~~~~~~~~
     Q_INIT_RESOURCE(GraphicEditor);
