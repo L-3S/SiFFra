@@ -15,7 +15,14 @@ call %~dp0fbsfenv.bat
 rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 rem Path for VISUAL compiler
 rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
+set CompilerPath = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
+IF EXIST %CompilerPath" (
+	call CompilerPath
+) ELSE (
+	ECHO CompilerPath Invalid
+	pause
+	exit
+)
 
 set build_config=""
 if /i "%1" == "BATCH" (

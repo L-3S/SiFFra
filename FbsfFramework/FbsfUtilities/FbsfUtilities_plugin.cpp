@@ -11,5 +11,3 @@ void FbsfUtilitiesPlugin::registerTypes(const char *uri)
     qmlRegisterType<FbsfMessageBox>(uri, 1, 0, "FbsfMessageBox");
 //    qmlRegisterType<FbsfSolverLogic>(uri, 1, 0, "FbsfSolverLogic");
 }
-
-
