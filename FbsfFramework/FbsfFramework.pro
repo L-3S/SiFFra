@@ -12,7 +12,7 @@ else {# Configuration gui code
 
     TARGET = FbsfFramework
     QT      += gui qml quick xml widgets network
-    LIBS        += -L$$PWD/../lib/ -lFbsfEditorLibrary
+    LIBS        += -L$$PWD/../Depends/ -lFbsfEditorLibrary
 }
 
 linux{
