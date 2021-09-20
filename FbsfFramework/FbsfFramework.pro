@@ -12,6 +12,7 @@ else {# Configuration gui code
 
     TARGET = FbsfFramework
     QT      += gui qml quick xml widgets network
+    LIBS        += -L$$PWD/../lib/ -lFbsfEditorLibrary
 }
 
 linux{
@@ -37,7 +38,6 @@ DEFINES     += FBSF_FRAMEWORK_LIBRARY
 DEFINES     += STANDALONE_XML_PARSER
 
 RESOURCES += resources.qrc
-#RESOURCES += $$PWD/../FbsfEditors/GraphicEditor.qrc
 
 SOURCES +=  \
             src/FbsfExecutive.cpp\

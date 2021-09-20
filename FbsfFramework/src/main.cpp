@@ -70,16 +70,8 @@ int main(int argc, char **argv)
         qFatal(msg.toStdString().c_str());
     }
 #ifndef MODE_BATCH
-    //~~~~~~~~~~ Load resource from rcc ~~~~~~~~~~~~~~~~~~
-    if(QFile::exists(FbsfApplication::sFrameworkHome+"/Addons/GraphicEditor.rcc"))
-    {
-        int res=QResource::registerResource(FbsfApplication::sFrameworkHome+"Addons/GraphicEditor.rcc");
-        if (res) {
-            qDebug() << "Loading GraphicEditor resources";
-        } else {
-            qDebug() << "GraphicEditor resource unavailable";
-        }
-    }
+    //~~~~~~~~~~ init resource from embedded qrc ~~~~~~~~~~~~~~~~~~
+    Q_INIT_RESOURCE(GraphicEditor);
 #endif
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Parse the command line arguments
