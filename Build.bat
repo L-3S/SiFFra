@@ -27,10 +27,9 @@ IF EXIST %CompilerPath% (
 set build_config=""
 if /i "%1" == "BATCH" (
 set build_config="CONFIG+=BATCH"
-) else (
+)
 ECHO A build mode is required. please enter release or debug
 set /p OPTION=release or debug?:
-)
 
 REM clean
 if exist Makefile call jom distclean
