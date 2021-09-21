@@ -6,7 +6,7 @@ rem set QT_VERSION=5.15.0
 rem set QT_COMPILER=msvc2019_64
 
 if "%QTDIR%"=="" (
-	echo Please defineQTDIR
+	echo Please define QTDIR
 	pause
 	exit
 )
