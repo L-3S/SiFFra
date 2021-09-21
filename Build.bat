@@ -41,4 +41,4 @@ call qmake  %build_config% FBSF.pro
 
 
 REM compile
-if %OPTION%==debug (call jom debug) else (call jom)
+if "%OPTION%"=="debug" (call jom debug) else (call jom)
