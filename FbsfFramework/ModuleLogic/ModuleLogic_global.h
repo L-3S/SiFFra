@@ -1,0 +1,12 @@
+#ifndef MODULE_LOGIC_GLOBAL_H
+#define MODULE_LOGIC_GLOBAL_H
+
+#include <QtCore/qglobal.h>
+
+#if defined(MODULE_LOGIC_LIBRARY)
+#  define MODULE_LOGIC_SHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define MODULE_LOGIC_SHARED_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // MODULE_LOGIC_GLOBAL_H

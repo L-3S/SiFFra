@@ -1,0 +1,6 @@
+module Components
+
+QChartJs  	1.0 Charts/QChartJs.qml
+ChartXY		1.0 Charts/ChartXY.qml
+Tooltip	  	1.0 Tooltip.qml
+PlotterPopup	1.0 ../../UIplugins/FbsfPlotter/PlotterPopup.qml

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Items>
+    <PluginsList>
+        <Plugin>
+            <name>Monitor</name>
+            <path>qml/UIplugins/FbsfMonitor</path>
+        </Plugin>
+        <Plugin>
+            <name>Plotter</name>
+            <path>qml/UIplugins/FbsfPlotter</path>
+        </Plugin>
+    </PluginsList>
+</Items>

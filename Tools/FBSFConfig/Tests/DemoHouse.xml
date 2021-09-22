@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Items>
+    <simulation version="1.0">
+        <timestep>100</timestep>
+        <speedfactor>0.0005</speedfactor>
+    </simulation>
+    <PluginsList>
+        <Plugin>
+            <name>Maison</name>
+            <path>Graphic</path>
+        </Plugin>
+    </PluginsList>
+    <sequences>
+        <sequence>
+            <name>House100s</name>
+            <period>1</period>
+            <models>
+                <model version="1.0">
+                    <module>ModuleGraphic</module>
+                    <name>BoundaryConditions</name>
+                    <type>visual</type>
+                    <document>Models/CL.qml</document>
+                </model>
+
+                <model version="1.0">
+                    <name>Maison</name>
+                    <type>fmu</type>
+                    <path>Models/FmuHouse/Maison.fmu</path>
+                    <starttime>0.0</starttime>
+                    <dumpcsv>false</dumpcsv>
+                </model>
+                <model version="1.0">
+                    <module>ModuleLogic</module>
+                    <name>PostProcessing</name>
+                    <type>visual</type>
+                    <document>Models/PostProcessing.qml</document>
+                </model>
+            </models>
+        </sequence>
+        <sequence>
+            <name>House900s</name>
+            <period>9</period>
+            <models>
+				
+                    <node>
+					    <SubSequences>
+							<SubSequence>
+								<name>subHouse1</name>
+								<period>1</period>
+									<models>
+										<model version="1.0">
+										<module>ModuleGraphic</module>
+										<name>forked1</name>
+										<type>visual</type>
+									<document>Models/CL.qml</document>
+								</model>
+				            </models>
+						</SubSequence>
+								<SubSequence>
+								<name>subHouse2</name>
+								<period>1</period>
+									<models>
+										<model version="1.0">
+										<module>ModuleGraphic</module>
+										<name>forked2</name>
+										<type>visual</type>
+									<document>Models/CL.qml</document>
+								</model>
+				            </models>
+						</SubSequence>
+					</SubSequences>
+				</node>
+				 <model version="1.0">
+                    <module>ModuleLogic</module>
+                    <name>HouseLogic2</name>
+                    <type>visual</type>
+                    <document>Models/LogicHouse2.qml</document>
+                </model>
+                <model version="1.0">
+                    <module>ModuleGraphic</module>
+                    <name>RegulationChauffage</name>
+                    <type>visual</type>
+                    <document>Models/RegulChauffage.qml</document>
+                </model>
+				
+            </models>
+        </sequence>
+    </sequences>
+</Items>
+
+
