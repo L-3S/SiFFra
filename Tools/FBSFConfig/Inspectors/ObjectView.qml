@@ -26,12 +26,12 @@ ListView {id: dataList
         anchors.bottom: parent.bottom
     }
     header:
-    Rectangle {
+        Rectangle {
         z:10
         height:40
         width : parent.width
         color: Def.btNavBgColor
-            Row {
+        Row {
             z: 10
             bottomPadding: 14
             visible: (dataList.model && dataList.model.length ===0) ?
@@ -86,7 +86,7 @@ ListView {id: dataList
             }
             //~~~~~~~~~~~~~~~~ help ~~~~
             Text {
-                        z: 10
+                z: 10
                 text: "Help"
                 width           : Def.unitColumWidth
                 font.bold       : Def.ParamHeader_Stw.bold
@@ -149,7 +149,7 @@ ListView {id: dataList
                             ||xData.type==='filepath'
                             ||xData.type==='DateAndTime'
                             ||xData.type==='DateAndTimeUTC'
-                      )
+                            )
                         return textInput
                     else if(xData.type==='bool')
                         return booleanChoice
@@ -198,23 +198,24 @@ ListView {id: dataList
                 onClicked   : {
                     var minmaxInfo=
                             (  (model.modelData.type==='int'
-                            || model.modelData.type==='number')
+                                || model.modelData.type==='number')
                              && model.modelData.minStrict!==undefined
                              && model.modelData.minWarn!==undefined)?
-                            "\n : MinStrict = "+model.modelData.minStrict
-                            +", MaxStrict = "+model.modelData.maxStrict
-                            +"\n : MinWarn = "+model.modelData.minWarn
-                            +", MaxWarn = "+model.modelData.maxWarn
-                            :""
+                                "\n : MinStrict = "+model.modelData.minStrict
+                                +", MaxStrict = "+model.modelData.maxStrict
+                                +"\n : MinWarn = "+model.modelData.minWarn
+                                +", MaxWarn = "+model.modelData.maxWarn
+                              :""
                     helpMessage.hlpText =model.modelData.description + minmaxInfo
                     helpMessage.open()
                     keyboard.focus=true
                 }
             }
-            Rectangle{
-                color:"transparent"
-                height: Def.Param_Stw.size
-                width: (Def.unitColumWidth - helpButton.width) / 2
+            Image{
+                visible : model.modelData.hasError
+                width : 16 ; height : width
+                source : "qrc:/icons/warning.png"
+                anchors.verticalCenter: parent.verticalCenter
             }
         }
     }
@@ -241,8 +242,8 @@ ListView {id: dataList
                 height: parent.height
                 anchors.fill: parent
                 color: Def.panelColor
-                border.color: Def.frameColor
-                border.width: 1
+                border.color:xData.hasError?"red": Def.frameColor
+                border.width: xData.hasError?3:1
             }
             onTextChanged: {
                 nameFieldV.nameContent=text
@@ -295,9 +296,9 @@ ListView {id: dataList
                 inspector.modified(xData.key,xData.value)
             }
             validator :(xData!== null && xData.type==='number') ? numberValidator
-                          : (xData!== null && xData.type==='bool') ? boolValidator
-                             : (xData!== null && xData.type==='int') ? intValidator
-                                   : null
+                                                                : (xData!== null && xData.type==='bool') ? boolValidator
+                                                                                                         : (xData!== null && xData.type==='int') ? intValidator
+                                                                                                                                                 : null
             DoubleValidator { id: numberValidator;  locale:"C";
                 notation: DoubleValidator.ScientificNotation
             }
@@ -306,8 +307,8 @@ ListView {id: dataList
             // Date and time validator : yyyy MM dd HH:mm:ss format
             // Date and Time (format UTC e.g. 2015-03-25T12:00:00Z)
             inputMask: (xData.type==='DateAndTime')?"9999 99 99 99:99:99"
-                          : (xData.type==='DateAndTimeUTC')?"9999-99-99T99:99:99Z"
-                          :null
+                                                   : (xData.type==='DateAndTimeUTC')?"9999-99-99T99:99:99Z"
+                                                                                    :null
             inputMethodHints: (xData.type==='DateAndTime' || xData.type==='DateAndTimeUTC')?
                                   Qt.ImhDigitsOnly:Qt.ImhNone
         }
@@ -338,8 +339,8 @@ ListView {id: dataList
                 height: parent.height
                 anchors.fill: parent
                 color: Def.panelColor
-                border.color: Def.frameColor
-                border.width: 1
+                border.color:xData.hasError?"red": Def.frameColor
+                border.width: xData.hasError?3:1
             }
         }
     }
@@ -368,8 +369,8 @@ ListView {id: dataList
                 height      : parent.height
                 anchors.fill: parent
                 color       : Def.panelColor
-                border.color: Def.frameColor
-                border.width: 1
+                border.color:xData.hasError?"red": Def.frameColor
+                border.width: xData.hasError?3:1
             }
         }
     }
@@ -385,17 +386,17 @@ ListView {id: dataList
             height: choiceRectangle.height
             topPadding: 10
             //~~~~~~~~~~~~~~~~ Name key ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-//            Text {
-//                //z: 10
-//                leftPadding: 10
-//                text: "Choice list :" ;
-//                width :             Def.nameColumWidth;
-//                font.bold:          Def.Param_Stw.bold
-//                font.pixelSize:     Def.Param_Stw.size
-//                font.family:        Def.Param_Stw.family
-//                color:              Def.Param_Stw.color
-//                anchors.verticalCenter: parent.verticalCenter
-//            }
+            //            Text {
+            //                //z: 10
+            //                leftPadding: 10
+            //                text: "Choice list :" ;
+            //                width :             Def.nameColumWidth;
+            //                font.bold:          Def.Param_Stw.bold
+            //                font.pixelSize:     Def.Param_Stw.size
+            //                font.family:        Def.Param_Stw.family
+            //                color:              Def.Param_Stw.color
+            //                anchors.verticalCenter: parent.verticalCenter
+            //            }
             //~~~~~~~~~~~~~~~~ Choice list~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             Rectangle{
                 id: choiceRectangle
