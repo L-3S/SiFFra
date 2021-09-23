@@ -27,5 +27,6 @@
         <file>Components/PluginList.qml</file>
         <file>Components/SequenceItem.qml</file>
         <file>icons/filesaveas.png</file>
+        <file>icons/warning.png</file>
     </qresource>
 </RCC>

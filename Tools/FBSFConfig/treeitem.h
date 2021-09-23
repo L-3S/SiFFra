@@ -95,6 +95,9 @@ public:
     bool            isSelected() const {return mSelected; }
     void            setSelected(bool aFlag) {mSelected=aFlag;}
 
+    bool            hasError() const {return mHasError; }
+    void            hasError(bool aFlag) {mHasError=aFlag;}
+
     TreeItem&       operator=(const TreeItem& other);
                     TreeItem(const TreeItem &other);
 
@@ -106,6 +109,7 @@ private:
     ParamList           mItemParams;
     TreeItem *          mParentItem=nullptr;
     bool                mSelected=false;
+    bool                mHasError=false;
 };
 //! [0]
 

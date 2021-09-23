@@ -95,7 +95,7 @@ QString  TreeItem::checkParamList()
     QString header;
     QString errorList;
 
-    bool hasError=false;
+    bool bHasError=false;
 
     if(type()==typeFork || type()==typePlugins)
         return report;// nothing to check
@@ -116,26 +116,29 @@ QString  TreeItem::checkParamList()
     {
         report = header + "\n\tAbstract module,the type must be defined\n";
     }
-    // Check every parameter
-    QList<QObject*>::const_iterator iter;
-    for (iter = getParamList().constBegin();
-         iter != getParamList().constEnd(); ++iter)
+    else
     {
-        // get parameter
-        ParamValue& data =*( dynamic_cast<ParamValue*>(*iter));// down cast
-
-        // skip if optional and value is default
-        if(!data.isModified()) continue;
-
-        // Check if mandatory is valid
-        if(data.mandatory() && data.getValue()=="")
+        // Check every parameter
+        QList<QObject*>::const_iterator iter;
+        for (iter = getParamList().constBegin();
+             iter != getParamList().constEnd(); ++iter)
         {
-            errorList += "\n\tempty value for " + data.key() + "\n";
-            hasError=true;
-        }
-    }
-    if(hasError) report = header + errorList;
+            // get parameter
+            ParamValue& data =*( dynamic_cast<ParamValue*>(*iter));// down cast
 
+            // skip if optional and value is default
+            if(!data.isModified()) continue;
+
+            // Check if mandatory is valid
+            if(data.mandatory() && data.getValue()=="")
+            {
+                errorList += "\n\tempty value for " + data.key() + "\n";
+                bHasError=true;
+            }
+        }
+        if(bHasError) report = header + errorList;
+        hasError(bHasError);
+    }
     return report;
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -212,8 +215,11 @@ bool TreeItem::setData(int column, const QVariant &value)
     return true;
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// currently not used
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 bool TreeItem::insertChildren(int position, int count, QVector<QVariant>& data)
 {
+    Q_UNUSED(data)
     if (position < 0 || position > mChildItems.size())
         return false;
 

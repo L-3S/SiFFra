@@ -7,6 +7,8 @@
 #include <QCoreApplication>
 #include <QDirIterator>
 #include <QtGlobal>
+#include <QMessageBox>
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Controller::Controller()
 {
@@ -46,7 +48,7 @@ void Controller::findModuleLib()
 #if (defined (_WIN32) || defined (_WIN64))
     filter << "*Module*.dll";
 #elif (defined (LINUX) || defined (__linux__))
-    filter << "Module*.so";
+    filter << "libModule*.so";
 #endif
 
     // first get the FBSF module libraries
@@ -108,7 +110,17 @@ QUrl Controller::newConfig()
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void Controller::openConfig(QUrl aFilename)
 {
-    getConfig().setupModelData(aFilename.toLocalFile());
+    if((mCurrentModel==&mTreeModel2 && mTreeModel1.configUrl()==aFilename)
+    || (mCurrentModel==&mTreeModel1 && mTreeModel2.configUrl()==aFilename))
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Opening twice same document is not allowed");
+        msgBox.exec();
+    }
+    else
+    {
+        getConfig().setupModelData(aFilename.toLocalFile());
+    }
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void Controller::saveConfig()
