@@ -51,9 +51,5 @@ compile_commands.json
 # QtCreator local machine specific files for imported projects
 *creator.user*
 
-<<<<<<< HEAD
-*_qmlcache.qrc
-=======
 *_qmlcache.qrc
 FbsfFramework.lic
->>>>>>> 35df7cd96beac3585b743a8b67e2c465ba92bacd
