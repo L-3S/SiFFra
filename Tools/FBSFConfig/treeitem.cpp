@@ -95,11 +95,7 @@ QString  TreeItem::checkParamList()
     QString header;
     QString errorList;
 
-<<<<<<< HEAD
     bool bHasError=false;
-=======
-    bool hasError=false;
->>>>>>> 35df7cd96beac3585b743a8b67e2c465ba92bacd
 
     if(type()==typeFork || type()==typePlugins)
         return report;// nothing to check
@@ -120,7 +116,6 @@ QString  TreeItem::checkParamList()
     {
         report = header + "\n\tAbstract module,the type must be defined\n";
     }
-<<<<<<< HEAD
     else
     {
         // Check every parameter
@@ -144,28 +139,6 @@ QString  TreeItem::checkParamList()
         if(bHasError) report = header + errorList;
         hasError(bHasError);
     }
-=======
-    // Check every parameter
-    QList<QObject*>::const_iterator iter;
-    for (iter = getParamList().constBegin();
-         iter != getParamList().constEnd(); ++iter)
-    {
-        // get parameter
-        ParamValue& data =*( dynamic_cast<ParamValue*>(*iter));// down cast
-
-        // skip if optional and value is default
-        if(!data.isModified()) continue;
-
-        // Check if mandatory is valid
-        if(data.mandatory() && data.getValue()=="")
-        {
-            errorList += "\n\tempty value for " + data.key() + "\n";
-            hasError=true;
-        }
-    }
-    if(hasError) report = header + errorList;
-
->>>>>>> 35df7cd96beac3585b743a8b67e2c465ba92bacd
     return report;
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -242,16 +215,11 @@ bool TreeItem::setData(int column, const QVariant &value)
     return true;
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-<<<<<<< HEAD
 // currently not used
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 bool TreeItem::insertChildren(int position, int count, QVector<QVariant>& data)
 {
     Q_UNUSED(data)
-=======
-bool TreeItem::insertChildren(int position, int count, QVector<QVariant>& data)
-{
->>>>>>> 35df7cd96beac3585b743a8b67e2c465ba92bacd
     if (position < 0 || position > mChildItems.size())
         return false;
 

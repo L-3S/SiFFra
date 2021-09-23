@@ -95,12 +95,9 @@ public:
     bool            isSelected() const {return mSelected; }
     void            setSelected(bool aFlag) {mSelected=aFlag;}
 
-<<<<<<< HEAD
     bool            hasError() const {return mHasError; }
     void            hasError(bool aFlag) {mHasError=aFlag;}
 
-=======
->>>>>>> 35df7cd96beac3585b743a8b67e2c465ba92bacd
     TreeItem&       operator=(const TreeItem& other);
                     TreeItem(const TreeItem &other);
 
@@ -112,10 +109,8 @@ private:
     ParamList           mItemParams;
     TreeItem *          mParentItem=nullptr;
     bool                mSelected=false;
-<<<<<<< HEAD
     bool                mHasError=false;
-=======
->>>>>>> 35df7cd96beac3585b743a8b67e2c465ba92bacd
+
 };
 //! [0]
 

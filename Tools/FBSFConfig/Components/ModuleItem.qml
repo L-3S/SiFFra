@@ -18,7 +18,6 @@ Element {
         border.color: highlight ? "red" : category===""?"orange":"white"
         border.width: highlight ? 3 : category===""?3:1
         radius      : 10
-<<<<<<< HEAD
         Image{
             anchors.left : itemShape.left
             anchors.top  : itemShape.bottom
@@ -26,9 +25,6 @@ Element {
             source : "qrc:/icons/warning.png"
             visible : hasError
         }
-=======
->>>>>>> 35df7cd96beac3585b743a8b67e2c465ba92bacd
-
         // module name
         Text{id:text
             text    : name

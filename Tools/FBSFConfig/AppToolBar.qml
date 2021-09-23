@@ -9,11 +9,7 @@ ToolBar {
     id: appBar
     height: 48
     width: rootApp.width
-<<<<<<< HEAD
     property alias buttonCheck:btCheck
-=======
-
->>>>>>> 35df7cd96beac3585b743a8b67e2c465ba92bacd
     RowLayout {
         width: parent.width
         //~~~~~~~~~~~~~~~~~~~~~~~~~ Toolbar project ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -106,11 +102,7 @@ ToolBar {
             icon.source : "qrc:/icons/check.png"
             ToolTip.visible: hovered
             ToolTip.text: qsTr("Check configuration")
-<<<<<<< HEAD
             enabled     : controller.config.loaded && (controller.config.hasError || controller.config.modified)
-=======
-            enabled     : controller.config.modified
->>>>>>> 35df7cd96beac3585b743a8b67e2c465ba92bacd
             opacity     : enabled ? 1 : 0.3
             onClicked   : {
                 keyboard.focus=true
