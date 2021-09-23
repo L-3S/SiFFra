@@ -26,7 +26,10 @@ public:
         RoleCategory,
         RoleModuleType,
         RoleSelected,
+<<<<<<< HEAD
         RoleHasError,
+=======
+>>>>>>> 35df7cd96beac3585b743a8b67e2c465ba92bacd
         RoleParamList
     };
 
@@ -60,7 +63,10 @@ public:
     Q_PROPERTY(bool modified READ modified WRITE modified NOTIFY modifiedChanged)
     Q_PROPERTY(bool loaded READ loaded NOTIFY loadedChanged)
     Q_PROPERTY(bool hasPluginList READ hasPluginList NOTIFY hasPluginListChanged)
+<<<<<<< HEAD
     Q_PROPERTY(bool hasError READ hasError NOTIFY hasErrorChanged)
+=======
+>>>>>>> 35df7cd96beac3585b743a8b67e2c465ba92bacd
     Q_PROPERTY(QString configName READ configName NOTIFY configNameChanged)
     Q_PROPERTY(QUrl configUrl READ configUrl NOTIFY configUrlChanged)
 
@@ -124,8 +130,12 @@ public:
     void            loaded(bool aStatus) {mLoaded=aStatus;emit loadedChanged(mLoaded);}
     bool            hasPluginList() {return mHasPluginList;}
     void            hasPluginList(bool aStatus) {mHasPluginList=aStatus;emit hasPluginListChanged(mLoaded);}
+<<<<<<< HEAD
     bool            hasError() const {return mHasError; }
     void            hasError(bool aFlag) {mHasError=aFlag;emit hasErrorChanged(aFlag);}
+=======
+
+>>>>>>> 35df7cd96beac3585b743a8b67e2c465ba92bacd
     // get/set the config name property for QML
     QString         configName();
     void            setConfigName(const QString& aName);
@@ -155,13 +165,19 @@ private:
     bool                    mModified=false;
     bool                    mLoaded=false;
     bool                    mHasPluginList=false;
+<<<<<<< HEAD
     bool                    mHasError=false;
+=======
+>>>>>>> 35df7cd96beac3585b743a8b67e2c465ba92bacd
 
 signals :
     void modifiedChanged(bool aModified);
     void loadedChanged(bool aLoaded);
     void hasPluginListChanged(bool aStatus);
+<<<<<<< HEAD
     void hasErrorChanged(bool aStatus);
+=======
+>>>>>>> 35df7cd96beac3585b743a8b67e2c465ba92bacd
     void configNameChanged();
     void configUrlChanged();
 };

@@ -7,8 +7,11 @@
 #include <QCoreApplication>
 #include <QDirIterator>
 #include <QtGlobal>
+<<<<<<< HEAD
 #include <QMessageBox>
 
+=======
+>>>>>>> 35df7cd96beac3585b743a8b67e2c465ba92bacd
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Controller::Controller()
 {
@@ -48,7 +51,11 @@ void Controller::findModuleLib()
 #if (defined (_WIN32) || defined (_WIN64))
     filter << "*Module*.dll";
 #elif (defined (LINUX) || defined (__linux__))
+<<<<<<< HEAD
     filter << "libModule*.so";
+=======
+    filter << "Module*.so";
+>>>>>>> 35df7cd96beac3585b743a8b67e2c465ba92bacd
 #endif
 
     // first get the FBSF module libraries
@@ -110,6 +117,7 @@ QUrl Controller::newConfig()
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void Controller::openConfig(QUrl aFilename)
 {
+<<<<<<< HEAD
     if((mCurrentModel==&mTreeModel2 && mTreeModel1.configUrl()==aFilename)
     || (mCurrentModel==&mTreeModel1 && mTreeModel2.configUrl()==aFilename))
     {
@@ -121,6 +129,9 @@ void Controller::openConfig(QUrl aFilename)
     {
         getConfig().setupModelData(aFilename.toLocalFile());
     }
+=======
+    getConfig().setupModelData(aFilename.toLocalFile());
+>>>>>>> 35df7cd96beac3585b743a8b67e2c465ba92bacd
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void Controller::saveConfig()

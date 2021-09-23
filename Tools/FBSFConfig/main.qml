@@ -12,7 +12,11 @@ ApplicationWindow {
     width : 1200
     height : 600
 
+<<<<<<< HEAD
     header: AppToolBar{id:toolBar}
+=======
+    header: AppToolBar{}
+>>>>>>> 35df7cd96beac3585b743a8b67e2c465ba92bacd
 
     color                       : "Dimgrey"
     property real zoom          : 1
@@ -38,7 +42,10 @@ ApplicationWindow {
     function openConfig(aFileName)
     {
         controller.openConfig(aFileName)
+<<<<<<< HEAD
         controller.checkConfig()
+=======
+>>>>>>> 35df7cd96beac3585b743a8b67e2c465ba92bacd
     }
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     function saveConfig()

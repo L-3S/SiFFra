@@ -64,7 +64,11 @@ FbsfApplication *FbsfApplication::app(int & argc, char **argv)
     {
         QString msg("Environment variable APP_HOME not set");
 #ifndef MODE_BATCH
+<<<<<<< HEAD
         QMessageBox::critical( nullptr, "[Fatal]", msg.toStdString().c_str());
+=======
+        qFatal(msg.toStdString().c_str());
+>>>>>>> 35df7cd96beac3585b743a8b67e2c465ba92bacd
 #endif
         qFatal(msg.toStdString().c_str());
     }
@@ -178,7 +182,11 @@ FbsfGuiApplication::FbsfGuiApplication(eApplicationMode aMode,int & argc,char** 
     // add import paths for components
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     sComponentsPath=qgetenv("COMPONENTS_PATH");
+<<<<<<< HEAD
     if (sComponentsPath.isEmpty()) sComponentsPath = sFrameworkHome+"Library";
+=======
+    if (sComponentsPath.isEmpty()) sComponentsPath = sFrameworkHome+"/Library";
+>>>>>>> 35df7cd96beac3585b743a8b67e2c465ba92bacd
     if (!QDir(sComponentsPath).exists())
     {
         QString msg("Invalid component path :\n"+sComponentsPath);

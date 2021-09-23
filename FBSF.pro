@@ -4,7 +4,7 @@ SUBDIRS = \
           FbsfFramework/FbsfPublicData\
           FbsfFramework/FbsfUtilities\
           FbsfFramework/FbsfNetwork\
-          FbsfBaseModel \
+          FbsfBaseModel\
           FbsfFramework\
           FbsfFramework/ModuleLogic\
           FbsfFramework/ModuleGraphic
