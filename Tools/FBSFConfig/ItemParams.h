@@ -171,11 +171,13 @@ public slots:
     {
         if(mValue==aValue) return;
         mValue=aValue;
+        hasError(false); // we assume value as valid
     }
     void setIndex(int aIndex)
     {
         if(mIndex==aIndex) return;
         mIndex=aIndex;
+        hasError(false); // we assume value as valid
     }
 
 signals:

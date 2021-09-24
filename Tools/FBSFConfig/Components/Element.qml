@@ -85,6 +85,7 @@ Item {
     }
     function resetSource() {
         itemInspector.source=""
+        controller.checkParams(subTree.rootIndex);
     }
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     function setName(text)

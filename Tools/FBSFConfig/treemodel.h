@@ -38,6 +38,7 @@ public:
     void clearModelData();
     const QString checkModelData();
     void checkItemParams(TreeItem* item,QString& aReport);
+    void checkItemParams(QModelIndex aIndex);
 
     TreeItem* readSimulation(FbsfConfiguration &aXmlConfig);
     void readSequence(TreeItem* parent, FbsfConfigSequence &aSeq, bool isSub=false);

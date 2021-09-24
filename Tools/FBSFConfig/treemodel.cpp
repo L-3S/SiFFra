@@ -136,7 +136,7 @@ const QString TreeModel::checkModelData()
     {
         hasError(false);
     }
-    emit layoutChanged();// display error icon
+    emit layoutChanged();// display/hide error icon
 
     return report;
 }
@@ -148,6 +148,14 @@ void TreeModel::checkItemParams(TreeItem* item,QString& aReport)
     {
         checkItemParams(item->child(i),aReport);
     }
+}
+//~~~~~~~ check module and plugin items ~~~~~~~~~~
+void TreeModel::checkItemParams(QModelIndex aIndex)
+{
+    QString report;
+    TreeItem *item = getItem(aIndex);
+    item->checkParamList();
+    emit layoutChanged();// display/hide error icon
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Get the simulation description

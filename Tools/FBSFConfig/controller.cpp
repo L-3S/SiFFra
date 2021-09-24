@@ -216,3 +216,8 @@ void Controller::setModuleType(const QModelIndex &aIndex,
     if(mod!=nullptr)
         getConfig().setModuleType(aIndex, mod->category(), aModuleType);
 }
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+void Controller::checkParams(const QModelIndex &aIndex)
+{
+    getConfig().checkItemParams(aIndex);
+}
