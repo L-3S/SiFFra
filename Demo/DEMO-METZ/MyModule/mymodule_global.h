@@ -1,0 +1,12 @@
+#ifndef MYMODULE_GLOBAL_H
+#define MYMODULE_GLOBAL_H
+
+#include <QtCore/qglobal.h>
+
+#if defined(MYMODULE_LIBRARY)
+#  define MYMODULESHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define MYMODULESHARED_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // MYMODULE_GLOBAL_H

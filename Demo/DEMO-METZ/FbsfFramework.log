@@ -1,0 +1,22 @@
+[warning] QQmlApplicationEngine failed to load component
+[warning] qrc:/qml/FbsfMain.qml:2 module "QtQuick.XmlListModel" is not installed
+qrc:/qml/FbsfMain.qml:6 module "QtQuick.Dialogs" is not installed
+qrc:/qml/FbsfMain.qml:2 module "QtQuick.XmlListModel" is not installed
+qrc:/qml/FbsfMain.qml:6 module "QtQuick.Dialogs" is not installed
+
+[info] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[info] Framework version :  2.0
+[info] Current working path: "/home/antoine/L3S/fbsf-demo/DEMO-METZ"
+[info] Configuration file : "simul.xml"
+[info] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[info] Application path : "/home/antoine/L3S/fbsf-demo/DEMO-METZ"
+[info] Components path : "/home/antoine/L3S/fbsfOpenSource/Library"
+[info] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[info] Simulation parameters :
+[info] 	 "speedfactor" "0.5"
+[info] 	 "timestep" "0.2"
+[info] 	 "version" "1.0"
+[info] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[info] Sequence :  "Main" period : 1 timestep : 0.2
+[info] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[fatal] Unable to load the main qml file
