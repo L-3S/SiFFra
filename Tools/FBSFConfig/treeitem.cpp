@@ -95,7 +95,7 @@ QString  TreeItem::checkParamList()
     QString header;
     QString errorList;
 
-    bool hasError=false;
+    bool bHasError=false;
 
     if(type()==typeFork || type()==typePlugins)
         return report;// nothing to check
@@ -116,26 +116,85 @@ QString  TreeItem::checkParamList()
     {
         report = header + "\n\tAbstract module,the type must be defined\n";
     }
-    // Check every parameter
-    QList<QObject*>::const_iterator iter;
-    for (iter = getParamList().constBegin();
-         iter != getParamList().constEnd(); ++iter)
+    else
     {
-        // get parameter
-        ParamValue& data =*( dynamic_cast<ParamValue*>(*iter));// down cast
-
-        // skip if optional and value is default
-        if(!data.isModified()) continue;
-
-        // Check if mandatory is valid
-        if(data.mandatory() && data.getValue()=="")
+        // Check every parameter
+        QList<QObject*>::const_iterator iter;
+        for (iter = getParamList().constBegin();
+             iter != getParamList().constEnd(); ++iter)
         {
-            errorList += "\n\tempty value for " + data.key() + "\n";
-            hasError=true;
-        }
-    }
-    if(hasError) report = header + errorList;
+            // get parameter
+            ParamValue& data =*( dynamic_cast<ParamValue*>(*iter));// down cast
+            data.hasError(false);
 
+            // skip if optional and value is default
+            if(!data.isModified()) continue;
+
+            // Check if mandatory is valid
+            if(data.mandatory() && data.getValue()=="")
+            {
+                errorList += "\n\tempty value for " + data.key();
+                data.hasError(true);
+                bHasError=true;
+            }
+            // Check if value is in list
+            if(data.type()==ParamValue::typeStringList)
+            {
+                if(!data.value().toList().contains(data.getValue()))
+                {
+                    errorList += "\n\tValue not in list for " + data.key();
+                    data.hasError(true);
+                    bHasError=true;
+                }
+            }
+            else
+            {
+                // Check range for value
+                switch (data.defaultType())
+                {
+                case QVariant::Bool   :
+                    if(data.value().toString().toLower()!="true"
+                            &&data.value().toString().toLower()!="false")
+                    {
+                        errorList += "\n\tnot a boolean value for " + data.key();
+                        data.hasError(true);
+                        bHasError=true;
+                    }
+                    break;
+                case QVariant::Int    :
+                    if (data.value().toInt()<data.minStrict().toInt()
+                            || data.value().toInt()>data.maxStrict().toInt())
+                    {
+                        errorList += "\n\tvalue out of range for " + data.key();
+                        data.hasError(true);
+                        bHasError=true;
+                    }
+                    break;
+                case QVariant::Double :
+                    if (data.value().toDouble()<data.minStrict().toDouble()
+                            || data.value().toDouble()>data.maxStrict().toDouble())
+                    {
+                        errorList += "\n\tvalue out of range for " + data.key();
+                        data.hasError(true);
+                        bHasError=true;
+                    }
+                    break;
+                case QVariant::LongLong :
+                    if (data.value().toLongLong()<data.minStrict().toLongLong()
+                            || data.value().toLongLong()>data.maxStrict().toLongLong())
+                    {
+                        errorList += "\n\tvalue out of range for " + data.key();
+                        data.hasError(true);
+                        bHasError=true;
+                    }
+                    break;
+                default : break;
+                }
+            }
+        }
+        if(bHasError) report = header + errorList + "\n";
+        hasError(bHasError);
+    }
     return report;
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -212,8 +271,11 @@ bool TreeItem::setData(int column, const QVariant &value)
     return true;
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// currently not used
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 bool TreeItem::insertChildren(int position, int count, QVector<QVariant>& data)
 {
+    Q_UNUSED(data)
     if (position < 0 || position > mChildItems.size())
         return false;
 
@@ -273,6 +335,7 @@ void TreeItem::getXmlItemData(QString& aXmlConfig, int level)
 
         // skip if value is optional and default
         if(!data.isModified()) continue;
+
         if(data.type()==ParamValue::typeStringList)
         {
             if (data.currentText().isEmpty()) return;

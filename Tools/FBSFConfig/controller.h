@@ -59,6 +59,7 @@ public:
     Q_INVOKABLE int setItemName(const QModelIndex &aIndex,const QVariant& aName);
     Q_INVOKABLE void setModuleType(const QModelIndex &aIndex,
                                    const QVariant &aModuleType);
+    Q_INVOKABLE void checkParams(const QModelIndex &aIndex);
 
     Q_INVOKABLE void itemParamChanged(int aIndex,
                                       const QVariant& aName,

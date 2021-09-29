@@ -30,6 +30,7 @@ TreeModel::TreeModel( QObject *parent)
     m_roleNameMapping[RoleModuleType] = "moduleType";
     // gui roles
     m_roleNameMapping[RoleSelected] = "selected";
+    m_roleNameMapping[RoleHasError] = "hasError";
     m_roleNameMapping[RoleParamList] = "params";
     // root
     rootItem = new TreeItem("root",typeRootSequence);
@@ -126,6 +127,17 @@ const QString TreeModel::checkModelData()
     // traverse the tree model to check module and plugin items
     QString report;
     checkItemParams(rootItem,report);
+
+    if(!report.isEmpty())
+    {
+        hasError(true);
+    }
+    else
+    {
+        hasError(false);
+    }
+    emit layoutChanged();// display/hide error icon
+
     return report;
 }
 //~~~~~~~ recursive check of module and plugin items ~~~~~~~~~~
@@ -136,6 +148,14 @@ void TreeModel::checkItemParams(TreeItem* item,QString& aReport)
     {
         checkItemParams(item->child(i),aReport);
     }
+}
+//~~~~~~~ check module and plugin items ~~~~~~~~~~
+void TreeModel::checkItemParams(QModelIndex aIndex)
+{
+    QString report;
+    TreeItem *item = getItem(aIndex);
+    item->checkParamList();
+    emit layoutChanged();// display/hide error icon
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Get the simulation description
@@ -336,6 +356,8 @@ void TreeModel::setConfigName(const QString& aName)
 void TreeModel::setConfigUrl(const QUrl& aFileUrl)
 {
     mConfigUrl=aFileUrl;
+    if(aFileUrl.isEmpty()) return;
+
     QFileInfo filename(mConfigUrl.toLocalFile());
     emit configUrlChanged();
 
@@ -813,6 +835,7 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
     if (!index.isValid()) return QVariant();
     TreeItem *item = static_cast<TreeItem*>(index.internalPointer());
     if(role==RoleSelected) return QVariant(item->isSelected());
+    if(role==RoleHasError) return QVariant(item->hasError());
     if(role==RoleParamList) return QVariant::fromValue(item->getParamList());
 
     if (role - Qt::UserRole> columnCount(index)) return QVariant();
@@ -829,6 +852,10 @@ bool TreeModel::setData(const QModelIndex &index, const QVariant &value, int rol
     {
         item->setSelected(value.toBool());
     }
+    else if(role==RoleHasError)
+    {
+        item->hasError(value.toBool());
+    }
     else
     {
         if (role-Qt::UserRole > columnCount(index))  return false;
@@ -842,7 +869,7 @@ bool TreeModel::setData(const QModelIndex &index, const QVariant &value, int rol
 Qt::ItemFlags TreeModel::flags(const QModelIndex &index) const
 {
     if (!index.isValid())
-        return 0;
+        return Qt::NoItemFlags;
 
     return QAbstractItemModel::flags(index);
 }

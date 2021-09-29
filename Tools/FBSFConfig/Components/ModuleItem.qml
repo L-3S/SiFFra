@@ -18,7 +18,13 @@ Element {
         border.color: highlight ? "red" : category===""?"orange":"white"
         border.width: highlight ? 3 : category===""?3:1
         radius      : 10
-
+        Image{
+            anchors.left : itemShape.left
+            anchors.top  : itemShape.bottom
+            width : 16 ; height : width
+            source : "qrc:/icons/warning.png"
+            visible : hasError
+        }
         // module name
         Text{id:text
             text    : name

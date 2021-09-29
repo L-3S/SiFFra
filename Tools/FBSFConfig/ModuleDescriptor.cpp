@@ -56,13 +56,15 @@ ModuleDescriptor::ModuleDescriptor(QString aCategory,
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 const QMap<QString, ParamProperties>& ModuleDescriptor::getModuleTypeProperties(QString aType)
 {
+
     if(sModuleTypeMap.contains(aType))
     {
         return sModuleTypeMap.value(aType)->mProperties;
     }
     else
     {
-        qDebug() << __FUNCTION__ << "no properties found for type " << aType;
+        if(!aType.isEmpty()) qDebug() << __FUNCTION__
+                                      << "no properties found for type " << aType;
         return emptyProperties;
     }
 }

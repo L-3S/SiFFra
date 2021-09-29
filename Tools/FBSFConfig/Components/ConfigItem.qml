@@ -23,7 +23,13 @@ Element {
         border.color: highlight ? "red" : "white"
         border.width: highlight ? 3 : 1
         radius      : 10
-
+        Image{
+            anchors.left : itemShape.left
+            anchors.top  : itemShape.bottom
+            width : 16 ; height : width
+            source : "qrc:/icons/warning.png"
+            visible : hasError
+        }
         // configuration name
         Text{id:textName
             text    : name

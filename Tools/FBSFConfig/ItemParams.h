@@ -24,6 +24,8 @@ class ParamValue : public QObject
     Q_PROPERTY(QString description READ description CONSTANT)
     Q_PROPERTY(int index READ index WRITE setIndex NOTIFY indexChanged)
 
+    Q_PROPERTY(bool hasError READ hasError NOTIFY hasErrorChanged)
+
 public:
     // Default constructor
     explicit ParamValue(QObject *parent = nullptr)
@@ -161,23 +163,28 @@ public:
     {//qDebug() << __FUNCTION__<< key() << getValue() << mDefaultValue;
         return(mMandatory || getValue()!=mDefaultValue);
     }
+    bool            hasError() const {return mHasError; }
+    void            hasError(bool aFlag) {mHasError=aFlag;emit hasErrorChanged(aFlag);}
 public slots:
     // called from QML
     void setValue(const QVariant& aValue)
     {
         if(mValue==aValue) return;
         mValue=aValue;
+        hasError(false); // we assume value as valid
     }
     void setIndex(int aIndex)
     {
         if(mIndex==aIndex) return;
         mIndex=aIndex;
+        hasError(false); // we assume value as valid
     }
 
 signals:
     // signal change to parent model
     void valueChanged(QString aKey, QString aName,QVariant aValue);
     void indexChanged(int aIndex);
+    void hasErrorChanged(bool aStatus);
 
 private :
     QString     mKey;
@@ -195,6 +202,9 @@ private :
 
     QVariant::Type  mDefaultType;
     QVariant        mDefaultValue;
+
+    bool            mHasError=false;
+
 };
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 class ParamList : public QList<QObject*>

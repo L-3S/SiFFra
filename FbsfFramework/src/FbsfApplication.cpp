@@ -63,9 +63,6 @@ FbsfApplication *FbsfApplication::app(int & argc, char **argv)
     if (sApplicationHome.isEmpty())
     {
         QString msg("Environment variable APP_HOME not set");
-#ifndef MODE_BATCH
-        qFatal(msg.toStdString().c_str());
-#endif
         qFatal(msg.toStdString().c_str());
     }
 #ifndef MODE_BATCH
@@ -178,7 +175,9 @@ FbsfGuiApplication::FbsfGuiApplication(eApplicationMode aMode,int & argc,char** 
     // add import paths for components
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     sComponentsPath=qgetenv("COMPONENTS_PATH");
+
     if (sComponentsPath.isEmpty()) sComponentsPath = sFrameworkHome+"/Library";
+
     if (!QDir(sComponentsPath).exists())
     {
         QString msg("Invalid component path :\n"+sComponentsPath);

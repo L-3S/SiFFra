@@ -11,9 +11,7 @@ ApplicationWindow {
                                        + controller.config.configUrl
     width : 1200
     height : 600
-
-    header: AppToolBar{}
-
+    header: AppToolBar{id:toolBar}
     color                       : "Dimgrey"
     property real zoom          : 1
 
@@ -38,6 +36,7 @@ ApplicationWindow {
     function openConfig(aFileName)
     {
         controller.openConfig(aFileName)
+        controller.checkConfig()
     }
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     function saveConfig()
@@ -297,16 +296,18 @@ ApplicationWindow {
         }
     }
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Dialog {
-        id      : msgCheck
-        title   : "FBSF configuration verification"
-        standardButtons : Dialog.Cancel
-        property alias report : lbText.text
-        Label {id : lbText
-            color : "black"
-            text: ""
-        }
-    }
+//    Dialog {
+//        id      : msgCheck
+//        title   : "FBSF configuration verification"
+//        standardButtons : Dialog.Cancel
+//        property alias report : lbText.text
+//        Label {id : lbText
+//            color : "black"
+//            text: ""
+//        }
+//    }
+    CheckReport{id : msgCheck}
+
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     FileDialog{
         id: fileDialog
