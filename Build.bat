@@ -15,7 +15,7 @@ call %~dp0fbsfenv.bat
 rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 rem Path for VISUAL compiler
 rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-set CompilerPath="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat"
+set CompilerPath="C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat"
 IF EXIST %CompilerPath% (
 	call %CompilerPath% x64
 ) ELSE (

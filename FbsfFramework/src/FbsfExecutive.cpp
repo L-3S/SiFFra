@@ -339,6 +339,10 @@ void FbsfExecutive::control(QString command, QString param1, QString param2)
     // then process the executive command locally
     if (mAppMode == client && mNetClient)
         mNetClient->sendExecutiveMsg(command);// TODO send param
+    if (command == "cancel") {
+        cancelWorking();
+        workflowState = ePause;
+    }
 
     //~~~~~~~~~~~~~~~~~~ Pause simulation ~~~~~~~~~~~~~~~~~~~~~~~
     if (command == "pause")
@@ -565,6 +569,12 @@ void FbsfExecutive::resetWorking(int aNbSequences)
 {
     iterCond.release(aNbSequences);
 }
+
+void FbsfExecutive::cancelWorking()
+{
+    iterCond.release(0);
+}
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// number of working with iterations called
 /// from Executive controller

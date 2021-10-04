@@ -6,7 +6,6 @@
 #include <QString>
 #include <QDebug>
 
-#include "ModuleLogic/ModuleLogic_global.h"
 #include "FbsfBaseModel.h"
 #include "FbsfGlobal.h"
 #include "FbsfSequence.h"

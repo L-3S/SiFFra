@@ -94,6 +94,7 @@ private:
 
     void    waitCompletion(int aNbTasks);
     void    resetWorking(int aNbSequences);
+    void    cancelWorking();
     int     stillWorking();
 
     enum state {eInitialize,ePause,eRun,eStep,eStop,eWait}workflowState;

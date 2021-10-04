@@ -1,0 +1,3 @@
+WATH
+[debug] WATH
+[warning] QCommandLineParser: argument list cannot be empty, it should contain at least the executable name

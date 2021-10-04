@@ -1,5 +1,7 @@
 TEMPLATE    = app
 
+include(../FbsfTargets.pri)
+
 # Configuration full batch code
 BATCH {
     message( "Configuring FbsfFramework for BATCH build..." )
@@ -12,60 +14,35 @@ else {# Configuration gui code
 
     TARGET = FbsfFramework
     QT      += gui qml quick xml widgets network
-    LIBS        += -L$$PWD/../Depends/ -lFbsfEditorLibrary
+    LIBS        += -L$$FBSF_HOME/Depends/ -lFbsfEditorLibrary
 }
 
 linux{
     QMAKE_LFLAGS += -rdynamic
 }
 win32-g++{
-    QMAKE_LFLAGS += -Wl,--out-implib=../lib/FbsfFramework.a
+    QMAKE_LFLAGS += -Wl,--out-implib=$$FBSF_LIB_DIR/FbsfFramework.a
 }
 INCLUDEPATH += src FbsfPublicData FbsfNetwork
-LIBS    += -L$$PWD/../lib/ -lFbsfNetwork
+LIBS    += -L$$FBSF_LIB_DIR -lFbsfNetwork
 
-LIBS    += -L$$PWD/fbsfplugins -lFbsfPublicData
+LIBS    += -L$$FBSF_PLUGINS_DIR -lFbsfPublicData
 
 # ADD DLL for FbsfBaseModel
-LIBS        += -L$$PWD/../lib/ -lFbsfBaseModel
-INCLUDEPATH += $$PWD/../FbsfBaseModel
-DEPENDPATH  += $$PWD/../FbsfBaseModel
+LIBS        += -L$$FBSF_LIB_DIR -lFbsfBaseModel
+INCLUDEPATH += $$FBSF_HOME/FbsfBaseModel
+DEPENDPATH  += $$FBSF_HOME/FbsfBaseModel
 
 INCLUDEPATH += shared/include shared/parser
 
 DEFINES     += FBSF_FRAMEWORK_LIBRARY
 DEFINES     += STANDALONE_XML_PARSER
 
-RESOURCES += resources.qrc
+include($$PWD/FbsfFrameworkSources.pri)
 
 SOURCES +=  \
-            src/FbsfExecutive.cpp\
-            src/FbsfPerfmeter.cpp \
-            src/FbsfSequence.cpp\
-            shared/parser/XmlElement.cpp \
-            shared/parser/XmlParser.cpp \
-            shared/parser/XmlParserCApi.cpp \
-            src/FbsfApplication.cpp \
-            src/FbsfControler.cpp \
-            src/FbsfConfiguration.cpp \
-            src/FbsfNode.cpp\
-            src/main.cpp \
 
-# Production path
-DESTDIR = ../lib
 
-HEADERS +=  \
-            src/FbsfExecutive.h \
-            src/FbsfPerfmeter.h \
-            src/FbsfSequence.h\
-            shared/parser/XmlElement.h \
-            shared/parser/XmlParser.h \
-            shared/parser/XmlParserCApi.h \
-            shared/parser/XmlParserException.h \
-            src/FbsfApplication.h \
-            src/FbsfControler.h \
-            src/FbsfConfiguration.h \
-            src/FbsfNode.h
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Deployment target
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -99,4 +76,7 @@ build_installer.commands    = $$(FBSF_HOME)/Installer/BuildInstaller.bat
 QMAKE_EXTRA_TARGETS +=  install_qtbinaries build_installer
 
 INSTALLS += target config dev fmu library
+
+
+
 

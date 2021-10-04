@@ -41,6 +41,7 @@ public :
     static  FbsfApplication* app(int & argc, char **argv);
     FbsfApplication(const FbsfApplication&) = delete;
     FbsfApplication& operator=(const FbsfApplication&) = delete;
+    virtual void            setup(QString)=0;
 
     virtual int             start(uint aPeriod=100,float aFactor=1,uint recorder=0)=0;
     virtual int             addSequence(QString aName,float aPeriod,
@@ -57,7 +58,9 @@ public :
     virtual void            setOptPerfMeter(bool aFlag);
 
     static int              parseCommandLine(QStringList arglist);
+    static int              parseArguments();
     static  QCommandLineParser&     parser(){return mParser;}
+    int             generateSequences();
 
     FbsfConfiguration&              config(){return mConfig;}
     QString&                        configName() {return config().Name();}
@@ -70,6 +73,9 @@ public :
     static QString                  sFrameworkHome;
     static QString                  sApplicationHome;
     static QString                  sComponentsPath;
+    float   timeStep    = 0.5;
+    float   speedFactor = 1.0;// n > 1  => slow time by n
+    uint    recorderSize = UINT_MAX;
 };
 #ifndef MODE_BATCH
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -93,6 +99,7 @@ public:
     eApplicationMode        mode() override {return mMode;}
     virtual void            loadQML() override;
     virtual void            setTimeDepend(bool aFlag) override;
+    void                    setup(QString) override;
 
 protected:
     bool event(QEvent *e) Q_DECL_OVERRIDE;
@@ -116,6 +123,7 @@ class FBSF_FRAMEWORKSHARED_EXPORT FbsfBatchApplication
 public:
     FbsfBatchApplication(eApplicationMode aMode, int & argc, char **argv);
     virtual ~FbsfBatchApplication()override;
+    void                    setup(QString) override;
     int                     start(uint aPeriod=100, float aFactor=1, uint aRecorder=0)override;
     int                     addSequence(QString aName,float aPeriod,
                                         QList<FbsfConfigNode>& aNodes,
