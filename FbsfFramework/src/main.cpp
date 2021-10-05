@@ -26,7 +26,7 @@ void MessageHandler(QtMsgType type, const QMessageLogContext &context, const QSt
 #ifndef BUILD_API
     int main(int argc, char **argv)
 #else
-void* FbsfApi::mainApi(int argc, char **argv)
+FbsfApplication* FbsfApi::mainApi(int argc, char **argv)
 #endif
 {
     qDebug("WATH");

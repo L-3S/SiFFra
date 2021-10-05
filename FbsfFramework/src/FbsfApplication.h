@@ -33,8 +33,9 @@ class FbsfBatchApplication;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Base class for GUI, Batch or Server application
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-class FBSF_FRAMEWORKSHARED_EXPORT FbsfApplication
+class FBSF_FRAMEWORKSHARED_EXPORT FbsfApplication: public QObject
 {
+    Q_OBJECT
 public :
     FbsfApplication(){}
     virtual ~FbsfApplication();

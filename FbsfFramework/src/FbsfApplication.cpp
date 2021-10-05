@@ -7,6 +7,7 @@
 #include <QQmlContext>
 #include <QtWidgets/QMessageBox>
 #endif
+#include <iostream>
 #include <QCoreApplication>
 #include <QDir>
 
@@ -154,18 +155,23 @@ int FbsfApplication::parseCommandLine(QStringList arglist)
 int FbsfApplication::generateSequences() {
 
     // check modeMcp
+    std::cout << "etape 1"<<std::endl;
+
     bool modeMcp=config().Simulation().value("simuMpc")=="true"?true:false;
     setTimeDepend(modeMcp);
+    std::cout << "etape 2"<<std::endl;
 
     // check option perfMeter
     bool optPerfMeter=config().Simulation().value("perfMeter")=="true"?true:false;
     setOptPerfMeter(optPerfMeter);
 
+    std::cout << "etape 3"<<std::endl;
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // creation of the QML viewer UI
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     loadQML();
 
+    std::cout << "etape 4"<<std::endl;
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Get the simulation parameters
@@ -183,6 +189,7 @@ int FbsfApplication::generateSequences() {
     qInfo() << "Components path :" <<  sComponentsPath;
     qInfo() << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
     qInfo() << "Simulation parameters :";
+    std::cout << "etape 5"<<std::endl;
     foreach ( const QString& key, config().Simulation().keys())
     {
         QString value=config().Simulation().value(key);
@@ -191,11 +198,13 @@ int FbsfApplication::generateSequences() {
         if (key == "speedfactor")   speedFactor=value.toFloat();
         if (key == "recorder")      recorderSize=value.toUInt();
     }
+    std::cout << "etape 6"<<std::endl;
     qInfo() << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // network client : should it be restricted to UI only ???
     if (mode()==client) return start(timeStep*1000,1,recorderSize);
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    std::cout << "etape 7"<<std::endl;
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Get the sequences description
@@ -208,6 +217,7 @@ int FbsfApplication::generateSequences() {
 
         float sequencePeriod=1;//default period to 1
         QMap<QString,QString> vMap = sequence.Descriptor();
+        std::cout << "etape 8"<<std::endl;
         foreach ( const QString& key, vMap.keys())
         {
             QString value=vMap.value(key);
@@ -215,12 +225,14 @@ int FbsfApplication::generateSequences() {
             if (key == "name")      sequenceName=value;
             if (key == "period")    sequencePeriod=value.toFloat();
         }
+        std::cout << "etape 9"<<std::endl;
         addSequence(sequenceName,
                          sequencePeriod,
                          sequence.Nodes(),
                          sequence.Models(),
                          this);
 
+        std::cout << "etape 10"<<std::endl;
     } // end Sequences
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
