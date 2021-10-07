@@ -6,13 +6,7 @@
 #include "FbsfApplication.h"
 #include "FbsfConfiguration.h"
 
-Fmi2Component::Fmi2Component(int aargc, char **aargv): argc(aargc), argv(aargv) {};
-
-void Fmi2Component::run(QString &) {
-    qDebug() << "Satrrrratat";
-    app->start();
-    qDebug() << "OUT";
-};
+Fmi2Component::Fmi2Component(int aac, char **aav): ac(aac), av(aav) {};
 
 FbsfApi::FbsfApi()
 {
@@ -21,22 +15,18 @@ FbsfApi::FbsfApi()
 
 
 void *FbsfApi::instanciate(int argc, char **argv) {
-    return (new Fmi2Component(argc, argv));
+    return new Fmi2Component(argc, argv);
 };
 
 void FbsfApi::fmi2EnterInitialisationMode(void *ptr) {
     Fmi2Component *comp = static_cast<Fmi2Component*>(ptr);
 
 };
-void API_EXPORT fct(void *ptr) {
-    Fmi2Component *comp = static_cast<Fmi2Component*>(ptr);
-    FbsfApi api;
-    comp->app = api.mainApi(comp->argc, comp->argv);
-    qDebug() << comp->app;
-    std::cout << "dazfaezpk1"<<std::endl;
+
+void FbsfApi::fct(Fmi2Component *comp) {
+    comp->app = static_cast<FbsfApplication*>(mainApi(comp->ac, comp->av));
     comp->app->config().Name() = comp->str;
-    std::cout << "dazfaezpk2"<<std::endl;
-    if (!comp) {
+    if (!comp || !comp->app) {
         qFatal("Error: no instance");
     } else if (!comp->app) {
         qFatal("Error: no app");
@@ -51,19 +41,15 @@ void API_EXPORT fct(void *ptr) {
         comp->app->generateSequences();
         std::cout << "dazfaezpk6"<<std::endl;
     }
-    std::cout << "dazfaezpk"<<std::endl;
     comp->app->start();
 }
 void FbsfApi::fmi2ExitInitialisationMode(void *ptr){
     //start ?
     Fmi2Component *comp = static_cast<Fmi2Component*>(ptr);
-//    cont->runC();
-    comp->th = std::thread(fct, ptr);
-//    comp->app->moveToThread(&comp->thr);
-//    comp->connect(comp, &Fmi2Component::operate, comp->app, &FbsfApplication::start);
-//    comp->connect(comp->app, &FbsfApplication::tt, comp, &Fmi2Component::pb);
-//    comp->thr.start();
-//    comp->launch();
+
+//    fct(comp);
+    comp->th = std::thread(fct, comp);
+//    app->th;
 };
 
 void FbsfApi::fmi2DoStep(void *ptr) {

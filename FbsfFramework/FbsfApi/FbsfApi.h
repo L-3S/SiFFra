@@ -17,23 +17,12 @@ class FbsfApplication;
 class API_EXPORT Fmi2Component: public QObject {
     Q_OBJECT
 public:
-    Fmi2Component(int argc, char **argv);
-    QThread thr;
+    int ac;
+    char **av;
+    Fmi2Component(int, char **);
     FbsfApplication *app;
     std::thread th;
-    void launch() {
-        emit operate();
-    }
-    void pb() {
-        qDebug() << "taratata";
-    }
     QString str;
-    int argc;
-    char **argv;
-public slots:
-    void run (QString &);
-signals:
-    void operate(uint aPeriod=100,float aFactor=1,uint recorder=0);
 };
 
 //class API_EXPORT Ctrlr : public QObject {
@@ -64,8 +53,9 @@ class API_EXPORT FbsfApi
 public:
     FbsfApi();
     ~FbsfApi() {};
+    static void fct(Fmi2Component *);
     void *instanciate(int argc, char **argv);
-    FbsfApplication *mainApi(int argc, char **argv);
+    static void *mainApi(int argc, char **argv);
     void fmi2EnterInitialisationMode(void *ptr);
     void fmi2ExitInitialisationMode(void *ptr);
     void fmi2DoStep(void *ptr);
