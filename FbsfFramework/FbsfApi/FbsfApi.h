@@ -13,9 +13,12 @@
 class FbsfApplication;
 class API_EXPORT Fmi2Component {
 public:
-    Fmi2Component(FbsfApplication *Aapp);
+    int ac;
+    char **av;
+    Fmi2Component(int, char **);
     FbsfApplication *app;
     std::thread th;
+    QString str;
 };
 
 class API_EXPORT FbsfApi
@@ -23,8 +26,9 @@ class API_EXPORT FbsfApi
 public:
     FbsfApi();
     ~FbsfApi() {};
+    static void fct(Fmi2Component *);
     void *instanciate(int argc, char **argv);
-    void *mainApi(int argc, char **argv);
+    static void *mainApi(int argc, char **argv);
     void fmi2EnterInitialisationMode(void *ptr);
     void fmi2ExitInitialisationMode(void *ptr);
     void fmi2DoStep(void *ptr);

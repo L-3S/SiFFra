@@ -21,8 +21,8 @@ FbsfControler::FbsfControler(QObject *parent) :
     // QML Monitor update if Standalone or Client mode
     if  (mNetServer == nullptr)
     {
-        connect(this,SIGNAL(updateMonitor()), &sListviewDataModel,SLOT(updateValues()));
-        connect(this,SIGNAL(updateMonitorList()),&sListviewDataModel,SLOT(updateList()));
+        connect(this,SIGNAL(updateMonitor()), FbsfdataModel::sFactoryListviewDataModel(),SLOT(updateValues()));
+        connect(this,SIGNAL(updateMonitorList()), FbsfdataModel::sFactoryListviewDataModel(),SLOT(updateList()));
     }
 #endif
 }

@@ -4,7 +4,7 @@
 #include "FbsfConfiguration.h"
 #include "FbsfBaseModel.h"
 #include "FbsfGlobal.h"
-
+#include "FbsfPublicDataModel.h"
 #ifndef MODE_BATCH
 #include <QApplication>
 #include <QQmlApplicationEngine>

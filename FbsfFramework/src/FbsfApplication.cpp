@@ -9,7 +9,7 @@
 #endif
 #include <QCoreApplication>
 #include <QDir>
-
+#include <iostream>
 QCommandLineParser      FbsfApplication::mParser;
 QStringList             FbsfApplication::arglist;
 QString                 FbsfApplication::sFrameworkHome;
@@ -164,8 +164,9 @@ int FbsfApplication::generateSequences() {
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // creation of the QML viewer UI
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    std::cout << "Loading QML" << std::endl;
     loadQML();
-
+    std::cout << "QML loaded" << std::endl;
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Get the simulation parameters
@@ -238,10 +239,10 @@ void FbsfApplication::setOptPerfMeter(bool aFlag)
 FbsfGuiApplication::FbsfGuiApplication(eApplicationMode aMode,int & argc,char** argv)
     : QApplication(argc, argv)
     , QQuickView(nullptr)
+    , mEngine()
     , mWindow(nullptr)
     , mMode(aMode)
 {
-
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Executive = new FbsfExecutive(aMode);
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -273,7 +274,7 @@ void FbsfGuiApplication::setup(QString path) {
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // QML data exchange listmodel binding
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    ctxt->setContextProperty("FbsfDataModel", &sListviewDataModel);
+    ctxt->setContextProperty("FbsfDataModel", FbsfdataModel::sFactoryListviewDataModel());
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // add import paths for plugins
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
