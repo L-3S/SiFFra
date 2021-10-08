@@ -1,8 +1,8 @@
 rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 rem Path for QT toolkit
 rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-set QTDIR=C:\Qt
-set QT_VERSION=5.15.0
+set QTDIR=E:\Tools\Qt
+set QT_VERSION=5.15.2
 set QT_COMPILER=msvc2019_64
 
 if "%QTDIR%"=="" (
