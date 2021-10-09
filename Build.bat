@@ -1,43 +1,52 @@
 @echo off
-REM for RELEASE set OPTION=release
-REM for debug set OPTION=debug
-REM OPTION must be defined by calling script
-REM Or OPTION is defined by user in interactive mode (detected by void option)
+rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+rem Target to build is release,debug or batch
+rem Could be an argument of this batch file or input from kewbord
+rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+if "%1" == "" (
+	echo A build mode is required. Please enter release, debug  or batch
+	set /p fbsfMode=?:
+) else (
+	set /p fbsfMode = %1
+)
+
 rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 rem Path for QT toolkit
 rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-call %~dp0QtVersion.bat
-rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-rem Path for framework
-rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-call %~dp0fbsfenv.bat
+call %~dp0QtVersion.bat 
 
 rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 rem Path for VISUAL compiler
 rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-set CompilerPath="C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat"
-IF EXIST %CompilerPath% (
+set CompilerPath="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat"
+if exist %CompilerPath% (
 	call %CompilerPath% x64
-) ELSE (
-	ECHO CompilerPath Invalid
+) else (
+	echo CompilerPath Invalid
 	pause
 	exit
 )
 
-set build_config=""
-if /i "%1" == "BATCH" (
-set build_config="CONFIG+=BATCH"
+rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+rem clean
+rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+rem if exist Makefile call jom distclean
+
+
+if /i %fbsfMode% == release (
+	echo build fbsf release mode
+	call qmake FBSF.pro
+	call jom
+	
+) else if /i %fbsfMode% == debug (
+	echo build fbsf debug mode
+	call qmake FBSF.pro
+	call jom debug 
+) else if /i %fbsfMode% == batch (
+	echo build fbsf batch mode
+	call qmake "CONFIG+=BATCH" FBSF.pro
+	call jom
+) else (
+	echo %fbsfMode% is not a build mode. Please enter release, debug or batch
 )
-ECHO A build mode is required. please enter release or debug
-set /p OPTION=release or debug?:
-
-REM clean
-if exist Makefile call jom distclean
-
-
-REM Create makefiles
-call qmake  %build_config% FBSF.pro
-
-
-REM compile
-if "%OPTION%"=="debug" (call jom debug) else (call jom)
+pause
