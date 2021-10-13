@@ -55,7 +55,7 @@ void FbsfApi::fmi2ExitInitialisationMode(void *ptr){
 void FbsfApi::fmi2DoStep(void *ptr) {
     Fmi2Component *comp = static_cast<Fmi2Component*>(ptr);
 //    emit guiControl("step");
-//    comp->app->executive()->control("step");
+    comp->app->executive()->control("step");
 };
 
 void FbsfApi::fmi2CancelStep(void *ptr) {
