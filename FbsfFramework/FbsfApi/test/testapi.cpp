@@ -1,27 +1,44 @@
 #include "testapi.h"
-#include <iostream>
-using namespace std;
-TestAPI::TestAPI()
-{
-
-}
-
+#include <QApplication>
+#include <string>
 int main(int ac, char **av) {
-    FbsfApi api;
     cout << "instanciate"<<endl;
+    FbsfApi api;
     void *comp = api.instanciate(ac, av);
-    cout << "set str"<<endl;
-    api.fmi2SetString(comp, "./simul.xml");
-    cout << "Init"<<endl;
-    api.fmi2EnterInitialisationMode(comp);
-    cout << "run"<<endl;
-    api.fmi2ExitInitialisationMode(comp);
-    cout << "als"<<endl;
-    _sleep(10000);
-    while (1) {
-        api.fmi2DoStep(comp);
-        _sleep(1000);
+    std::string cmd;
+    cout << "command:";
+    while (getline(cin, cmd)){
+        if (cmd == "load" || cmd == "l") {
+            cout << "What file? default:simul.xml :";
+            getline(cin, cmd);
+            if (cmd == "") {
+                cmd = "simul.xml";
+            }
+            cout << "loading " << cmd << endl;
+            api.fmi2SetString(comp, QString::fromStdString(cmd));
+        } else if (cmd == "init" || cmd == "i") {
+            cout << "Init"<<endl;
+            api.fmi2EnterInitialisationMode(comp);
+        } else if (cmd == "run") {
+            api.fmi2ExitInitialisationMode(comp);
+        } else if (cmd == "s") {
+            api.fmi2DoStep(comp);
+        } else if (cmd == "term") {
+            api.fmi2Terminate(comp);
+        } else if (cmd == "cancel" || cmd == "c") {
+            api.fmi2CancelStep(comp);
+        } else if (cmd == "st") {
+            fmi2String str;
+            api.fmi2GetStringStatus(comp, fmi2PendingStatus, &str);
+            int i = 0;
+            std::cout << "status :";
+//            while(str[i]) {
+//                std::cout << str[i];
+//                i++;
+//            }
+            std::cout <<std::endl;
+        }
+        cout << "command:";
     }
-    api.fmi2Terminate(comp);
     cout << "ended"<<endl;
 }

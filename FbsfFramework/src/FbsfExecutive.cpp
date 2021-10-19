@@ -140,6 +140,9 @@ int FbsfExecutive::addSequence(QString aName, float aPeriod,
 
     // connect signal to sequence slots : cycle start
     connect(this  , SIGNAL(cycleStart()) , pSequence, SLOT(cycleStart()));
+    std::cout << "setup seq STEP" << this << std::endl;
+    connect(this  , SIGNAL(cancelStep()) , pSequence, SLOT(cancelSeqStep()));
+    connect(this  , SIGNAL(cancelStep()) , thread, SLOT(quit()));
     // connect signal to sequence slots : pre/step computation and finalization
     connect(this  , SIGNAL(consume()) , pSequence, SLOT(consumeData()));
     connect(this  , SIGNAL(compute()) , pSequence, SLOT(computeStep()));
@@ -340,13 +343,13 @@ void FbsfExecutive::control(QString command, QString param1, QString param2)
     if (mAppMode == client && mNetClient)
         mNetClient->sendExecutiveMsg(command);// TODO send param
     if (command == "cancel") {
-        cancelWorking();
+        std::cout << "CANLING STEP" << this << std::endl;
+        emit FbsfExecutive::cancelStep();
+//        emit cycleStart();
         workflowState = ePause;
-    }
-
+        if (isSuspended()) wakeup();
     //~~~~~~~~~~~~~~~~~~ Pause simulation ~~~~~~~~~~~~~~~~~~~~~~~
-    if (command == "pause")
-    {
+    } else if (command == "pause") {
         //~~~~~~~~~~~~~~~~~~ Pause simulation ~~~~~~~~~~~~~~~~~~~~~
         workflowState = ePause;
         if (isSuspended()) wakeup();
@@ -568,11 +571,6 @@ void FbsfExecutive::waitCompletion(int aNbTasks)
 void FbsfExecutive::resetWorking(int aNbSequences)
 {
     iterCond.release(aNbSequences);
-}
-
-void FbsfExecutive::cancelWorking()
-{
-    iterCond.release(0);
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

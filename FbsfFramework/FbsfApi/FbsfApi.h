@@ -6,6 +6,8 @@
 #include <QObject>
 #include <QThread>
 #include <QDebug>
+#include <mutex>
+#include <queue>
 
 #if defined(BUILD_API)
 #  define API_EXPORT Q_DECL_EXPORT
@@ -14,15 +16,17 @@
 #endif
 
 class FbsfApplication;
-class API_EXPORT Fmi2Component: public QObject {
+class API_EXPORT FbsfFmi2Component: public QObject {
     Q_OBJECT
 public:
     int ac;
     char **av;
-    Fmi2Component(int, char **);
+    FbsfFmi2Component(int, char **);
     FbsfApplication *app;
-    std::thread th;
+    std::thread qtThread;
     QString str;
+    std::mutex mu;
+    bool run;
 };
 
 //class API_EXPORT Ctrlr : public QObject {
@@ -47,27 +51,69 @@ public:
 //    Fmi2Component *comp;
 //    Ctrlr *ctrl;
 //};
+typedef enum {
+    fmi2OK,
+    fmi2Warning,
+    fmi2Discard,
+    fmi2Error,
+    fmi2Fatal,
+    fmi2Pending
+} fmi2Status;
+
+typedef enum {
+    fmi2DoStepStatus,
+    fmi2PendingStatus,
+    fmi2LastSuccessfulTime,
+    fmi2Terminated
+} fmi2StatusKind;
+
+#define fmi2True 1
+#define fmi2False 0
+
+typedef void* fmi2Component;
+typedef void* fmi2ComponentEnvironment;
+typedef void* fmi2FMUstate;
+typedef void* fmi2ValueReference;
+typedef double fmi2Real;
+typedef int fmi2Integer;
+typedef int fmi2Boolean;
+typedef char fmi2Char;
+typedef fmi2Char* fmi2String;
+typedef char fmi2Byte;
 
 class API_EXPORT FbsfApi
 {
 public:
     FbsfApi();
     ~FbsfApi() {};
-    static void fct(Fmi2Component *);
-    void *instanciate(int argc, char **argv);
-    static void *mainApi(int argc, char **argv);
-    void fmi2EnterInitialisationMode(void *ptr);
-    void fmi2ExitInitialisationMode(void *ptr);
-    void fmi2DoStep(void *ptr);
-    void fmi2CancelStep(void *ptr);
-    void fmi2Terminate(void *ptr);
-    void fmi2FreeInstance(void *ptr);
-    void fmi2GetStatus(void *ptr);
-    void fmi2GetRealStatus(void *ptr);
-    void fmi2GetIntegerStatus(void *ptr);
-    void fmi2GetBooleanStatus(void *ptr);
-    void fmi2GetStringStatus(void *ptr);
-    void fmi2SetString(void *ptr, QString str);
+    static void fct(FbsfFmi2Component *);
+    fmi2Component instanciate(int argc, char **argv);
+    static fmi2Component mainApi(int argc, char **argv);
+    fmi2Status fmi2EnterInitialisationMode(fmi2Component ptr);
+    fmi2Status fmi2ExitInitialisationMode(fmi2Component ptr);
+    fmi2Status fmi2DoStep(fmi2Component ptr);
+    fmi2Status fmi2CancelStep(fmi2Component ptr);
+    fmi2Status fmi2Terminate(fmi2Component ptr);
+    fmi2Status fmi2FreeInstance(fmi2Component ptr);
+    fmi2Status fmi2GetStatus(fmi2Component ptr, const fmi2StatusKind s, fmi2Status *value);
+    fmi2Status fmi2GetRealStatus(fmi2Component ptr, const fmi2StatusKind s, fmi2Real *value);
+    fmi2Status fmi2GetIntegerStatus(fmi2Component ptr, const fmi2StatusKind s, fmi2Integer *value);
+    fmi2Status fmi2GetBooleanStatus(fmi2Component ptr, const fmi2StatusKind s, fmi2Boolean *value);
+    fmi2Status fmi2GetStringStatus(fmi2Component ptr, const fmi2StatusKind s, fmi2String *value);
+    fmi2Status fmi2SetString(fmi2Component ptr, QString str);
+private:
+    void copyStringToBuff(std::string s, fmi2String *buff) {
+        if (mBuff) {
+            free(mBuff);
+        }
+        mBuff = (char*)calloc(s.length() + 1, sizeof(fmi2Char));
+        if (!mBuff) {
+            qFatal("Can't alloc memory");
+        }
+        buff = &mBuff;
+    }
+
+    char *mBuff;
 };
 
 #endif // FBSFAPI_H

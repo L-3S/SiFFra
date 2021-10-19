@@ -68,11 +68,13 @@ private :
 public slots:
     void            initialize();
     void            cycleStart();
+    void            cancelSeqStep();
     void            consumeData();
     void            computeStep();
 
 signals:
     void            finished();
+    void            cancelModelStep();
     void            error(QString err);
 };
 

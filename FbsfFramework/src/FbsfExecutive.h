@@ -63,6 +63,9 @@ public:
                         mutex.unlock();
                         bSuspended=false;
                     }
+    void stopApp() {
+        emit exit();
+    }
     // Causes the current thread to wakeup
     void            wakeup(){ waitCondition.wakeOne();bSuspended=false;}
     bool            isSuspended() { return bSuspended;}
@@ -78,6 +81,7 @@ private :
 // signals
 signals:
     void            cycleStart();               // signal start of major cycle
+    void            cancelStep();
     void            consume();                  // signal data consumption
     void            compute();                  // signal step computation
     void            statusChanged(QVariant  mode,QVariant  state);// signal status change to UI

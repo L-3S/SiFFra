@@ -6,7 +6,7 @@
 #include "FbsfApplication.h"
 #include "FbsfConfiguration.h"
 
-Fmi2Component::Fmi2Component(int aac, char **aav): ac(aac), av(aav) {};
+FbsfFmi2Component::FbsfFmi2Component(int aac, char **aav): ac(aac), av(aav) {};
 
 FbsfApi::FbsfApi()
 {
@@ -14,16 +14,22 @@ FbsfApi::FbsfApi()
 }
 
 
-void *FbsfApi::instanciate(int argc, char **argv) {
-    return new Fmi2Component(argc, argv);
+fmi2Component FbsfApi::instanciate(int argc, char **argv) {
+    return new FbsfFmi2Component(argc, argv);
 };
 
-void FbsfApi::fmi2EnterInitialisationMode(void *ptr) {
-    Fmi2Component *comp = static_cast<Fmi2Component*>(ptr);
+fmi2Status FbsfApi::fmi2EnterInitialisationMode(fmi2Component ptr) {
+    FbsfFmi2Component *comp = static_cast<FbsfFmi2Component*>(ptr);
 
+    if (!comp || !comp->app) {
+        qInfo("Error: no instance");
+        return fmi2Error;
+    }
+    comp->qtThread = std::thread(fct, comp);
+    return fmi2OK;
 };
 
-void FbsfApi::fct(Fmi2Component *comp) {
+void FbsfApi::fct(FbsfFmi2Component *comp) {
     comp->app = static_cast<FbsfApplication*>(mainApi(comp->ac, comp->av));
     comp->app->config().Name() = comp->str;
     if (!comp || !comp->app) {
@@ -33,64 +39,159 @@ void FbsfApi::fct(Fmi2Component *comp) {
     } else if (comp->app->configName() == "") {
         qWarning("Error: no configuration provided, use fmi2SetString first.");
     } else {
-        std::cout << "dazfaezpk3"<<std::endl;
         comp->app->setup(comp->app->configName());
-        std::cout << "dazfaezpk4"<<std::endl;
         if(comp->app->config().parseXML(comp->app->configName())==-1) qWarning("Error: can't parse xml configuration file provided: ", comp->app->configName().toStdString().c_str());
-        std::cout << "dazfaezpk5"<<std::endl;
         comp->app->generateSequences();
-        std::cout << "dazfaezpk6"<<std::endl;
+    }
+    while (1) {
+        comp->mu.lock();
+        if (comp->run == true) {
+            comp->mu.unlock();
+            break;
+        }
+        comp->mu.unlock();
     }
     comp->app->start();
 }
-void FbsfApi::fmi2ExitInitialisationMode(void *ptr){
+fmi2Status FbsfApi::fmi2ExitInitialisationMode(fmi2Component ptr){
     //start ?
-    Fmi2Component *comp = static_cast<Fmi2Component*>(ptr);
+    FbsfFmi2Component *comp = static_cast<FbsfFmi2Component*>(ptr);
 
-//    fct(comp);
-    comp->th = std::thread(fct, comp);
-//    app->th;
+    if (!comp || !comp->app) {
+        qInfo("Error: no instance");
+        return fmi2Error;
+    }
+    comp->mu.lock();
+    comp->run = true;
+    comp->mu.unlock();
+    return fmi2OK;
 };
 
-void FbsfApi::fmi2DoStep(void *ptr) {
-    Fmi2Component *comp = static_cast<Fmi2Component*>(ptr);
-//    emit guiControl("step");
-//    comp->app->executive()->control("step");
+fmi2Status FbsfApi::fmi2DoStep(fmi2Component ptr) {
+    FbsfFmi2Component *comp = static_cast<FbsfFmi2Component*>(ptr);
+
+    if (!comp || !comp->app) {
+        qInfo("Error: no instance");
+        return fmi2Error;
+    }
+    QString s = comp->app->executive()->State();
+    if (s == "runnin" || s == "stepping") {
+        return (fmi2Error);
+    }
+    comp->app->executive()->control("step");
+    return fmi2Pending;
 };
 
-void FbsfApi::fmi2CancelStep(void *ptr) {
-    Fmi2Component *comp = static_cast<Fmi2Component*>(ptr);
+fmi2Status FbsfApi::fmi2CancelStep(fmi2Component ptr) {
+    FbsfFmi2Component *comp = static_cast<FbsfFmi2Component*>(ptr);
     if (!comp || !comp->app) {
         qFatal("Error: no instance");
+        return fmi2Error;
     } else {
         comp->app->executive()->control("cancel");
     }
+    return fmi2OK;
 };
 
-void FbsfApi::fmi2Terminate(void *ptr) {
+fmi2Status FbsfApi::fmi2Terminate(fmi2Component ptr) {
     qDebug() << "TERMINATE";
-    Fmi2Component *comp = static_cast<Fmi2Component*>(ptr);
-    comp->th.join();
+    FbsfFmi2Component *comp = static_cast<FbsfFmi2Component*>(ptr);
+
+    if (!comp || !comp->app) {
+        qInfo("Error: no instance");
+        return fmi2Error;
+    }
+    comp->app->executive()->stopApp();
+    comp->qtThread.join();
+    qDebug() << "TERMINATEd";
+    return fmi2OK;
 };
 
-void FbsfApi::fmi2FreeInstance(void *ptr) {};
+fmi2Status FbsfApi::fmi2FreeInstance(fmi2Component ptr) {return fmi2OK;};
+fmi2Status FbsfApi::fmi2GetStatus(fmi2Component ptr, const fmi2StatusKind s, fmi2Status *value)  {
+    FbsfFmi2Component *comp = static_cast<FbsfFmi2Component*>(ptr);
 
-void FbsfApi::fmi2GetStatus(void *ptr) {};
+    if (!comp || !comp->app) {
+        qInfo("Error: no instance");
+        return fmi2Error;
+    }
+    switch (int(s)) {
+    case fmi2DoStepStatus: {
+        QString status = comp->app->executive()->State();
+        if (status == "stepping" || status == "runnning" || status == "waiting") {
+            *value = fmi2Pending;
+        } else {
+            *value = fmi2OK;
+        }
+    }
+    case fmi2PendingStatus: {}
+    case fmi2LastSuccessfulTime: {}
+    case fmi2Terminated: {}
+    }
+    return fmi2OK;
+};
+fmi2Status FbsfApi::fmi2GetRealStatus(fmi2Component ptr, const fmi2StatusKind s, fmi2Real *value) {
+    return fmi2OK;
+};
+fmi2Status FbsfApi::fmi2GetIntegerStatus(fmi2Component ptr, const fmi2StatusKind s, fmi2Integer *value) {
+    return fmi2OK;
+};
+fmi2Status FbsfApi::fmi2GetBooleanStatus(fmi2Component ptr, const fmi2StatusKind s, fmi2Boolean *value) {
+    FbsfFmi2Component *comp = static_cast<FbsfFmi2Component*>(ptr);
 
-void FbsfApi::fmi2GetRealStatus(void *ptr) {};
+    if (!comp || !comp->app) {
+        qInfo("Error: no instance");
+        return fmi2Error;
+    }
+    switch (int(s)) {
+        case fmi2DoStepStatus: {}
+        case fmi2PendingStatus: {}
+        case fmi2LastSuccessfulTime: {}
+        case fmi2Terminated: {
+            QString status = comp->app->executive()->State();
+            if (status == "paused" || status == "stopped") {
+                *value = fmi2True;
+            } else {
+                *value = fmi2False;
+            }
+        }
+    }
 
-void FbsfApi::fmi2GetIntegerStatus(void *ptr) {};
+    return fmi2OK;
+};
+fmi2Status FbsfApi::fmi2GetStringStatus(fmi2Component ptr, const fmi2StatusKind s, fmi2String *value) {
+    FbsfFmi2Component *comp = static_cast<FbsfFmi2Component*>(ptr);
 
-void FbsfApi::fmi2GetBooleanStatus(void *ptr) {};
+    if (!comp || !comp->app) {
+        qInfo("Error: no instance");
+        return fmi2Error;
+    }
+    switch (int(s)) {
+    case fmi2DoStepStatus: {
+    }
+    case fmi2PendingStatus: {
+        QString status = comp->app->executive()->State();
+        std::cout << status.toStdString() << std::endl;
+        copyStringToBuff(status.toStdString(), value);
+        std::cout << "status.toStdString()" << std::endl;
+    }
+    case fmi2LastSuccessfulTime: {}
+    case fmi2Terminated: {}
+    }
 
-void FbsfApi::fmi2GetStringStatus(void *ptr) {};
+    return fmi2OK;
+};
 
-void FbsfApi::fmi2SetString(void *ptr, QString str) {
-    Fmi2Component *comp = static_cast<Fmi2Component*>(ptr);
+fmi2Status FbsfApi::fmi2SetString(fmi2Component ptr, QString str) {
+    FbsfFmi2Component *comp = static_cast<FbsfFmi2Component*>(ptr);
 
     if (!comp) {
-        qFatal("Error: no instance");
+        qInfo("Error: no instance");
+        return fmi2Error;
     } else {
+        comp->mu.lock();
         comp->str = str;
+        comp->mu.unlock();
     }
+    return fmi2OK;
 };

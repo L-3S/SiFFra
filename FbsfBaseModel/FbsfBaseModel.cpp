@@ -159,6 +159,11 @@ void FBSFBaseModel::computeStep()
 
     mSimulationTime+=mTimeStep;// seconds
 }
+void FBSFBaseModel::cancelStep()
+{
+    std::cout<< "SWITCH VAL"<<std::endl;
+    mStepRunning = false;
+}
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// \brief FBSFBaseModel::preStep
 ///        Get input values from public data pool

@@ -6,6 +6,7 @@
 
 #include "FbsfNode.h"
 #include <QThread>
+#include <iostream>
 #include <QMap>
 #include <QList>
 #define SYNCHRONE_INIT  // sequential mode
@@ -167,6 +168,7 @@ void FbsfSequence::addModel(FBSFBaseModel* aModel)
     QObject::connect((QObject *)aModel,SIGNAL(ExecutiveControl(QString,QString)),
                      mApp->executive(), SLOT(control(QString,QString)),
                      Qt::DirectConnection);
+    connect(this, SIGNAL(cancelModelStep()), aModel, SLOT(cancelStep()));
 
     #ifdef TRACE
         qDebug() << "FbsfSequence::addModel : " << aModel->name();
@@ -236,7 +238,14 @@ void FbsfSequence::finalize()
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void  FbsfSequence::cycleStart()
 {
+    std::cout << "SEQ start"<<std::endl;
     mRemainIter=mIter;
+    for (int i = 0; i < mModelList.size(); ++i)
+        mModelList[i]->resetStepRunning();
+}
+void FbsfSequence::cancelSeqStep() {
+    std::cout << "SEQ CANCEL"<<std::endl;
+    emit cancelModelStep();
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// Data consumption procedure : signal to virtual method call
