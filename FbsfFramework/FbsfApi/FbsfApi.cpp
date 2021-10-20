@@ -6,13 +6,12 @@
 #include "FbsfApplication.h"
 #include "FbsfConfiguration.h"
 
-FbsfFmi2Component::FbsfFmi2Component(int aac, char **aav): ac(aac), av(aav) {};
+FbsfFmi2Component::FbsfFmi2Component(int aac, char **aav): ac(aac), av(aav), app(nullptr), run(false), threadRunning(false) {};
 
 FbsfApi::FbsfApi()
 {
 
 }
-
 
 fmi2Component FbsfApi::instanciate(int argc, char **argv) {
     return new FbsfFmi2Component(argc, argv);
@@ -21,16 +20,24 @@ fmi2Component FbsfApi::instanciate(int argc, char **argv) {
 fmi2Status FbsfApi::fmi2EnterInitialisationMode(fmi2Component ptr) {
     FbsfFmi2Component *comp = static_cast<FbsfFmi2Component*>(ptr);
 
-    if (!comp || !comp->app) {
+    if (!comp) {
         qInfo("Error: no instance");
         return fmi2Error;
     }
+    if (comp->threadRunning) {
+        qInfo("Error: Initialisation mode already on");
+        return fmi2Error;
+    }
+    comp->threadRunning = true;
+//    fct(comp);
     comp->qtThread = std::thread(fct, comp);
+    cout << "THREAD ID=" << comp->qtThread.get_id() << endl;
     return fmi2OK;
 };
 
 void FbsfApi::fct(FbsfFmi2Component *comp) {
-    comp->app = static_cast<FbsfApplication*>(mainApi(comp->ac, comp->av));
+    QScopedPointer<FbsfApplication> app(static_cast<FbsfApplication*>(mainApi(comp->ac, comp->av)));
+    comp->app = app.data();
     comp->app->config().Name() = comp->str;
     if (!comp || !comp->app) {
         qFatal("Error: no instance");
@@ -52,6 +59,10 @@ void FbsfApi::fct(FbsfFmi2Component *comp) {
         comp->mu.unlock();
     }
     comp->app->start();
+//    comp->app->
+    cout << "exit app loop" << endl;
+    comp->threadRunning = false;
+    cout << "app deleted" << endl;
 }
 fmi2Status FbsfApi::fmi2ExitInitialisationMode(fmi2Component ptr){
     //start ?
@@ -59,6 +70,10 @@ fmi2Status FbsfApi::fmi2ExitInitialisationMode(fmi2Component ptr){
 
     if (!comp || !comp->app) {
         qInfo("Error: no instance");
+        return fmi2Error;
+    }
+    if (!comp->threadRunning) {
+        qInfo("Error: Initialisation mode is not  on");
         return fmi2Error;
     }
     comp->mu.lock();
@@ -74,8 +89,13 @@ fmi2Status FbsfApi::fmi2DoStep(fmi2Component ptr) {
         qInfo("Error: no instance");
         return fmi2Error;
     }
+    if (!comp->run) {
+        qInfo("Error: App in not running, please exit initialisation mode");
+        return fmi2Error;
+    }
     QString s = comp->app->executive()->State();
     if (s == "runnin" || s == "stepping") {
+        qInfo("Error: A step is already running");
         return (fmi2Error);
     }
     comp->app->executive()->control("step");
@@ -101,13 +121,26 @@ fmi2Status FbsfApi::fmi2Terminate(fmi2Component ptr) {
         qInfo("Error: no instance");
         return fmi2Error;
     }
-    comp->app->executive()->stopApp();
+//    QCoreApplication::exit(0);
+    comp->app->executive()->control("stop");
+//    comp->app->executive()->stopApp();
+//    comp->qtThread.;
     comp->qtThread.join();
     qDebug() << "TERMINATEd";
     return fmi2OK;
 };
 
-fmi2Status FbsfApi::fmi2FreeInstance(fmi2Component ptr) {return fmi2OK;};
+fmi2Status FbsfApi::fmi2FreeInstance(fmi2Component ptr) {
+    if (mBuff) {
+        free(mBuff);
+    }
+    if (ptr) {
+        FbsfFmi2Component *comp = static_cast<FbsfFmi2Component*>(ptr);
+
+        delete comp;
+    }
+    return fmi2OK;
+};
 fmi2Status FbsfApi::fmi2GetStatus(fmi2Component ptr, const fmi2StatusKind s, fmi2Status *value)  {
     FbsfFmi2Component *comp = static_cast<FbsfFmi2Component*>(ptr);
 
@@ -166,14 +199,16 @@ fmi2Status FbsfApi::fmi2GetStringStatus(fmi2Component ptr, const fmi2StatusKind 
         qInfo("Error: no instance");
         return fmi2Error;
     }
+    if (!value) {
+        qInfo("Error: argument value is not allocated");
+        return fmi2Error;
+    }
     switch (int(s)) {
     case fmi2DoStepStatus: {
     }
     case fmi2PendingStatus: {
         QString status = comp->app->executive()->State();
-        std::cout << status.toStdString() << std::endl;
         copyStringToBuff(status.toStdString(), value);
-        std::cout << "status.toStdString()" << std::endl;
     }
     case fmi2LastSuccessfulTime: {}
     case fmi2Terminated: {}

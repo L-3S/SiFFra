@@ -94,6 +94,9 @@ FbsfExecutive::~FbsfExecutive()
 {
     if (mNetClient) delete mNetClient;
     if (mNetServer) delete mNetServer;
+    for (int i = 0; i < mSequenceList.length(); i++) {
+        delete mSequenceList[i];
+    }
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// set the replay mode
@@ -119,7 +122,7 @@ void  FbsfExecutive::ReplayMode(bool aFlag, QString aFile)
 void  FbsfExecutive::BatchMode(bool aFlag)
 {
     mExeMode=eBatch;
-    workflowState=eRun;
+//    workflowState=eRun;
     Speed(mFastSpeedFactor);
 
     qDebug()<< "Mode : " << ExecutionMode();
@@ -137,12 +140,10 @@ int FbsfExecutive::addSequence(QString aName, float aPeriod,
     // Create the sequence thread
     QThread* thread = new QThread;
     pSequence->moveToThread(thread);
-
     // connect signal to sequence slots : cycle start
     connect(this  , SIGNAL(cycleStart()) , pSequence, SLOT(cycleStart()));
     std::cout << "setup seq STEP" << this << std::endl;
     connect(this  , SIGNAL(cancelStep()) , pSequence, SLOT(cancelSeqStep()));
-    connect(this  , SIGNAL(cancelStep()) , thread, SLOT(quit()));
     // connect signal to sequence slots : pre/step computation and finalization
     connect(this  , SIGNAL(consume()) , pSequence, SLOT(consumeData()));
     connect(this  , SIGNAL(compute()) , pSequence, SLOT(computeStep()));
@@ -299,12 +300,18 @@ void FbsfExecutive::doCycle()
     resetWorking(mSequenceList.size());
     emit cycleStart();
     // loop until all iterations completed for all sequences
+    mStatus = FBSF_OK;
     while (stillWorking()>0)
     {
         emit consume();// Synchronous consumption of inputs
         waitCompletion(mSequenceList.size());
         emit compute();// compute models
         waitCompletion(mSequenceList.size());
+        for (auto seq: mSequenceList) {
+            if (mStatus == FBSF_OK) {
+                mStatus = seq->status();
+            }
+        }
     }
     // perf meter
     if(mCpuStepTime!=nullptr)

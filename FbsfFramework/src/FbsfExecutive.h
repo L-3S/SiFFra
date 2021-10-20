@@ -36,7 +36,7 @@ public:
 
 
     void            doCycle();                    // execute one cycle
-
+    int             getStatus()             {return mStatus;};
     // configuration settings
     void            Period(uint aPeriod)     {mPeriod=mCycleTime=aPeriod;}
     uint            Period()                {return mPeriod;}

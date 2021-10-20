@@ -84,13 +84,14 @@ int FbsfSequence::addModels(QList<QMap<QString, QString> > &aModels, QList<FbsfC
             QString value=vMap.value(key);
 
             if (key == "module")        modelType=value;
-            else if (key == "name")     modelName=value;
+            else if (key == "name")     {modelName=value;                qDebug() << "Name ==" << value;}
             else if (key == "path")     modelPath=value;
             else if (key == "type")
             {
                 typeNode    = (value=="node");
                 typeFmu     =(value=="fmu");
                 typeVisual  =(value=="visual");
+                qDebug() << "VALUE ==" << value;
             }
             else if (key == "version")   version= value.toFloat();
             else if (key == "dumpcsv")   dumpCsv =(value=="true");
@@ -238,7 +239,6 @@ void FbsfSequence::finalize()
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void  FbsfSequence::cycleStart()
 {
-    std::cout << "SEQ start"<<std::endl;
     mRemainIter=mIter;
     for (int i = 0; i < mModelList.size(); ++i)
         mModelList[i]->resetStepRunning();
@@ -274,7 +274,7 @@ void FbsfSequence::computeStep()
     // perf meter
     QElapsedTimer timer;
     timer.start();
-
+    mStatus = 1;
     if (mPeriod >1) // SLOW iteration
     {
         if (mStepNumber%(int)mPeriod==0)
@@ -286,7 +286,8 @@ void FbsfSequence::computeStep()
                 mModelList[i]->consumeData();
                 #endif
                 mModelList[i]->computeStep();
-                mStatus=mModelList[i]->status();
+                if (mStatus == 1)
+                    mStatus=mModelList[i]->status();
             }
         }
         iterCond.acquire();// decrease the working count

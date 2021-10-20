@@ -8,6 +8,7 @@
 #include <QDebug>
 #include <mutex>
 #include <queue>
+#include <iostream>
 
 #if defined(BUILD_API)
 #  define API_EXPORT Q_DECL_EXPORT
@@ -27,6 +28,7 @@ public:
     QString str;
     std::mutex mu;
     bool run;
+    bool threadRunning;
 };
 
 //class API_EXPORT Ctrlr : public QObject {
@@ -78,7 +80,7 @@ typedef double fmi2Real;
 typedef int fmi2Integer;
 typedef int fmi2Boolean;
 typedef char fmi2Char;
-typedef fmi2Char* fmi2String;
+typedef const fmi2Char* fmi2String;
 typedef char fmi2Byte;
 
 class API_EXPORT FbsfApi
@@ -86,34 +88,79 @@ class API_EXPORT FbsfApi
 public:
     FbsfApi();
     ~FbsfApi() {};
-    static void fct(FbsfFmi2Component *);
+
+    /** @brief create a fmiComponent instance which is needed for all other api function */
     fmi2Component instanciate(int argc, char **argv);
-    static fmi2Component mainApi(int argc, char **argv);
-    fmi2Status fmi2EnterInitialisationMode(fmi2Component ptr);
-    fmi2Status fmi2ExitInitialisationMode(fmi2Component ptr);
-    fmi2Status fmi2DoStep(fmi2Component ptr);
-    fmi2Status fmi2CancelStep(fmi2Component ptr);
-    fmi2Status fmi2Terminate(fmi2Component ptr);
-    fmi2Status fmi2FreeInstance(fmi2Component ptr);
-    fmi2Status fmi2GetStatus(fmi2Component ptr, const fmi2StatusKind s, fmi2Status *value);
-    fmi2Status fmi2GetRealStatus(fmi2Component ptr, const fmi2StatusKind s, fmi2Real *value);
-    fmi2Status fmi2GetIntegerStatus(fmi2Component ptr, const fmi2StatusKind s, fmi2Integer *value);
-    fmi2Status fmi2GetBooleanStatus(fmi2Component ptr, const fmi2StatusKind s, fmi2Boolean *value);
-    fmi2Status fmi2GetStringStatus(fmi2Component ptr, const fmi2StatusKind s, fmi2String *value);
+
+    /** @brief set the name of the configuration file for the simulation */
     fmi2Status fmi2SetString(fmi2Component ptr, QString str);
+
+    /** @brief load the simulation configuration based on the argument passed in fmi2SetString
+    * This function launch the thread that contains the Qt event thread
+    * It does not launch the exec() function, it waits for function fmi2ExitInitialisationMode to be called.
+    */
+    fmi2Status fmi2EnterInitialisationMode(fmi2Component ptr);
+
+    /** @brief Launch the Qt exec function that launches Qt app
+    * This function must be called after fmi2EnterInitialisationMode has been called
+    */
+    fmi2Status fmi2ExitInitialisationMode(fmi2Component ptr);
+
+    /** @brief Launch an asynchronous computation step
+    * This function will return immediately as the computation is asyncronous
+    * To check step status, use fmi2DoStepStatus
+    */
+    fmi2Status fmi2DoStep(fmi2Component ptr);
+
+    /** @brief */
+    fmi2Status fmi2CancelStep(fmi2Component ptr);
+
+    /** @brief Informs the FMU that the simulation run is terminated
+    * This function will make the Qt application quit.
+    */
+    fmi2Status fmi2Terminate(fmi2Component ptr);
+
+    /** @brief Free all used memory
+    * Disposes the given instance, unloads the loaded model, and frees all the allocated memory and
+    * other resources that have been allocated by the functions of the FMU interface.
+    * If a null pointer is provided for “c”, the function call is ignored (does not have an effect).
+    */
+    fmi2Status fmi2FreeInstance(fmi2Component ptr);
+
+    /** @brief */
+    fmi2Status fmi2GetStatus(fmi2Component ptr, const fmi2StatusKind s, fmi2Status *value);
+
+    /** @brief */
+    fmi2Status fmi2GetRealStatus(fmi2Component ptr, const fmi2StatusKind s, fmi2Real *value);
+
+    /** @brief */
+    fmi2Status fmi2GetIntegerStatus(fmi2Component ptr, const fmi2StatusKind s, fmi2Integer *value);
+
+    /** @brief */
+    fmi2Status fmi2GetBooleanStatus(fmi2Component ptr, const fmi2StatusKind s, fmi2Boolean *value);
+
+    /** @brief */
+    fmi2Status fmi2GetStringStatus(fmi2Component ptr, const fmi2StatusKind s, fmi2String *value);
 private:
+    static fmi2Component mainApi(int argc, char **argv);
+    static void fct(FbsfFmi2Component *);
     void copyStringToBuff(std::string s, fmi2String *buff) {
         if (mBuff) {
             free(mBuff);
         }
-        mBuff = (char*)calloc(s.length() + 1, sizeof(fmi2Char));
+        mBuff = ((char*)calloc(s.length() + 1, sizeof(fmi2Char)));
         if (!mBuff) {
             qFatal("Can't alloc memory");
         }
-        buff = &mBuff;
+        size_t i = 0;
+        while(i < s.length()) {
+            mBuff[i] = s[i];
+            i++;
+        }
+        buff[0] = mBuff;
     }
 
-    char *mBuff;
+    char *mBuff = nullptr;
 };
 
 #endif // FBSFAPI_H

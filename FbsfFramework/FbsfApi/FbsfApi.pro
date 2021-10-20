@@ -5,6 +5,21 @@ TEMPLATE    = lib
 
 #BUILD_API {
 include(../../FbsfTargets.pri)
+
+BATCH {
+    message( "Configuring FbsfFramework for BATCH build..." )
+    TARGET = FbsfApi
+    CONFIG  += console
+    QT      += xml network
+    DEFINES += MODE_BATCH
+}
+else {# Configuration gui code
+
+    TARGET = FbsfApi
+    QT      += gui qml quick xml widgets network
+    LIBS        += -L$$FBSF_HOME/Depends/ -lFbsfEditorLibrary
+}
+
 DEFINES     += STANDALONE_XML_PARSER
 DEFINES     += FBSF_FRAMEWORK_LIBRARY
 DEFINES += BUILD_API
@@ -13,13 +28,11 @@ message($$FBSF_HOME)
 message($$FBSF_LIB_DIR)
 message($$FBSF_FRAMEWORK_DIR)
 
-QT      += gui qml quick xml widgets network
 INCLUDEPATH += $$FBSF_FRAMEWORK_DIR/FbsfPublicData\
                $$FBSF_FRAMEWORK_DIR/FbsfNetwork
 
 LIBS    += -L$$FBSF_LIB_DIR                     -lFbsfNetwork
 LIBS    += -L$$FBSF_FRAMEWORK_DIR/fbsfplugins   -lFbsfPublicData
-LIBS    += -L$$FBSF_HOME/Depends/               -lFbsfEditorLibrary
 LIBS    += -L$$FBSF_LIB_DIR                     -lFbsfBaseModel
 
 # ADD DLL for FbsfBaseModel

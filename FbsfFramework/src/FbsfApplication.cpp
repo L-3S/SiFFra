@@ -265,6 +265,7 @@ void FbsfGuiApplication::setup(QString path) {
     QString configFile;
     configFile = QDir::currentPath() + "/" + path; // TODO PATH CONFIGURATION
 
+#ifndef MODE_BATCH
     QQmlContext *ctxt = mEngine.rootContext();
     // Path acces in QML
     ctxt->setContextProperty("FBSF_HOME",QUrl::fromLocalFile(sFrameworkHome));
@@ -297,6 +298,7 @@ void FbsfGuiApplication::setup(QString path) {
     ctxt->setContextProperty("COMPONENTS_PATH",QUrl::fromLocalFile(sComponentsPath));
     //~~~~~~~~~~~~~~~~~~~~~~~~~ setup UI ~~~~~~~~~~~~~~~~~~~~~~~~~
     setResizeMode(QQuickView::SizeRootObjectToView);
+#endif
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 FbsfGuiApplication::~FbsfGuiApplication()
@@ -395,7 +397,6 @@ int FbsfGuiApplication::start(uint aPeriod, float aFactor, uint aRecorder)
     // start the graphic interface
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     int ret = QGuiApplication::exec();
-
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // leave the process
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

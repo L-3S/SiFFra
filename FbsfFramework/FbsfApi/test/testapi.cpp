@@ -28,15 +28,16 @@ int main(int ac, char **av) {
         } else if (cmd == "cancel" || cmd == "c") {
             api.fmi2CancelStep(comp);
         } else if (cmd == "st") {
-            fmi2String str;
+            fmi2String str = nullptr;
+//            fmi2String *str = (fmi2String*)calloc(1, sizeof(fmi2String));
             api.fmi2GetStringStatus(comp, fmi2PendingStatus, &str);
-            int i = 0;
-            std::cout << "status :";
-//            while(str[i]) {
-//                std::cout << str[i];
-//                i++;
-//            }
-            std::cout <<std::endl;
+            if (str) {
+                std::cout << "status :" << str<<std::endl;
+            }
+        } else if (cmd == "f") {
+            api.fmi2FreeInstance(comp);
+        } else if (cmd == "quit") {
+            return 0;
         }
         cout << "command:";
     }
