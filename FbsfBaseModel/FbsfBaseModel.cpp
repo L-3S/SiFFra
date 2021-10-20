@@ -161,7 +161,6 @@ void FBSFBaseModel::computeStep()
 }
 void FBSFBaseModel::cancelStep()
 {
-    std::cout<< "SWITCH VAL"<<std::endl;
     mStepRunning = false;
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

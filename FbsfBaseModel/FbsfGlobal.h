@@ -21,8 +21,12 @@ enum eExecutionMode {eCompute, eFullReplay, ePartialReplay, eBatch};
 #define FBSF_VERSION "2.0"
 #define FBSF_MAGIC 0xFB5F
 
-#define FBSF_OK     1
-#define FBSF_ERROR  -1
+typedef enum {
+    FBSF_ERROR  = -1,
+    FBSF_OK     = 1,
+    FBSF_WARNING= 2,
+    FBSF_FATAL  = 3
+} fbsfStatus;
 
 // As defined in the WinBase.h on Windows platform
 #define INFINITE 0xFFFFFFFF

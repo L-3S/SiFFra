@@ -16,16 +16,16 @@ class FbsfNode
     Q_OBJECT
 public:
     FbsfNode();
-    virtual int     doInit() {return 1;};
-    virtual int     doTerminate() {return 1;};
-    virtual int     doStep() {
+    virtual int  doInit() override {return FBSF_OK;};
+    virtual int doTerminate() override {return FBSF_OK;};
+    virtual int doStep() override {
         run();
-        return 1;
+        return FBSF_OK;
         };
-    virtual int     doSaveState() {return 1;};                      // Save states to memory
-    virtual int     doRestoreState() {return 1;};                   // Restore states from memory
-    virtual int     doSaveState(QDataStream &out) {return 1;};      // dump state to file
-    virtual int     doRestoreState(QDataStream& in) {return 1;};    // Restore state from file
+    virtual int     doSaveState() override {return 1;};                      // Save states to memory
+    virtual int     doRestoreState() override {return 1;};                   // Restore states from memory
+    virtual int     doSaveState(QDataStream &out) override {return 1;};      // dump state to file
+    virtual int     doRestoreState(QDataStream& in) override {return 1;};    // Restore state from file
 
 
     int             addSequence(QString aName, float aPeriod,

@@ -36,7 +36,8 @@ public:
 
 
     void            doCycle();                    // execute one cycle
-    int             getStatus()             {return mStatus;};
+    fbsfStatus      getStatus()             {return mStatus;};
+    uint            getLastStepSuccessTime(){return mLastSuccessfulStep;};
     // configuration settings
     void            Period(uint aPeriod)     {mPeriod=mCycleTime=aPeriod;}
     uint            Period()                {return mPeriod;}
@@ -116,7 +117,8 @@ private:
     float                   mFastSpeedFactor;    // Simulation fast speed
     uint                    mRecorderSize;       // Recording limit size
     FbsfDataExchange*       mPublicSimulationTime;
-    int                     mStatus;             // FBSF_OK, FBSF_ERROR
+    fbsfStatus              mStatus;             // FBSF_OK, FBSF_ERROR
+    uint                    mLastSuccessfulStep; // TimeStanp of the last succeded step
     uint                    mMultiSteps;         // Number of step to execute
     bool                    bExitAfterSteps;     // Action exit when steps done
 

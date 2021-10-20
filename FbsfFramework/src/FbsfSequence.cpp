@@ -22,10 +22,10 @@ FbsfSequence::FbsfSequence(QString aName, float aPeriod, FbsfApplication *app, Q
     : mName(aName)
     , mPeriod(aPeriod)
     , mIter(1)
-    , mApp (app)
     , mRemainIter(0)
     , mStepNumber(0)
-    , mStatus(1)
+    , mApp (app)
+    , mStatus(FBSF_OK)
     , taskCond(ptaskCond)
     , iterCond(piterCond)
 {
@@ -244,7 +244,6 @@ void  FbsfSequence::cycleStart()
         mModelList[i]->resetStepRunning();
 }
 void FbsfSequence::cancelSeqStep() {
-    std::cout << "SEQ CANCEL"<<std::endl;
     emit cancelModelStep();
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -274,7 +273,7 @@ void FbsfSequence::computeStep()
     // perf meter
     QElapsedTimer timer;
     timer.start();
-    mStatus = 1;
+    mStatus = FBSF_OK;
     if (mPeriod >1) // SLOW iteration
     {
         if (mStepNumber%(int)mPeriod==0)
@@ -286,8 +285,9 @@ void FbsfSequence::computeStep()
                 mModelList[i]->consumeData();
                 #endif
                 mModelList[i]->computeStep();
-                if (mStatus == 1)
-                    mStatus=mModelList[i]->status();
+                if (mStatus == FBSF_OK) {
+                    mStatus=(fbsfStatus)mModelList[i]->status();
+                }
             }
         }
         iterCond.acquire();// decrease the working count
@@ -303,6 +303,9 @@ void FbsfSequence::computeStep()
             mModelList[i]->consumeData();
             #endif
             mModelList[i]->computeStep();
+            if (mStatus == FBSF_OK) {
+                mStatus=(fbsfStatus)mModelList[i]->status();
+            }
             if(mModelList[i]->status()==FBSF_ERROR)
             {
                  // signal error to the executive system
@@ -332,7 +335,7 @@ int FbsfSequence::doSaveState(QDataStream& out)
     for (int i = 0; i < mModelList.size(); ++i)
     {
         mModelList[i]->doSaveState(out);
-        mStatus=mModelList[i]->status();
+        mStatus=(fbsfStatus)mModelList[i]->status();
     }
     return 1;
 }
@@ -345,7 +348,7 @@ int FbsfSequence::doRestoreState(QDataStream& in)
     for (int i = 0; i < mModelList.size(); ++i)
     {
         mModelList[i]->doRestoreState(in);
-        mStatus=mModelList[i]->status();
+        mStatus=(fbsfStatus)mModelList[i]->status();
     }
     return 1;
 }
