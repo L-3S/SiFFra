@@ -172,8 +172,6 @@ int FbsfApplication::generateSequences() {
     // Get the simulation parameters
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
-
     qInfo() << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
     qInfo() << "Framework version : " << FBSF_VERSION;
     qInfo() << "Current working path:" << QDir::currentPath();
@@ -247,13 +245,7 @@ FbsfGuiApplication::FbsfGuiApplication(eApplicationMode aMode,int & argc,char** 
     Executive = new FbsfExecutive(aMode);
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #ifndef BUILD_API
-    setup(argv[0]);
-#endif
-
-}
-void FbsfGuiApplication::setup(QString path) {
     const QStringList args = FbsfApplication::parser().positionalArguments();
-#ifndef BUILD_API
     if (args.isEmpty())
     {
         QString msg="Argument 'configuration file.xml' is missing.\n"
@@ -261,7 +253,12 @@ void FbsfGuiApplication::setup(QString path) {
         QMessageBox::critical( nullptr, "[Fatal]", msg.toStdString().c_str());
         qFatal(msg.toStdString().c_str());
     }
+    setup(args[0]);
 #endif
+
+}
+void FbsfGuiApplication::setup(QString path) {
+
     QString configFile;
     configFile = QDir::currentPath() + "/" + path; // TODO PATH CONFIGURATION
 
