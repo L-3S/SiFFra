@@ -4,8 +4,8 @@ CONFIG  +=console
 
 LIBS    += -L$$FBSF_LIB_DIR -lFbsfApi
 
-INCLUDEPATH  += ../
-DEPENDPATH  += ../
+INCLUDEPATH  += $$(FBSF_HOME)/FbsfFramework/FbsfApi
+
 SOURCES +=  \
     testapi.cpp
 
