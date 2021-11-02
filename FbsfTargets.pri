@@ -10,8 +10,9 @@ DESTDIR = $$FBSF_LIB_DIR_ROOT/release
 BATCH {
     DESTDIR = $$FBSF_LIB_DIR_ROOT/batch
 }
-BuildConfig.DEBUG {
+debug {
     DESTDIR = $$FBSF_LIB_DIR_ROOT/debug
 }
+message( "destdir" $$DESTDIR )
 
 FBSF_LIB_DIR =$$DESTDIR
