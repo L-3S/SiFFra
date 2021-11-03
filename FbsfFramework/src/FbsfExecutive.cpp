@@ -123,7 +123,9 @@ void  FbsfExecutive::ReplayMode(bool aFlag, QString aFile)
 void  FbsfExecutive::BatchMode(bool aFlag)
 {
     mExeMode=eBatch;
-//    workflowState=eRun;
+#ifndef BUILD_API
+    workflowState=eRun;
+#endif
     Speed(mFastSpeedFactor);
 
     qDebug()<< "Mode : " << ExecutionMode();
