@@ -1,4 +1,11 @@
 #!/bin/sh -x
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Path for QT toolkit
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ source ../../QtVersion.sh
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Path for framework
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -9,9 +16,10 @@ cd -
 # Path for Project
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 export APP_HOME=$PWD
-export QML_IMPORT_PATH="$FBSF_HOME/FbsfFramework":"$FBSF_HOME/FbsfEditors/GraphicEditor":$QML_IMPORT_PATH
 
-export PATH=$PATH:"$PWD/lib"
+export PATH="$APP_HOME/lib":$PATH
+export LD_LIBRARY_PATH="$APP_HOME/lib":$LD_LIBRARY_PATH
 
-qtcreator
+
+qtcreator &
 
