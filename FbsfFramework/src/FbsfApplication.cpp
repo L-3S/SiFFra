@@ -221,6 +221,51 @@ int FbsfApplication::generateSequences() {
                          this);
 
     } // end Sequences
+
+    // check option dataFlowGraph aand genrate the graph in a file
+    bool optDataFlowGraph=config().Simulation().value("dataFlowGraph")=="true"?true:false;
+    if (optDataFlowGraph)
+        generateDataFlowGraph();
+
+    return 1;
+}
+
+// DataFlowGraph
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int FbsfApplication::generateDataFlowGraph()
+{
+    QFile outFile;
+    QString nameFile = QDir::currentPath() + "/DataFlowGraph.dot";
+    outFile.setFileName(nameFile);
+    if (!outFile.open(QIODevice::ReadWrite|QIODevice::Truncate))
+        qDebug() << __FUNCTION__ << outFile.errorString() ;
+    QTextStream outStream;
+    outStream.setDevice(&outFile);
+
+    outStream << "digraph fbsf_graphe {";
+    foreach (FbsfDataExchange* data, FbsfDataExchange::sPublicDataMap)
+    {
+        // dump exported public data
+        if (data->FlagsAny(FbsfDataExchange::cExporter))
+        {
+            if(!data->m_consumers.isEmpty())// only if consumers
+            {
+                QList<QString> consumersList = data->m_consumers.split(","); // one producer for n consumers
+                for (int i = 0; i < consumersList.size(); i++)
+                {
+                    outStream << "\n\t" << data->producer() << " -> " << consumersList[i]
+                    << "\t [Name = " << data->name() <<"]"
+                    << "\t [Type = "  << config().getDataFlowEdgeStatus(data->producer(),consumersList[i]) << "]";
+                }
+            }
+        }
+    }
+    outStream << "\n}";
+    outStream.flush();
+    outFile.flush();
+    outFile.close();
+
+    return 1;
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void FbsfApplication::setOptPerfMeter(bool aFlag)

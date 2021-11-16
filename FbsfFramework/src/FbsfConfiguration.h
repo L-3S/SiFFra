@@ -27,25 +27,27 @@ private:
     QList<FbsfConfigNode>           mNodes;
 };
 
+
 class FBSF_FRAMEWORKSHARED_EXPORT FbsfConfiguration
 {
 
 public:
     FbsfConfiguration();
 
-   int                             parseXML(QString aFileName);
+   int                              parseXML(QString aFileName);
    QList< FbsfConfigSequence >&     Sequences() {return mListSequences;}
 
    QMap<QString,QString>&           Simulation(){return mSimulation;}
    QString&                         Name() { return mConfigName;}
    FbsfConfigSequence&              pluginList() {return mpluginList;}
 
+
 protected:
    void parseSimulation(const QDomElement& elem);
    void parsePlugins(const QDomElement& elem);
-   void parseSequences(const QDomElement& elem);
-   void parseModels(FbsfConfigSequence& aSequence,const QDomElement& elem);
-   void parseConfigNode(FbsfConfigSequence& aSequence, const QDomElement &elem);
+   void parseSequences(const QDomElement& elem, const QList<QPair<int,int>> seqAdress);
+   void parseModels(FbsfConfigSequence& aSequence,const QDomElement& elem, const QList<QPair<int,int>> modelAdress);
+   void parseConfigNode(FbsfConfigSequence& aSequence, const QDomElement &elem, const QList<QPair<int,int>> nodeAdress);
 
    QMap<QString,QString>            mSimulation;
    QList< FbsfConfigSequence >      mListSequences;
@@ -60,6 +62,9 @@ public :
                                 const QMap<QString,ParamProperties> &aModuleFields
                                 );
 
+   // DataFlowGraph
+   QString getDataFlowEdgeStatus(const QString moduleFrom,const QString moduleTo,int level=0);
+
 private:
    static void syst_verif(const QMap<QString, QString> &aXml,
                         const QMap<QString,ParamProperties>::const_iterator iter
@@ -68,7 +73,7 @@ private:
    static void MsgBoxCriticalError();
 
    static void verif_limite(const QMap<QString,ParamProperties>::const_iterator iter, QVariant value);
-
+   static QMap <QString, QList<QPair<int,int>> > mModuleList; // Store Module name and Adress
 };
 
 class FBSF_FRAMEWORKSHARED_EXPORT FbsfConfigNode : public FbsfConfiguration
@@ -76,7 +81,8 @@ class FBSF_FRAMEWORKSHARED_EXPORT FbsfConfigNode : public FbsfConfiguration
 public:
     FbsfConfigNode(){}
     //~FbsfConfigNode(){}
-    void parseNode(const QDomElement& elem);
+    void parseNode(const QDomElement& elem, const QList<QPair<int,int>> nodeAdress);
 };
+
 
 #endif // FBSFCONFIGURATION_H
