@@ -6,12 +6,14 @@ $$(FBSF_HOME){
 FBSF_LIB_DIR_ROOT=$$PWD/lib/
 FBSF_FRAMEWORK_DIR=$$PWD/FbsfFramework/
 FBSF_PLUGINS_DIR=$$FBSF_FRAMEWORK_DIR/fbsfplugins
-DESTDIR = $$FBSF_LIB_DIR_ROOT/release
+
+CONFIG(debug, debug|release) {
+    DESTDIR = $$FBSF_LIB_DIR_ROOT/debug
+} else {
+    DESTDIR = $$FBSF_LIB_DIR_ROOT/release
+}
 BATCH {
     DESTDIR = $$FBSF_LIB_DIR_ROOT/batch
-}
-debug {
-    DESTDIR = $$FBSF_LIB_DIR_ROOT/debug
 }
 message( "destdir" $$DESTDIR )
 
