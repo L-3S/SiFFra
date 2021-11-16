@@ -84,14 +84,13 @@ int FbsfSequence::addModels(QList<QMap<QString, QString> > &aModels, QList<FbsfC
             QString value=vMap.value(key);
 
             if (key == "module")        modelType=value;
-            else if (key == "name")     {modelName=value;                qDebug() << "Name ==" << value;}
+            else if (key == "name")     modelName=value;
             else if (key == "path")     modelPath=value;
             else if (key == "type")
             {
                 typeNode    = (value=="node");
                 typeFmu     =(value=="fmu");
                 typeVisual  =(value=="visual");
-                qDebug() << "VALUE ==" << value;
             }
             else if (key == "version")   version= value.toFloat();
             else if (key == "dumpcsv")   dumpCsv =(value=="true");
