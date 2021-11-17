@@ -62,6 +62,7 @@ public :
     static int              parseArguments();
     static  QCommandLineParser&     parser(){return mParser;}
     int             generateSequences();
+    int             generateDataFlowGraph();
 
     FbsfConfiguration&              config(){return mConfig;}
     QString&                        configName() {return config().Name();}

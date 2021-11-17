@@ -185,9 +185,12 @@ FbsfDataExchange::declarePublicData(QString     aName,
     // Fill the consumer list if import
     if ((aFlags & cImporter || aFlags & cUnresolved) && !aInstance.isEmpty())
     {
-        if(!publicAddress->m_consumers.isEmpty())
-            publicAddress->m_consumers+=",";
-        publicAddress->m_consumers += aInstance;
+        if (!publicAddress->m_consumers.contains(aInstance)) // case one module inport several time the same variable
+        {
+            if(!publicAddress->m_consumers.isEmpty())
+                publicAddress->m_consumers+=",";
+            publicAddress->m_consumers += aInstance;
+        }
     }
     return publicAddress;
 }
