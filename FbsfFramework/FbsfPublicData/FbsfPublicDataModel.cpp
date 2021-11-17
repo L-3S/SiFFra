@@ -5,7 +5,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // static instance of public data model to QML
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Q_DECL_EXPORT FbsfdataModel sListviewDataModel;
+FbsfdataModel *FbsfdataModel::sListviewDataModel = nullptr;
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -421,7 +421,7 @@ FbsfFilterProxyModel::FbsfFilterProxyModel(QObject *parent)
     , m_CurrentProducer()
     , m_role(0)
 {
-    setSourceModel(&sListviewDataModel);
+    setSourceModel(FbsfdataModel::sFactoryListviewDataModel());
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 int FbsfFilterProxyModel::count() const
@@ -511,8 +511,8 @@ QHash<int, QByteArray> FbsfFilterProxyModel::roleNames() const
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 bool FbsfFilterProxyModel::filterAcceptsRow( int sourceRow, const QModelIndex& sourceParent )const
 {
-    QModelIndex sourceIndex = sListviewDataModel.index(sourceRow, 0, sourceParent);
-    FbsfDataModelItem* item=sListviewDataModel.datalist()[sourceIndex.row()];
+    QModelIndex sourceIndex = FbsfdataModel::sFactoryListviewDataModel()->index(sourceRow, 0, sourceParent);
+    FbsfDataModelItem* item= FbsfdataModel::sFactoryListviewDataModel()->datalist()[sourceIndex.row()];
     FbsfDataExchange* data=item->mPublicData;
 
     // filter with producer first
@@ -561,6 +561,6 @@ int FbsfFilterProxyModel::getRow(const int &idx)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void  FbsfFilterProxyModel::toggleVisible(const int &idx)
 {
-    sListviewDataModel.toggleVisible(mapToSource(index(idx,0)).row());
+    FbsfdataModel::sFactoryListviewDataModel()->toggleVisible(mapToSource(index(idx,0)).row());
 }
 #endif

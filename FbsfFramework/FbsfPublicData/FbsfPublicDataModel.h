@@ -120,7 +120,13 @@ class FBSF_INTERFACE FbsfdataModel
     Q_DISABLE_COPY( FbsfdataModel )
 
 public:
-
+static FbsfdataModel *sFactoryListviewDataModel() {
+    if (!sListviewDataModel) {
+        sListviewDataModel = new FbsfdataModel();
+    }
+    return sListviewDataModel;
+}
+static FbsfdataModel *sListviewDataModel;
     Q_INVOKABLE bool        isUnresolved(const int &index);
     Q_INVOKABLE bool        isUnresolved(QString aName);
     Q_INVOKABLE bool        isScalar(const int &index);
@@ -274,12 +280,5 @@ private:
     int         m_role;
 };
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#ifndef FBSF_PUBLIC_DATA
-#ifdef Q_OS_LINUX
-extern FbsfdataModel sListviewDataModel;
-#else
-Q_DECL_IMPORT FbsfdataModel sListviewDataModel;
-#endif
-#endif
 #endif// ifndef MODE_BATCH
 #endif // FBSFPULICDATAMODEL_H

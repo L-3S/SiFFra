@@ -3,6 +3,7 @@
 # Project created by QtCreator 2014-05-08T13:34:20
 #
 #-------------------------------------------------
+include(../../FbsfTargets.pri)
 
 #QT          -= gui
 QT          += core qml quick xml
@@ -11,14 +12,16 @@ TEMPLATE    = lib
 CONFIG      += c++11
 
 win32-g++{
-    LIBS    += $$PWD/../../lib/FbsfBaseModel.a
+    LIBS    += $$FBSF_LIB_DIR/FbsfBaseModel.a
 }
 win32-msvc* {
-    LIBS    += $$PWD/../../lib/FbsfBaseModel.lib
+    LIBS    += $$FBSF_LIB_DIR/FbsfBaseModel.lib
 }
+#LIBS        += -L$$FBSF_LIB_DIR -lFbsfBaseModel
+
 
 #INCLUDEPATH += ../../FbsfFramework/src
-INCLUDEPATH += $$PWD/../../FbsfBaseModel
+INCLUDEPATH += $$FBSF_HOME/FbsfBaseModel
 
 
 DEFINES     += MODULE_GRAPHIC_LIBRARY
@@ -29,8 +32,6 @@ SOURCES     += \
 HEADERS     +=\
     ModuleGraphic.h \
     ModuleGraphic_global.h
-
-DESTDIR     = $$PWD/../../lib
 
 OTHER_FILES +=
 

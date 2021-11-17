@@ -27,7 +27,7 @@ public:
     int             doSaveState(QDataStream&    out);  // Executed when application request dump state
     int             doRestoreState(QDataStream& in);   // Executed when application request reload state
     // Accessors
-    int             status(){return mStatus;}
+    fbsfStatus      status(){return mStatus;}
     void            name(QString aName) {mName = aName;}
     QString         name() {return mName;}
     QList<FBSFBaseModel*> getModelList() {return mModelList;}
@@ -57,7 +57,7 @@ private :
     int                 mStepNumber;
     FbsfApplication *   mApp;
     QList<FBSFBaseModel*>   mModelList;// List of registred models
-    int                 mStatus;       // failed 0, success=1
+    fbsfStatus          mStatus;       // failed 0, success=1
     QThread*            mThread;
     QSemaphore&         taskCond;
     QSemaphore&         iterCond;
@@ -68,11 +68,13 @@ private :
 public slots:
     void            initialize();
     void            cycleStart();
+    void            cancelSeqStep();
     void            consumeData();
     void            computeStep();
 
 signals:
     void            finished();
+    void            cancelModelStep();
     void            error(QString err);
 };
 

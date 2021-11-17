@@ -3,6 +3,7 @@
 # Project created by QtCreator 2014-05-08T13:34:20
 #
 #-------------------------------------------------
+include(../../FbsfTargets.pri)
 
 #QT          -= gui
 QT          += core qml quick xml
@@ -11,15 +12,15 @@ TEMPLATE    = lib
 CONFIG      += c++11
 
 win32-g++{
-    LIBS    += $$PWD/../../lib/FbsfBaseModel.a
+    LIBS    += $$FBSF_LIB_DIR/FbsfBaseModel.a
 }
 win32-msvc* {
-    LIBS    += $$PWD/../../lib/FbsfBaseModel.lib
+    LIBS    += $$FBSF_LIB_DIR/FbsfBaseModel.lib
 }
 
-INCLUDEPATH += ../../FbsfBaseModel
+INCLUDEPATH += $$FBSF_HOME/FbsfBaseModel
 #INCLUDEPATH += ../../FbsfFramework/src
-INCLUDEPATH += ../../FbsfFramework/FbsfPublicData
+INCLUDEPATH += $$FBSF_FRAMEWORK_DIR/FbsfPublicData
 
 DEFINES     += MODULE_LOGIC_LIBRARY
 
@@ -30,7 +31,6 @@ HEADERS     +=\
     ModuleLogic.h \
     ModuleLogic_global.h
 
-DESTDIR     = $$PWD/../../lib
 
 OTHER_FILES +=
 

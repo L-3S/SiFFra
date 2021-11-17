@@ -9,7 +9,7 @@
 #include <QDebug>
 
 #define FIX_NESTED
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+QMap <QString, QList<QPair<int,int>> > FbsfConfiguration::mModuleList;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// \class FbsfConfiguration
 /// \brief Implements parsing the configuration of a simulator
@@ -81,11 +81,15 @@ int FbsfConfiguration::parseXML(QString aFileName)
     // Get the sequence node's interested in
     QDomNodeList sequenceList = docElem.elementsByTagName("sequence");
 
-    // Check each node one by one.
+
+    // DataFlowGraph
+    // Set an adress to each main sequences
+    // {0,0} , {1,0}, {2,0}, ...
     for(int iSeq = 0;iSeq < sequenceList.count(); iSeq++)
     {
         if (sequenceList.at(iSeq).isComment()) continue;
-        parseSequences(sequenceList.at(iSeq).toElement());
+        QList<QPair<int,int>> seqAdress={{iSeq,0}};
+        parseSequences(sequenceList.at(iSeq).toElement(), seqAdress);
     }
     return 0;
 }
@@ -133,7 +137,7 @@ void FbsfConfiguration::parsePlugins(const QDomElement& docElem)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// parse xml model list
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void FbsfConfiguration::parseSequences(const QDomElement& elem)
+void FbsfConfiguration::parseSequences(const QDomElement& elem, QList<QPair<int,int>> seqAdress)
 {
     QMap<QString, QString> Items;
     FbsfConfigSequence sequence;
@@ -143,6 +147,9 @@ void FbsfConfiguration::parseSequences(const QDomElement& elem)
     {
         QDomElement peData = pEntries.toElement();
         QString tagName = peData.tagName();
+
+        QList<QPair<int,int>> modelAdress= seqAdress;
+        QList<QPair<int,int>> nodeAdress= seqAdress;
 
         if (tagName == "models")
         {
@@ -156,9 +163,11 @@ void FbsfConfiguration::parseSequences(const QDomElement& elem)
                 if (nodeList.at(iMod).isComment()){
                     continue;
                 } else if (mtagName == "node") {
-                    parseConfigNode(sequence, nodeList.at(iMod).toElement());
+                    parseConfigNode(sequence, nodeList.at(iMod).toElement(),nodeAdress);
                 } else {
-                    parseModels(sequence, nodeList.at(iMod).toElement());
+                    parseModels(sequence, nodeList.at(iMod).toElement(),modelAdress);
+                    nodeAdress = modelAdress;
+                    modelAdress[modelAdress.size()-1].second ++;
                 }
             }
         }
@@ -171,7 +180,7 @@ void FbsfConfiguration::parseSequences(const QDomElement& elem)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// parse xml model list
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void FbsfConfiguration::parseModels(FbsfConfigSequence& aSequence, const QDomElement &elem)
+void FbsfConfiguration::parseModels(FbsfConfigSequence& aSequence, const QDomElement &elem, const QList<QPair<int,int>> modelAdress)
 {
     QMap<QString, QString> Items;
     Items["version"] = elem.attribute("version"); // Get version
@@ -186,9 +195,13 @@ void FbsfConfiguration::parseModels(FbsfConfigSequence& aSequence, const QDomEle
         pEntries = pEntries.nextSibling();
     }
     aSequence.Models().append(Items);
+
+    // DataFlowGraph
+    // Store the module name and it adress
+    FbsfConfiguration::mModuleList.insert(Items["name"],modelAdress);
 }
 
-void FbsfConfiguration::parseConfigNode(FbsfConfigSequence& aSequence,const QDomElement &elem)
+void FbsfConfiguration::parseConfigNode(FbsfConfigSequence& aSequence,const QDomElement &elem, const QList<QPair<int,int>> nodeAdress)
 {
     static long long n = 0;
     n++;
@@ -228,10 +241,17 @@ void FbsfConfiguration::parseConfigNode(FbsfConfigSequence& aSequence,const QDom
           child = child.nextSiblingElement("SubSequence");
         }
 #endif
+
+        // DataFlowGraph
+        // Set an adress to each SubSequence
+        QList<QPair<int,int>> subSeqAdress=nodeAdress ;
+        subSeqAdress.append({0,0}); // FirstSubSequence
+
         for(int iSeq = 0;iSeq < sequenceList.count(); iSeq++)
         {
             if (sequenceList.at(iSeq).isComment()) continue;
-            node.parseNode(sequenceList.at(iSeq).toElement());
+            node.parseNode(sequenceList.at(iSeq).toElement(),subSeqAdress);
+            subSeqAdress[subSeqAdress.size()-1].first ++;
         }
     }
     aSequence.Nodes().append(node);
@@ -249,7 +269,6 @@ QString FbsfConfiguration::CheckValidity(const QMap<QString,QString> &aModuleXml
     /// In each case, we verify that mandatory cases are present and test their integrity
     /// When present, we test integrity of optionnal fields
     QMap<QString,ParamProperties>::const_iterator iter = aModuleFields.constBegin();
-    qInfo() << "Begin of Xml parsing - module section.";
     while (iter != aModuleFields.constEnd()) {
         switch (iter->mP_qual) {
         case Param_quality::cMandatory:
@@ -303,7 +322,6 @@ void FbsfConfiguration::syst_verif(const QMap<QString, QString> &aXml,
     QStringList aList;
     QVector<int> aListInt;
 
-    qInfo() << "Begin verification of parameter " << iter.key() <<  "." ;
 
     if (aXml.count(iter.key())>1) { // the verification seems to be before
         qInfo() << "The Xml contains several definitions for parameter " << iter.key() << ". Only one will be considered. Please revise parametrisation";
@@ -406,7 +424,55 @@ void FbsfConfiguration::MsgBoxCriticalError()
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void FbsfConfigNode::parseNode(const QDomElement &elem)
+void FbsfConfigNode::parseNode(const QDomElement &elem, const QList<QPair<int,int>> nodeAdress)
 {
-    parseSequences(elem);
+    parseSequences(elem,nodeAdress);
+}
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Chaque module possède une adresse dans l'arbre
+// l'adresse est constituée de couple(s) :
+//      No d'ordre de sequence dans son niveau
+//      No d'ordre du module dans la sequence
+//
+// pour indiquer l'imbrication on ajoute des couples d'adresse.
+// chaque fork (FbsfNode) passe son adresse a ses sequences
+// qui la passent a leur modules, qui ajoutent leur propre adresse.
+//
+// exemple de structure avec 2 niveaux de sous-sequences.
+//
+//                    |(0,2)(0,0)--(0,2)(0,1)----------------|
+// (0,0)--(0,1)--(0,2)|                                      |-- (0,3)
+//                    |                      |(0,2)(1,1)(0,0)|
+//                    |(0,2)(1,0)--(0,2)(1,1)|               |
+//                                           |(0,2)(1,1)(1,0)|
+// (1,0)--(0,1)
+//
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+QString FbsfConfiguration::getDataFlowEdgeStatus(const QString moduleFrom, const QString moduleTo, int level)
+{
+    QList<QPair<int,int>> adressFrom = FbsfConfiguration::mModuleList.value(moduleFrom);
+    QList<QPair<int,int>> adressTo = FbsfConfiguration::mModuleList.value(moduleTo);
+
+    if(adressFrom.isEmpty() || moduleTo.isEmpty() )return "error"; // wrong name
+    if(moduleFrom==moduleTo) return "self_loop";                   // self loop
+    // get the sequence number and module number from address
+    int SeqNumFrom= adressFrom[level].first;
+    int SeqNumTo=adressTo[level].first;
+    int ModNumFrom=adressFrom[level].second;
+    int ModNumTo=adressTo[level].second;
+    // Check the sequence then module number
+    if(SeqNumFrom == SeqNumTo)
+    {   // same sequence
+        if(ModNumFrom < ModNumTo)
+            return "forward";
+        else if (ModNumFrom > ModNumTo)
+            return "backward";
+        else    // means sub-level
+            return getDataFlowEdgeStatus(moduleFrom,moduleTo,++level);
+    }
+    else
+    {   // different sequence
+        return "ambigous";
+    }
 }

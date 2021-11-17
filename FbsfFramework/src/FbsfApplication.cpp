@@ -7,6 +7,7 @@
 #include <QQmlContext>
 #include <QtWidgets/QMessageBox>
 #endif
+#include <iostream>
 #include <QCoreApplication>
 #include <QDir>
 
@@ -42,10 +43,10 @@ FbsfApplication *FbsfApplication::app(int & argc, char **argv)
 
     if (parser().isSet(QCommandLineOption("server")))
     {mode = server;}
-    else
+    else {
         if (parser().isSet(QCommandLineOption("client")))
-        {mode = client;}
-
+       {mode = client;}
+    }
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Check application EV
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -54,7 +55,8 @@ FbsfApplication *FbsfApplication::app(int & argc, char **argv)
     {
         QString msg("Environment variable FBSF_HOME not set");
 #ifndef MODE_BATCH
-        QMessageBox::critical( nullptr, "[Fatal]", msg.toStdString().c_str());
+        qFatal(msg.toStdString().c_str());
+//        QMessageBox::critical( nullptr, "[Fatal]", msg.toStdString().c_str());
 #endif
         qFatal(msg.toStdString().c_str());
     }
@@ -80,6 +82,34 @@ FbsfApplication *FbsfApplication::app(int & argc, char **argv)
 #else
     return new FbsfBatchApplication(batch,argc,argv);
 #endif
+}
+
+int FbsfApplication::parseArguments() {
+    const QStringList args = FbsfApplication::parser().positionalArguments();
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // Check if the configuration file is available
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    if (args.isEmpty())
+    {
+        QString msg="Argument 'configuration file.xml' is missing.\n"
+                  + FbsfApplication::parser().helpText();
+        qCritical(msg.toStdString().c_str());
+        return 1;
+    }
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // capture sdtout and stderr from C libraries
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    if (!FbsfApplication::parser().isSet(QCommandLineOption("no-logfile")))
+    {
+        QFileInfo fi(args[0]);
+        QString Clogfile = fi.baseName()+".log"; //TODO PATH CONFIGURATION
+        freopen (Clogfile.toStdString().c_str(),"w",stdout);
+        freopen (Clogfile.toStdString().c_str(),"a",stderr);
+    }
+    else
+    {
+        qInstallMessageHandler(0);// restore default handler
+    }
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// Commande line parsing
@@ -122,6 +152,121 @@ int FbsfApplication::parseCommandLine(QStringList arglist)
     mParser.parse(arglist);
     return 1;
 }
+int FbsfApplication::generateSequences() {
+
+    // check modeMcp
+
+    bool modeMcp=config().Simulation().value("simuMpc")=="true"?true:false;
+    setTimeDepend(modeMcp);
+
+    // check option perfMeter
+    bool optPerfMeter=config().Simulation().value("perfMeter")=="true"?true:false;
+    setOptPerfMeter(optPerfMeter);
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // creation of the QML viewer UI
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    loadQML();
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // Get the simulation parameters
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    qInfo() << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+    qInfo() << "Framework version : " << FBSF_VERSION;
+    qInfo() << "Current working path:" << QDir::currentPath();
+    qInfo() << "Configuration file :" << configName();
+
+    qInfo() << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+    qInfo() << "Application path :" << sApplicationHome;
+    qInfo() << "Components path :" <<  sComponentsPath;
+    qInfo() << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+    qInfo() << "Simulation parameters :";
+    foreach ( const QString& key, config().Simulation().keys())
+    {
+        QString value=config().Simulation().value(key);
+        qInfo() << "\t" << key << value;
+        if (key == "timestep")      timeStep=value.toFloat();
+        if (key == "speedfactor")   speedFactor=value.toFloat();
+        if (key == "recorder")      recorderSize=value.toUInt();
+    }
+    qInfo() << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // network client : should it be restricted to UI only ???
+    if (mode()==client) return start(timeStep*1000,1,recorderSize);
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // Get the sequences description
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    QList<FbsfConfigSequence>::const_iterator iSeq;
+    for (iSeq = config().Sequences().begin(); iSeq != config().Sequences().end(); ++iSeq)
+    {
+        FbsfConfigSequence sequence=*iSeq;
+        QString sequenceName;
+
+        float sequencePeriod=1;//default period to 1
+        QMap<QString,QString> vMap = sequence.Descriptor();
+        foreach ( const QString& key, vMap.keys())
+        {
+            QString value=vMap.value(key);
+
+            if (key == "name")      sequenceName=value;
+            if (key == "period")    sequencePeriod=value.toFloat();
+        }
+        addSequence(sequenceName,
+                         sequencePeriod,
+                         sequence.Nodes(),
+                         sequence.Models(),
+                         this);
+
+    } // end Sequences
+
+    // check option dataFlowGraph aand genrate the graph in a file
+    bool optDataFlowGraph=config().Simulation().value("dataFlowGraph")=="true"?true:false;
+    if (optDataFlowGraph)
+        generateDataFlowGraph();
+
+    return 1;
+}
+
+// DataFlowGraph
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int FbsfApplication::generateDataFlowGraph()
+{
+    QFile outFile;
+    QString nameFile = QDir::currentPath() + "/DataFlowGraph.dot";
+    outFile.setFileName(nameFile);
+    if (!outFile.open(QIODevice::ReadWrite|QIODevice::Truncate))
+        qDebug() << __FUNCTION__ << outFile.errorString() ;
+    QTextStream outStream;
+    outStream.setDevice(&outFile);
+
+    outStream << "digraph fbsf_graphe {";
+    foreach (FbsfDataExchange* data, FbsfDataExchange::sPublicDataMap)
+    {
+        // dump exported public data
+        if (data->FlagsAny(FbsfDataExchange::cExporter))
+        {
+            if(!data->m_consumers.isEmpty())// only if consumers
+            {
+                QList<QString> consumersList = data->m_consumers.split(","); // one producer for n consumers
+                for (int i = 0; i < consumersList.size(); i++)
+                {
+                    outStream << "\n\t" << data->producer() << " -> " << consumersList[i]
+                    << "\t [Name = " << data->name() <<"]"
+                    << "\t [Type = "  << config().getDataFlowEdgeStatus(data->producer(),consumersList[i]) << "]";
+                }
+            }
+        }
+    }
+    outStream << "\n}";
+    outStream.flush();
+    outFile.flush();
+    outFile.close();
+
+    return 1;
+}
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void FbsfApplication::setOptPerfMeter(bool aFlag)
 {
@@ -137,14 +282,14 @@ void FbsfApplication::setOptPerfMeter(bool aFlag)
 FbsfGuiApplication::FbsfGuiApplication(eApplicationMode aMode,int & argc,char** argv)
     : QApplication(argc, argv)
     , QQuickView(nullptr)
+    , mEngine()
     , mWindow(nullptr)
     , mMode(aMode)
 {
-
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Executive = new FbsfExecutive(aMode);
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+#ifndef BUILD_API
     const QStringList args = FbsfApplication::parser().positionalArguments();
     if (args.isEmpty())
     {
@@ -153,9 +298,16 @@ FbsfGuiApplication::FbsfGuiApplication(eApplicationMode aMode,int & argc,char** 
         QMessageBox::critical( nullptr, "[Fatal]", msg.toStdString().c_str());
         qFatal(msg.toStdString().c_str());
     }
-    QString configFile;
-    configFile = QDir::currentPath() + "/" + args[0]; // TODO PATH CONFIGURATION
+    setup(args[0]);
+#endif
 
+}
+void FbsfGuiApplication::setup(QString path) {
+
+    QString configFile;
+    configFile = QDir::currentPath() + "/" + path; // TODO PATH CONFIGURATION
+
+#ifndef MODE_BATCH
     QQmlContext *ctxt = mEngine.rootContext();
     // Path acces in QML
     ctxt->setContextProperty("FBSF_HOME",QUrl::fromLocalFile(sFrameworkHome));
@@ -165,7 +317,7 @@ FbsfGuiApplication::FbsfGuiApplication(eApplicationMode aMode,int & argc,char** 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // QML data exchange listmodel binding
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    ctxt->setContextProperty("FbsfDataModel", &sListviewDataModel);
+    ctxt->setContextProperty("FbsfDataModel", FbsfdataModel::sFactoryListviewDataModel());
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // add import paths for plugins
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -188,6 +340,7 @@ FbsfGuiApplication::FbsfGuiApplication(eApplicationMode aMode,int & argc,char** 
     ctxt->setContextProperty("COMPONENTS_PATH",QUrl::fromLocalFile(sComponentsPath));
     //~~~~~~~~~~~~~~~~~~~~~~~~~ setup UI ~~~~~~~~~~~~~~~~~~~~~~~~~
     setResizeMode(QQuickView::SizeRootObjectToView);
+#endif
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 FbsfGuiApplication::~FbsfGuiApplication()
@@ -286,7 +439,6 @@ int FbsfGuiApplication::start(uint aPeriod, float aFactor, uint aRecorder)
     // start the graphic interface
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     int ret = QGuiApplication::exec();
-
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // leave the process
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -341,6 +493,10 @@ FbsfBatchApplication::~FbsfBatchApplication()
 {
     delete Executive;
 }
+void FbsfBatchApplication::setup(QString) {
+
+};
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// Sequence registration
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -159,6 +159,10 @@ void FBSFBaseModel::computeStep()
 
     mSimulationTime+=mTimeStep;// seconds
 }
+void FBSFBaseModel::cancelStep()
+{
+    mStepRunning = false;
+}
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// \brief FBSFBaseModel::preStep
 ///        Get input values from public data pool

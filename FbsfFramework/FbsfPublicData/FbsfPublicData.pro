@@ -1,6 +1,8 @@
 TEMPLATE = lib
 TARGET = FbsfPublicData
-DESTDIR = $$PWD/../fbsfplugins
+include(../../FbsfTargets.pri)
+
+DESTDIR = $$FBSF_PLUGINS_DIR
 
 # Configuration for gui code or full batch code
 BATCH {
@@ -18,7 +20,7 @@ DEFINES += FBSF_PUBLIC_DATA
 
 uri = fbsfplugins
 
-INCLUDEPATH += $$PWD/../../FbsfBaseModel
+INCLUDEPATH += $$FBSF_HOME/FbsfBaseModel
 
 # Input
 SOURCES += \

@@ -4,12 +4,13 @@ CONFIG      += c++11
 
 QT += network
 
+include(../../FbsfTargets.pri)
+
 # export symbols
 DEFINES     += FBSF_NETWORK
-INCLUDEPATH += ../../FbsfFramework/src
+INCLUDEPATH += $$FBSF_FRAMEWORK_DIR/src
 
 # Build path
-DESTDIR = $$PWD/../../lib
 
 HEADERS = \
     FbsfNetServer.h \
