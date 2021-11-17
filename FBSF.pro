@@ -10,4 +10,3 @@ SUBDIRS = \
           FbsfFramework/ModuleLogic\
           FbsfFramework/ModuleGraphic\
           FbsfFramework/FbsfApi\
-          FbsfFramework/FbsfApi/test/FbsfApiTest.pro

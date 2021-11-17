@@ -23,10 +23,7 @@ else {# Configuration gui code
 DEFINES     += STANDALONE_XML_PARSER
 DEFINES     += FBSF_FRAMEWORK_LIBRARY
 DEFINES += BUILD_API
-message("build build api")
-message($$FBSF_HOME)
-message($$FBSF_LIB_DIR)
-message($$FBSF_FRAMEWORK_DIR)
+message("build api")
 
 INCLUDEPATH += $$FBSF_FRAMEWORK_DIR/FbsfPublicData\
                $$FBSF_FRAMEWORK_DIR/FbsfNetwork
