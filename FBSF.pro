@@ -1,3 +1,4 @@
+include($$PWD/FbsfTargets.pri)
 TEMPLATE = subdirs
 CONFIG += ordered qtquickcompiler
 SUBDIRS = \
@@ -7,5 +8,5 @@ SUBDIRS = \
           FbsfBaseModel\
           FbsfFramework\
           FbsfFramework/ModuleLogic\
-          FbsfFramework/ModuleGraphic
-
+          FbsfFramework/ModuleGraphic\
+          FbsfFramework/FbsfApi\

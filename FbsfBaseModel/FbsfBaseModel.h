@@ -9,7 +9,7 @@
 #include <QObject>
 #include <QDebug>
 #include <float.h>
-
+#include <iostream>
 #include "FbsfGlobal.h"
 #include "ParamProperties.h"
 
@@ -132,6 +132,7 @@ public:
     //~~~~~~~~~~~~~~ Application global configuration ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     QMap<QString,QString>& AppConfig(){return mAppConfig;}
     void            AppConfig(QMap<QString,QString>& aAppConfig){mAppConfig=aAppConfig;}
+    void            resetStepRunning() {mStepRunning = true;};
 protected :
     //~~~~~~~~~~~~~~ for visual models ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     void            rootWindow(QObject* rootWindow){mRootWindow=rootWindow;}
@@ -151,6 +152,7 @@ signals :
 public slots :
     // enable notification control from modules or GUI
     void ParamChanged(QString aName, QVariant aValue){notifyParamChanged(aName,aValue);}
+    void cancelStep();
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // members
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -241,6 +243,7 @@ public :
 protected :
     QVariantMap             mStateDataValueMap;// map of state data value
     QObject*                mQmlPlugin;     // handle for visual plugin (main.qml)
+    bool                    mStepRunning = true;
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 private :
@@ -254,7 +257,6 @@ private :
     int                     mStatus;        //failed 0, success=1
     QMap<QString,QString>   mConfig;        // Module configuration
     QMap<QString,QString>   mAppConfig;     // Application configuration
-
     QObject*                mRootWindow;    // Visual root window
 
     float                   mSimulationTime; // seconds

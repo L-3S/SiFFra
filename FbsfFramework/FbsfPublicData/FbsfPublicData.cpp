@@ -10,9 +10,6 @@ uint  FbsfDataExchange::m_recorderSize=0;
 bool  FbsfDataExchange::m_replay_mode=false;
 bool  FbsfDataExchange::m_replay_full=false;
 int   FbsfDataExchange::m_replay_step=0;
-#ifndef MODE_BATCH
-extern FbsfdataModel sListviewDataModel;
-#endif
 #include <QDebug>
 #include <QUrl>
 #include <QDataStream>
@@ -114,7 +111,7 @@ FbsfDataExchange::declarePublicData(QString     aName,
                 {
                     publicAddress->size(aSize); // producer size
                     #ifndef MODE_BATCH
-                    sListviewDataModel.addData(publicAddress,true);//true to insert
+                    FbsfdataModel::sFactoryListviewDataModel()->addData(publicAddress,true);//true to insert
                     #endif
                 }
                 if (aHistory) publicAddress->recorder(aTimeIndex,aTimeShift);
@@ -179,18 +176,21 @@ FbsfDataExchange::declarePublicData(QString     aName,
         sPublicDataMap.insert(vName,publicAddress );
         // Insert data reference for QML List
         #ifndef MODE_BATCH
-        sListviewDataModel.addData(publicAddress);
+        FbsfdataModel::sFactoryListviewDataModel()->addData(publicAddress);
         #endif
     }
 #ifndef MODE_BATCH
-    sListviewDataModel.addProducer(publicAddress->producer());
+    FbsfdataModel::sFactoryListviewDataModel()->addProducer(publicAddress->producer());
 #endif
     // Fill the consumer list if import
     if ((aFlags & cImporter || aFlags & cUnresolved) && !aInstance.isEmpty())
     {
-        if(!publicAddress->m_consumers.isEmpty())
-            publicAddress->m_consumers+=",";
-        publicAddress->m_consumers += aInstance;
+        if (!publicAddress->m_consumers.contains(aInstance)) // case one module inport several time the same variable
+        {
+            if(!publicAddress->m_consumers.isEmpty())
+                publicAddress->m_consumers+=",";
+            publicAddress->m_consumers += aInstance;
+        }
     }
     return publicAddress;
 }
@@ -437,7 +437,7 @@ void FbsfDataExchange::processPublicData(int aStep)
     }
     m_replay_step=aStep;// keep current replay step
 #ifndef MODE_BATCH
-    emit sListviewDataModel.replayStepsChanged();
+    emit FbsfdataModel::sFactoryListviewDataModel()->replayStepsChanged();
 #endif
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -671,7 +671,7 @@ void FbsfDataExchange::deserialize(QDataStream& aStream)
 void FbsfDataExchange::updateDataModel()
 {
     #ifndef MODE_BATCH
-    sListviewDataModel.updateValues();
+    FbsfdataModel::sFactoryListviewDataModel()->updateValues();
     #endif
 }
 #ifndef MODE_BATCH

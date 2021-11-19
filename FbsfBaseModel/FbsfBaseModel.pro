@@ -4,11 +4,11 @@ CONFIG  += c++11
 QT -= gui
 QT += xml
 
-DESTDIR     = $$(FBSF_HOME)/lib
+include(../FbsfTargets.pri)
 
 DEFINES     += STANDALONE_XML_PARSER FMI_COSIMULATION
 
-LIBS        += -L$$(FBSF_HOME)/FbsfFramework/fbsfplugins -lFbsfPublicData
+LIBS        += -L$$FBSF_PLUGINS_DIR -lFbsfPublicData
 
 INCLUDEPATH += ../FbsfFramework/FbsfPublicData
 DEPENDPATH  += ../FbsfFramework/FbsfPublicData

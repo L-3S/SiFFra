@@ -6,6 +6,7 @@
 
 #include "FbsfNode.h"
 #include <QThread>
+#include <iostream>
 #include <QMap>
 #include <QList>
 #define SYNCHRONE_INIT  // sequential mode
@@ -21,10 +22,10 @@ FbsfSequence::FbsfSequence(QString aName, float aPeriod, FbsfApplication *app, Q
     : mName(aName)
     , mPeriod(aPeriod)
     , mIter(1)
-    , mApp (app)
     , mRemainIter(0)
     , mStepNumber(0)
-    , mStatus(1)
+    , mApp (app)
+    , mStatus(FBSF_OK)
     , taskCond(ptaskCond)
     , iterCond(piterCond)
 {
@@ -167,6 +168,7 @@ void FbsfSequence::addModel(FBSFBaseModel* aModel)
     QObject::connect((QObject *)aModel,SIGNAL(ExecutiveControl(QString,QString)),
                      mApp->executive(), SLOT(control(QString,QString)),
                      Qt::DirectConnection);
+    connect(this, SIGNAL(cancelModelStep()), aModel, SLOT(cancelStep()));
 
     #ifdef TRACE
         qDebug() << "FbsfSequence::addModel : " << aModel->name();
@@ -237,6 +239,11 @@ void FbsfSequence::finalize()
 void  FbsfSequence::cycleStart()
 {
     mRemainIter=mIter;
+    for (int i = 0; i < mModelList.size(); ++i)
+        mModelList[i]->resetStepRunning();
+}
+void FbsfSequence::cancelSeqStep() {
+    emit cancelModelStep();
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// Data consumption procedure : signal to virtual method call
@@ -265,7 +272,7 @@ void FbsfSequence::computeStep()
     // perf meter
     QElapsedTimer timer;
     timer.start();
-
+    mStatus = FBSF_OK;
     if (mPeriod >1) // SLOW iteration
     {
         if (mStepNumber%(int)mPeriod==0)
@@ -277,7 +284,9 @@ void FbsfSequence::computeStep()
                 mModelList[i]->consumeData();
                 #endif
                 mModelList[i]->computeStep();
-                mStatus=mModelList[i]->status();
+                if (mStatus == FBSF_OK) {
+                    mStatus=(fbsfStatus)mModelList[i]->status();
+                }
             }
         }
         iterCond.acquire();// decrease the working count
@@ -293,6 +302,9 @@ void FbsfSequence::computeStep()
             mModelList[i]->consumeData();
             #endif
             mModelList[i]->computeStep();
+            if (mStatus == FBSF_OK) {
+                mStatus=(fbsfStatus)mModelList[i]->status();
+            }
             if(mModelList[i]->status()==FBSF_ERROR)
             {
                  // signal error to the executive system
@@ -322,7 +334,7 @@ int FbsfSequence::doSaveState(QDataStream& out)
     for (int i = 0; i < mModelList.size(); ++i)
     {
         mModelList[i]->doSaveState(out);
-        mStatus=mModelList[i]->status();
+        mStatus=(fbsfStatus)mModelList[i]->status();
     }
     return 1;
 }
@@ -335,7 +347,7 @@ int FbsfSequence::doRestoreState(QDataStream& in)
     for (int i = 0; i < mModelList.size(); ++i)
     {
         mModelList[i]->doRestoreState(in);
-        mStatus=mModelList[i]->status();
+        mStatus=(fbsfStatus)mModelList[i]->status();
     }
     return 1;
 }

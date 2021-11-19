@@ -35,19 +35,20 @@ bool           FbsfExecutive::sOptPerfMeter=false;
 /// Control the simulation states and modes
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 FbsfExecutive::FbsfExecutive(eApplicationMode aMode)
-    : mCycleTime(100)
-    , mPeriod (100)
-    , mSimulationTime(0)
-    , mStepNumber(0)
-    , mReplayMode(false)
-    , mReplayFile(QString())
+    : bSuspended(false)
     , workflowState( ePause )
     , mAppMode(aMode)
     , mExeMode(eCompute)
+    , mReplayMode(false)
+    , mReplayFile(QString())
     , mReplayLength(0)
+    , mCycleTime(100)
+    , mPeriod (100)
+    , mSimulationTime(0)
     , bComputeTime(true)
-    , bSuspended(false)
+    , mStepNumber(0)
     , mStatus(FBSF_OK)
+    , mLastSuccessfulStep(0)
     , mMultiSteps(INFINITE)
     , bExitAfterSteps(false)
 
@@ -94,6 +95,9 @@ FbsfExecutive::~FbsfExecutive()
 {
     if (mNetClient) delete mNetClient;
     if (mNetServer) delete mNetServer;
+    for (int i = 0; i < mSequenceList.length(); i++) {
+        delete mSequenceList[i];
+    }
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// set the replay mode
@@ -119,7 +123,9 @@ void  FbsfExecutive::ReplayMode(bool aFlag, QString aFile)
 void  FbsfExecutive::BatchMode(bool aFlag)
 {
     mExeMode=eBatch;
+#ifndef BUILD_API
     workflowState=eRun;
+#endif
     Speed(mFastSpeedFactor);
 
     qDebug()<< "Mode : " << ExecutionMode();
@@ -137,9 +143,9 @@ int FbsfExecutive::addSequence(QString aName, float aPeriod,
     // Create the sequence thread
     QThread* thread = new QThread;
     pSequence->moveToThread(thread);
-
     // connect signal to sequence slots : cycle start
     connect(this  , SIGNAL(cycleStart()) , pSequence, SLOT(cycleStart()));
+    connect(this  , SIGNAL(cancelStep()) , pSequence, SLOT(cancelSeqStep()));
     // connect signal to sequence slots : pre/step computation and finalization
     connect(this  , SIGNAL(consume()) , pSequence, SLOT(consumeData()));
     connect(this  , SIGNAL(compute()) , pSequence, SLOT(computeStep()));
@@ -274,8 +280,8 @@ void FbsfExecutive::run()
     if (BatchMode())
     {
         qDebug() << "Batch total steps        :" << mStepNumber ;
-        qDebug() << "Batch Simulated time     :" << Period()*(mStepNumber-1) << "ms";
-        qDebug() << "Batch mode expected time :" << mCycleTime*(mStepNumber-1) << "ms";
+        qDebug() << "Batch Simulated time     :" << Period()*(mStepNumber) << "ms";
+        qDebug() << "Batch mode expected time :" << mCycleTime*(mStepNumber) << "ms";
         qDebug() << "Batch mode elapsed time  :" << batchTime.elapsed() << "ms";
         qDebug() << "Defined time step        :" << Period() << "ms";
         qDebug() << "Effective Cycle time     :" << mCycleTime << "ms";
@@ -296,12 +302,18 @@ void FbsfExecutive::doCycle()
     resetWorking(mSequenceList.size());
     emit cycleStart();
     // loop until all iterations completed for all sequences
+    mStatus = FBSF_OK;
     while (stillWorking()>0)
     {
         emit consume();// Synchronous consumption of inputs
         waitCompletion(mSequenceList.size());
         emit compute();// compute models
         waitCompletion(mSequenceList.size());
+        for (auto seq: mSequenceList) {
+            if (mStatus == FBSF_OK) {
+                mStatus = seq->status();
+            }
+        }
     }
     // perf meter
     if(mCpuStepTime!=nullptr)
@@ -329,6 +341,9 @@ void FbsfExecutive::doCycle()
     {
         mStepNumber++;// usefull for replay
     }
+    if (mStatus == FBSF_OK) {
+        mLastSuccessfulStep = mPeriod * mStepNumber;
+    }
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// SLOT : Control of the executive workflow
@@ -339,10 +354,12 @@ void FbsfExecutive::control(QString command, QString param1, QString param2)
     // then process the executive command locally
     if (mAppMode == client && mNetClient)
         mNetClient->sendExecutiveMsg(command);// TODO send param
-
+    if (command == "cancel") {
+        emit FbsfExecutive::cancelStep();
+        workflowState = ePause;
+        if (isSuspended()) wakeup();
     //~~~~~~~~~~~~~~~~~~ Pause simulation ~~~~~~~~~~~~~~~~~~~~~~~
-    if (command == "pause")
-    {
+    } else if (command == "pause") {
         //~~~~~~~~~~~~~~~~~~ Pause simulation ~~~~~~~~~~~~~~~~~~~~~
         workflowState = ePause;
         if (isSuspended()) wakeup();
@@ -565,6 +582,7 @@ void FbsfExecutive::resetWorking(int aNbSequences)
 {
     iterCond.release(aNbSequences);
 }
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// number of working with iterations called
 /// from Executive controller
