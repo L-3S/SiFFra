@@ -1,5 +1,8 @@
 #ifndef ITEMPROPERTIES_H
 #define ITEMPROPERTIES_H
+#include <QString>
+static QString defaultDateFormat("dd/MM/yyyy");
+
 #include "ItemParams.h"
 
 
@@ -28,6 +31,16 @@ static QMap<QString, ParamProperties> sSimulationProperties=
                     "Simulation timestep",
                     "s", "step iteration period in seconds",
                     QVector<QVariant>(),0.5,0.1,INFINITY,0.1,INFINITY}},
+    {"date", ParamProperties{Param_quality::cOptional, Param_type::cDate,
+                                 "Date dd/MM/yyyy format",
+                                 "", "",
+                                 QVector<QVariant>(),
+                                 ""}},
+    {"time", ParamProperties{Param_quality::cOptional, Param_type::cTime,
+                                 "time HH:mm:ss format",
+                                 "", "",
+                                 QVector<QVariant>(),
+                                 ""}},
      {"speedfactor", ParamProperties{Param_quality::cOptional, Param_type::cDbl,
                      "timestep*factor (Fast < 1 , Slow > 1)",
                      "", "Fast < 1 , Slow > 1",
@@ -52,28 +65,28 @@ static QMap<QString, ParamProperties> sSimulationProperties=
                     "Definition file of the curve windows to be displayed when the simulator is initialized (relative to the APP_HOME variable) ",
                     "XML files (*.xml)", "",QVector<QVariant>(),""}},
     //~~~~~~~~~~~~~~~~~~~~~~~~~ ihm options ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    {"hidePauseBtn", ParamProperties{Param_quality::cOptional, Param_type::cBool,
+    {"hidePauseBtn", ParamProperties{Param_quality::cOptional, Param_type::cCheckable,
                     "Hide pause button ",
                     "", "true/false",QVector<QVariant>(),false}},
-    {"hideStepBtn", ParamProperties{Param_quality::cOptional, Param_type::cBool,
+    {"hideStepBtn", ParamProperties{Param_quality::cOptional, Param_type::cCheckable,
                     "Hide step button ",
                     "", "true/false",QVector<QVariant>(),false}},
-    {"hideRunBtn", ParamProperties{Param_quality::cOptional, Param_type::cBool,
+    {"hideRunBtn", ParamProperties{Param_quality::cOptional, Param_type::cCheckable,
                     "Hide run button ",
                     "", "true/false",QVector<QVariant>(),false}},
-    {"hideSpeedBtn", ParamProperties{Param_quality::cOptional, Param_type::cBool,
+    {"hideSpeedBtn", ParamProperties{Param_quality::cOptional, Param_type::cCheckable,
                     "Hide speed button ",
                     "", "true/false",QVector<QVariant>(),false}},
-    {"hideStepCrtBtn", ParamProperties{Param_quality::cOptional, Param_type::cBool,
+    {"hideStepCrtBtn", ParamProperties{Param_quality::cOptional, Param_type::cCheckable,
                     "Hide step crt button ",
                     "", "true/false",QVector<QVariant>(),false}},
-    {"hideSnapControlBtn", ParamProperties{Param_quality::cOptional, Param_type::cBool,
+    {"hideSnapControlBtn", ParamProperties{Param_quality::cOptional, Param_type::cCheckable,
                     "Hide snapshot button ",
                     "", "true/false",QVector<QVariant>(),false}},
-    {"hideNavigationBtn", ParamProperties{Param_quality::cOptional, Param_type::cBool,
+    {"hideNavigationBtn", ParamProperties{Param_quality::cOptional, Param_type::cCheckable,
                     "Hide navigation button ",
                     "", "true/false",QVector<QVariant>(),false}},
-    {"hideBacktrackBtn", ParamProperties{Param_quality::cOptional, Param_type::cBool,
+    {"hideBacktrackBtn", ParamProperties{Param_quality::cOptional, Param_type::cCheckable,
                     "Hide backtrack button ",
                     "", "true/false",QVector<QVariant>(),false}},
 };

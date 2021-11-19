@@ -29,5 +29,7 @@
         <file>icons/filesaveas.png</file>
         <file>icons/warning.png</file>
         <file>CheckReport.qml</file>
+        <file>Inspectors/DatePicker.qml</file>
+        <file>icons/calendar.png</file>
     </qresource>
 </RCC>

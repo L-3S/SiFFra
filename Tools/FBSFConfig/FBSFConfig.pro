@@ -1,3 +1,5 @@
+include($$(FBSF_HOME)/FbsfTargets.pri)
+
 TEMPLATE = app
 
 QT += qml quick widgets xml
@@ -6,10 +8,10 @@ CONFIG += c++11
 INCLUDEPATH +=$$(FBSF_HOME)/FbsfBaseModel\
               $$(FBSF_HOME)/FbsfFramework/src
 
-LIBS        += $$(FBSF_HOME)/lib/FbsfBaseModel.lib
+LIBS        += $$FBSF_LIB_DIR/FbsfBaseModel.lib
 RESOURCES   = qml.qrc
 DEFINES     += FBSF_FRAMEWORK_LIBRARY # usefull for dllexport clause
-DESTDIR     =$$(FBSF_HOME)/lib
+
 SOURCES     = \
     ../../FbsfFramework/src/FbsfConfiguration.cpp \
     Controller.cpp \

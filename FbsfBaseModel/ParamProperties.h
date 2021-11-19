@@ -28,13 +28,16 @@ enum class Param_type: int
     cDbl,
     cInt,
     cBool,
+    cCheckable,
     cPath,
     cFilePath,
     cDateAndTime,
     cDateAndTimeUTC,
+    cDate,
+    cTime,
     cEnumString,
     cEnumInt,
-    cChoiceList,
+    //cChoiceList,// currently not fully implemented
 };
 
 class ParamProperties

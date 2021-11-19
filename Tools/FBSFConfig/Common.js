@@ -20,7 +20,7 @@ var border_Clr      = frameColor
 var nameColumWidth  = 300
 var valueColumWidth =300
 var descriptionColumWidth =300
-var unitColumWidth  =100
+var unitColumWidth  =120
 var typeColumWidth  =100
 
 var rowHeight       =40

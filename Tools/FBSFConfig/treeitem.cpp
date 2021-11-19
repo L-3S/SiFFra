@@ -3,6 +3,7 @@
 #include "ItemProperties.h"
 #include "ModuleDescriptor.h"
 #include <QDebug>
+#include <QList>
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // for plugin : name=instance, type=module, category=plugin
@@ -128,69 +129,95 @@ QString  TreeItem::checkParamList()
             data.hasError(false);
 
             // skip if optional and value is default
-            if(!data.isModified()) continue;
+            // special case if date : may be unchanged while format is not
+            if(!data.isModified() && data.type()!=ParamValue::typeDate) continue;
 
-            // Check if mandatory is valid
-            if(data.mandatory() && data.getValue()=="")
+            if(data.isInvalid())
             {
-                errorList += "\n\tempty value for " + data.key();
-                data.hasError(true);
+                errorList += "\n\t"+data.error();
                 bHasError=true;
             }
-            // Check if value is in list
-            if(data.type()==ParamValue::typeStringList)
-            {
-                if(!data.value().toList().contains(data.getValue()))
-                {
-                    errorList += "\n\tValue not in list for " + data.key();
-                    data.hasError(true);
-                    bHasError=true;
-                }
-            }
-            else
-            {
-                // Check range for value
-                switch (data.defaultType())
-                {
-                case QVariant::Bool   :
-                    if(data.value().toString().toLower()!="true"
-                            &&data.value().toString().toLower()!="false")
-                    {
-                        errorList += "\n\tnot a boolean value for " + data.key();
-                        data.hasError(true);
-                        bHasError=true;
-                    }
-                    break;
-                case QVariant::Int    :
-                    if (data.value().toInt()<data.minStrict().toInt()
-                            || data.value().toInt()>data.maxStrict().toInt())
-                    {
-                        errorList += "\n\tvalue out of range for " + data.key();
-                        data.hasError(true);
-                        bHasError=true;
-                    }
-                    break;
-                case QVariant::Double :
-                    if (data.value().toDouble()<data.minStrict().toDouble()
-                            || data.value().toDouble()>data.maxStrict().toDouble())
-                    {
-                        errorList += "\n\tvalue out of range for " + data.key();
-                        data.hasError(true);
-                        bHasError=true;
-                    }
-                    break;
-                case QVariant::LongLong :
-                    if (data.value().toLongLong()<data.minStrict().toLongLong()
-                            || data.value().toLongLong()>data.maxStrict().toLongLong())
-                    {
-                        errorList += "\n\tvalue out of range for " + data.key();
-                        data.hasError(true);
-                        bHasError=true;
-                    }
-                    break;
-                default : break;
-                }
-            }
+            // Check if mandatory is valid
+//            if(data.mandatory() && data.getValue()=="")
+//            {
+//                data.error("empty value for " + data.key());
+//                errorList += "\n\t"+data.error();
+//                data.hasError(true);
+//                bHasError=true;
+//            }
+//            // Check if value is in list
+//            if(data.type()==ParamValue::typeStringList)
+//            {
+//                if(!data.value().toList().contains(data.getValue()))
+//                {
+//                    data.error("Value not in list for " + data.key());
+//                    errorList += "\n\t"+data.error();
+//                    data.hasError(true);
+//                    data.error("Value not in list for " + data.key());
+//                    bHasError=true;
+//                }
+//            }
+//            else if(data.type()==ParamValue::typeDate && !data.value().toString().isEmpty())
+//            {
+//                QString format=data.unit().isEmpty()?defaultDateFormat:data.unit();
+//                QDate isoDate=QDate::fromString(data.value().toString(),format);
+//                if(!isoDate.isValid())
+//                {
+//                    data.error("not a valid date/format for " + data.key()
+//                                 +", check format : "+data.value().toString()+"/"+data.unit());
+//                    errorList += "\n\t"+data.error();
+//                    data.hasError(true);
+//                    bHasError=true;
+//                }
+//            }
+//            else
+//            {
+//                // Check range for value
+//                switch (data.defaultType())
+//                {
+//                case QVariant::Bool   :
+//                    if(data.value().toString().toLower()!="true"
+//                            &&data.value().toString().toLower()!="false")
+//                    {
+//                        data.error("not a boolean value for " + data.key());
+//                        errorList += "\n\t"+data.error();
+//                        data.hasError(true);
+//                        bHasError=true;
+//                    }
+//                    break;
+//                case QVariant::Int    :
+//                    if (data.value().toInt()<data.minStrict().toInt()
+//                            || data.value().toInt()>data.maxStrict().toInt())
+//                    {
+//                        data.error("value out of range for " + data.key());
+//                        errorList += "\n\t"+data.error();
+//                        data.hasError(true);
+//                        bHasError=true;
+//                    }
+//                    break;
+//                case QVariant::Double :
+//                    if (data.value().toDouble()<data.minStrict().toDouble()
+//                            || data.value().toDouble()>data.maxStrict().toDouble())
+//                    {
+//                        data.error("value out of range for " + data.key());
+//                        errorList += "\n\t"+data.error();
+//                        data.hasError(true);
+//                        bHasError=true;
+//                    }
+//                    break;
+//                case QVariant::LongLong :
+//                    if (data.value().toLongLong()<data.minStrict().toLongLong()
+//                            || data.value().toLongLong()>data.maxStrict().toLongLong())
+//                    {
+//                        data.error("value out of range for " + data.key());
+//                        errorList += "\n\t"+data.error();
+//                        data.hasError(true);
+//                        bHasError=true;
+//                    }
+//                    break;
+//                default : break;
+//                }
+//            }
         }
         if(bHasError) report = header + errorList + "\n";
         hasError(bHasError);
@@ -333,17 +360,26 @@ void TreeItem::getXmlItemData(QString& aXmlConfig, int level)
         // get parameter
         ParamValue& data =*( dynamic_cast<ParamValue*>(*iter));// down cast
 
-        // skip if value is optional and default
-        if(!data.isModified()) continue;
+
+        // skip if value is optional and equal to default
+        // special case if date : may be unchanged while format is not
+        if(!data.isModified() && data.type()!=ParamValue::typeDate) continue;
 
         if(data.type()==ParamValue::typeStringList)
         {
-            if (data.currentText().isEmpty()) return;
+            if (data.currentText().isEmpty()) continue;
             aXmlConfig+= tab +"<"+ data.key()+">"+data.currentText()+"</"+ data.key()+">";
+        }
+        else if(data.type()==ParamValue::typeDate)
+        {
+            if(!data.value().toString().isEmpty())// set date if not empty
+                aXmlConfig+= tab +"<"+ data.key()+">"+data.value().toString()+"</"+ data.key()+">\n";
+            if(!data.unit().isEmpty()) // set format if not empty
+                aXmlConfig+= tab +"<dateFormat>"+data.unit()+"</dateFormat>";
         }
         else
         {
-            if(data.value().toString().isEmpty()) return;
+            if(data.value().toString().isEmpty()) continue;
             switch (data.defaultType())
             {
             case QVariant::Bool   : {
@@ -365,6 +401,12 @@ void TreeItem::getXmlItemData(QString& aXmlConfig, int level)
                                << "Unknown type for key :" << data.key();break;
             }
         }
+        //        else if(data.type()==ParamValue::typeChoiceList)
+        //        {
+        //            qDebug() << data.key();
+        //            for (auto val:data.value().toStringList())
+        //                qDebug() << data.value();
+        //        }
         aXmlConfig+="\n";
     }
 }

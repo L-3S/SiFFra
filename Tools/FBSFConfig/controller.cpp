@@ -66,7 +66,7 @@ void Controller::findModuleLib()
     QString applicationHome = qgetenv("APP_HOME");
     if (!applicationHome.isEmpty())
     {
-        QDirIterator it(applicationHome+"/lib",
+        QDirIterator it(applicationHome+"/lib",// TODO may be Debug or Release
                         filter,QDir::AllEntries | QDir::NoDotAndDotDot);
         while (it.hasNext())
         {

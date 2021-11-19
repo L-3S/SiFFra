@@ -22,7 +22,7 @@ Node
     MouseArea
     {id: actMouse
         // Case Time Depends no action form actuators alowed
-        enabled: !SimuMpc
+        enabled: !simuMpc
         anchors.fill : parent
         onClicked:
         {

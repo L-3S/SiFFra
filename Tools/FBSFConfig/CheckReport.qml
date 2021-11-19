@@ -6,7 +6,7 @@ import QtQuick.Window 2.12
 Window {
     id: root
     title : "Check report"
-    width: 450; height: 250
+    width: 600; height: 250
     property alias report : report.text
     Rectangle{
         anchors.fill : parent

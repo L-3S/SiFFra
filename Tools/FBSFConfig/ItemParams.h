@@ -2,9 +2,10 @@
 #define ITEMPARAMS_H
 #include <QObject>
 #include <QVariant>
+#include <QDate>
 #include <QDebug>
 #include "ParamProperties.h" // include from FBSF
-
+#include "ItemProperties.h"
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Class for data descriptor
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -16,14 +17,16 @@ class ParamValue : public QObject
     Q_PROPERTY(bool optional READ optional CONSTANT)
     Q_PROPERTY(bool mandatory READ mandatory CONSTANT)
     Q_PROPERTY(QVariant value READ value WRITE setValue NOTIFY valueChanged)
-    Q_PROPERTY(QString unit READ unit CONSTANT)
+    Q_PROPERTY(QString unit READ unit WRITE setUnit NOTIFY unitChanged)
     Q_PROPERTY(QVariant minStrict READ minStrict CONSTANT)
     Q_PROPERTY(QVariant maxStrict READ maxStrict CONSTANT)
     Q_PROPERTY(QVariant minWarn READ minWarn CONSTANT)
     Q_PROPERTY(QVariant maxWarn READ maxWarn CONSTANT)
     Q_PROPERTY(QString description READ description CONSTANT)
     Q_PROPERTY(int index READ index WRITE setIndex NOTIFY indexChanged)
+    Q_PROPERTY(QDate isoDate READ isoDate CONSTANT)
 
+    Q_PROPERTY(QString error READ error CONSTANT)
     Q_PROPERTY(bool hasError READ hasError NOTIFY hasErrorChanged)
 
 public:
@@ -55,19 +58,32 @@ public:
         case Param_type::cDbl   : mType=typeNumber;break;
         case Param_type::cInt   : mType=typeInt;break;
         case Param_type::cBool  : mType=typeBool;break;
+        case Param_type::cCheckable  : mType=typeCheckable;break;
         case Param_type::cPath  : mType=typePath;break;
         case Param_type::cFilePath  : mType=typeFilePath;break;
         case Param_type::cDateAndTime : mType=typeDateAndTime;break;
         case Param_type::cDateAndTimeUTC : mType=typeDateAndTimeUTC;break;
+        case Param_type::cDate  : {
+            mType=typeDate;
+            QString format=dateFormat.isEmpty()?defaultDateFormat:dateFormat;
+            mUnit=format;// static member
+            // set date to ISO Date for JavaScript
+            mIsoDate=QDate::fromString(mValue.toString(),dateFormat);
+            //qDebug() << __FUNCTION__<<mIsoDate<<format;
+        }
+            break;
+        case Param_type::cTime          : mType=typeTime;break;
         case Param_type::cEnumString    : mType=typeStringList;break;
         case Param_type::cEnumInt       : mType=typeStringList;break;
+        //case Param_type::cChoiceList    : mType=typeChoiceList;break;
         }
     }
     /// Constructor for QStringList => Combobox (index is mandatory)
     ParamValue(const QString& aKey,const QVector<QVariant>& aValue,
                const ParamProperties& aProps,const QVariant& currentText)
         : mKey(aKey),
-          mType(aProps.mP_type==Param_type::cChoiceList?typeChoiceList:typeStringList),
+          //mType(aProps.mP_type==Param_type::cChoiceList?typeChoiceList:typeStringList),
+          mType(typeStringList),
           mOptional(aProps.mP_qual==Param_quality::cOptional),
           mMandatory(aProps.mP_qual==Param_quality::cMandatory),
           mValue(aValue.toList()),mUnit(aProps.mUnit),
@@ -122,13 +138,17 @@ public:
     static QString typeNumber;
     static QString typeString;
     static QString typeBool;
+    static QString typeCheckable;
     static QString typeStringList;
     static QString typeIntList;
-    static QString typeChoiceList;
     static QString typePath;
     static QString typeFilePath;
     static QString typeDateAndTime;
     static QString typeDateAndTimeUTC;
+    static QString typeDate;
+    static QString typeTime;
+//    static QString typeChoiceList;
+    static QString dateFormat;
 
     // accessors
     const QString&  key()           const {return mKey;}
@@ -145,6 +165,9 @@ public:
     const QVariant& maxWarn()       const {return mMaxWarn;}
     const QString&  description()   const {return mDescription;}
     int             index()         const {return mIndex;}
+    const QDate&    isoDate()       const {return mIsoDate;}
+    const QString&  error()         const {return mError;}
+    void            error(QString msg)  {mError=msg;}
 
     QString         currentText() const
     {
@@ -160,23 +183,37 @@ public:
         return (mType==typeStringList?currentText():mValue);
     }
     bool isModified()
-    {//qDebug() << __FUNCTION__<< key() << getValue() << mDefaultValue;
+    {
         return(mMandatory || getValue()!=mDefaultValue);
     }
+    bool            isInvalid() ;
     bool            hasError() const {return mHasError; }
     void            hasError(bool aFlag) {mHasError=aFlag;emit hasErrorChanged(aFlag);}
 public slots:
-    // called from QML
+    // called from QML textfield
     void setValue(const QVariant& aValue)
     {
         if(mValue==aValue) return;
         mValue=aValue;
-        hasError(false); // we assume value as valid
+        if(mType==typeDate)
+            mIsoDate=QDate::fromString(mValue.toString(),mUnit);
+        // check validity
+        bool status=isInvalid();
+        hasError(status);// emit signal to QML
     }
+    // called from QML combobox
     void setIndex(int aIndex)
     {
         if(mIndex==aIndex) return;
         mIndex=aIndex;
+        hasError(false); // we assume value as valid
+    }
+    // We use unit as date format
+    void setUnit(QString aUnit)
+    {
+        if(mUnit==aUnit) return;
+        mUnit=aUnit;
+        emit unitChanged(mUnit);
         hasError(false); // we assume value as valid
     }
 
@@ -184,6 +221,7 @@ signals:
     // signal change to parent model
     void valueChanged(QString aKey, QString aName,QVariant aValue);
     void indexChanged(int aIndex);
+    void unitChanged(QString aUnit);
     void hasErrorChanged(bool aStatus);
 
 private :
@@ -199,6 +237,8 @@ private :
     QVariant    mMaxWarn;
     QString     mDescription;
     int         mIndex;     // index if type is list
+    QDate       mIsoDate;
+    QString     mError;
 
     QVariant::Type  mDefaultType;
     QVariant        mDefaultValue;

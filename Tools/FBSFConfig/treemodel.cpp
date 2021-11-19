@@ -152,7 +152,6 @@ void TreeModel::checkItemParams(TreeItem* item,QString& aReport)
 //~~~~~~~ check module and plugin items ~~~~~~~~~~
 void TreeModel::checkItemParams(QModelIndex aIndex)
 {
-    QString report;
     TreeItem *item = getItem(aIndex);
     item->checkParamList();
     emit layoutChanged();// display/hide error icon
