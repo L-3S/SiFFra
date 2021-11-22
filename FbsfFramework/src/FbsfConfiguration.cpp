@@ -16,7 +16,6 @@ QMap <QString, QList<QPair<int,int>> > FbsfConfiguration::mModuleList;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 FbsfConfiguration::FbsfConfiguration()
-    : mConfigName()
 {
 }
 //FbsfConfiguration::~FbsfConfiguration()

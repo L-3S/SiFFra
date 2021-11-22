@@ -29,7 +29,6 @@ void MessageHandler(QtMsgType type, const QMessageLogContext &context, const QSt
 void* FbsfApi::mainApi(int argc, char **argv)
 #endif
 {
-    qDebug("WATH");
 #ifndef MODE_BATCH
     //~~~~~~~~~~ init resource from embedded qrc ~~~~~~~~~~~~~~~~~~
     Q_INIT_RESOURCE(GraphicEditor);
@@ -46,7 +45,6 @@ void* FbsfApi::mainApi(int argc, char **argv)
     std::ios_base::sync_with_stdio();
     QScopedPointer<FbsfApplication> app(FbsfApplication::app(argc, argv));
     try{
-    const QStringList args = FbsfApplication::parser().positionalArguments();
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Check if the configuration file is available
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -55,18 +53,17 @@ void* FbsfApi::mainApi(int argc, char **argv)
     // Check application licensing
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#ifndef BUILD_API
+    #ifndef BUILD_API
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Parse the command line arguments
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    if(app->config().parseXML(args[0])==-1) return -1;
-    else app->configName() = args[0];
+    if(app->config().parseXML(app->configName())==-1) return -1;
     app->generateSequences();
 
 
     qInfo() << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
     return app->start(app->timeStep*1000,app->speedFactor,app->recorderSize);
-#endif
+    #endif
     }// end try
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Catch exceptions

@@ -42,7 +42,7 @@ public :
     static  FbsfApplication* app(int & argc, char **argv);
     FbsfApplication(const FbsfApplication&) = delete;
     FbsfApplication& operator=(const FbsfApplication&) = delete;
-    virtual void            setup(QString)=0;
+    virtual void            setup()=0;
 
     virtual int             start(uint aPeriod=100,float aFactor=1,uint recorder=0)=0;
     virtual int             addSequence(QString aName,float aPeriod,
@@ -70,7 +70,7 @@ public :
     static QCommandLineParser       mParser;
     static QStringList              arglist;
 
-    FbsfConfiguration               mConfig;
+    static FbsfConfiguration        mConfig;
     // runtime path set from EV
     static QString                  sFrameworkHome;
     static QString                  sApplicationHome;
@@ -101,7 +101,7 @@ public:
     eApplicationMode        mode() override {return mMode;}
     virtual void            loadQML() override;
     virtual void            setTimeDepend(bool aFlag) override;
-    void                    setup(QString) override;
+    void                    setup() override;
 
 protected:
     bool event(QEvent *e) Q_DECL_OVERRIDE;
@@ -125,7 +125,7 @@ class FBSF_FRAMEWORKSHARED_EXPORT FbsfBatchApplication
 public:
     FbsfBatchApplication(eApplicationMode aMode, int & argc, char **argv);
     virtual ~FbsfBatchApplication()override;
-    void                    setup(QString) override;
+    void                    setup() override;
     int                     start(uint aPeriod=100, float aFactor=1, uint aRecorder=0)override;
     int                     addSequence(QString aName,float aPeriod,
                                         QList<FbsfConfigNode>& aNodes,

@@ -16,6 +16,7 @@ QStringList             FbsfApplication::arglist;
 QString                 FbsfApplication::sFrameworkHome;
 QString                 FbsfApplication::sApplicationHome;
 QString                 FbsfApplication::sComponentsPath;
+FbsfConfiguration       FbsfApplication::mConfig;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// \class FbsfApplication
@@ -110,6 +111,7 @@ int FbsfApplication::parseArguments() {
     {
         qInstallMessageHandler(0);// restore default handler
     }
+    mConfig.Name() = QDir::currentPath() + "/" + args[0];
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// Commande line parsing
@@ -290,29 +292,17 @@ FbsfGuiApplication::FbsfGuiApplication(eApplicationMode aMode,int & argc,char** 
     Executive = new FbsfExecutive(aMode);
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #ifndef BUILD_API
-    const QStringList args = FbsfApplication::parser().positionalArguments();
-    if (args.isEmpty())
-    {
-        QString msg="Argument 'configuration file.xml' is missing.\n"
-                + FbsfApplication::parser().helpText();
-        QMessageBox::critical( nullptr, "[Fatal]", msg.toStdString().c_str());
-        qFatal(msg.toStdString().c_str());
-    }
-    setup(args[0]);
+    setup();
 #endif
 
 }
-void FbsfGuiApplication::setup(QString path) {
-
-    QString configFile;
-    configFile = QDir::currentPath() + "/" + path; // TODO PATH CONFIGURATION
-
+void FbsfGuiApplication::setup() {
 #ifndef MODE_BATCH
     QQmlContext *ctxt = mEngine.rootContext();
     // Path acces in QML
     ctxt->setContextProperty("FBSF_HOME",QUrl::fromLocalFile(sFrameworkHome));
     ctxt->setContextProperty("APP_HOME",QUrl::fromLocalFile(sApplicationHome));
-    ctxt->setContextProperty("FBSF_CONFIG",QUrl::fromLocalFile(configFile));
+    ctxt->setContextProperty("FBSF_CONFIG",QUrl::fromLocalFile(mConfig.Name()));
     ctxt->setContextProperty("CURRENT_DIR",QUrl::fromLocalFile(QDir::currentPath()));
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // QML data exchange listmodel binding
@@ -480,7 +470,6 @@ FbsfBatchApplication::FbsfBatchApplication(eApplicationMode aMode,int & argc,cha
     : QCoreApplication(argc, argv)
     , mMode(aMode)
 {
-
     Executive = new FbsfExecutive(aMode);
     // running batch mode
     if(aMode==batch) Executive->BatchMode(true);
@@ -493,7 +482,7 @@ FbsfBatchApplication::~FbsfBatchApplication()
 {
     delete Executive;
 }
-void FbsfBatchApplication::setup(QString) {
+void FbsfBatchApplication::setup() {
 
 };
 
