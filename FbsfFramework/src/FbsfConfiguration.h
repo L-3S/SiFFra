@@ -52,7 +52,7 @@ protected:
    QMap<QString,QString>            mSimulation;
    QList< FbsfConfigSequence >      mListSequences;
    FbsfConfigSequence               mpluginList;
-   QString                          mConfigName;
+   QString                   mConfigName;
 public :
    ///~~~~~~~~~ moved from ConfigFileVerifier ~~~~~~~~~~~~~~~~~~~
    /// Generic validity checker method for an individual instance

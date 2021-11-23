@@ -55,7 +55,7 @@ void FbsfApi::mainLoop(FbsfFmi2Component *comp) {
         qWarning("Error: no configuration provided, use fmi2SetString first.");
     } else {
         // Setup the app
-        comp->app->setup(comp->app->configName());
+        comp->app->setup();
         // Open and parse XML config
         if(comp->app->config().parseXML(comp->app->configName())==-1) qWarning("Error: can't parse xml configuration file provided: ", comp->app->configName().toStdString().c_str());
         // Generate sequences from XML infos
