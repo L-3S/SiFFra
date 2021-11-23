@@ -8,13 +8,14 @@ FBSF_FRAMEWORK_DIR=$$PWD/FbsfFramework/
 FBSF_PLUGINS_DIR=$$FBSF_FRAMEWORK_DIR/fbsfplugins
 
 CONFIG(debug, debug|release) {
-    DESTDIR = $$FBSF_LIB_DIR_ROOT/debug
+    BUILD_MODE = debug
 } else {
-    DESTDIR = $$FBSF_LIB_DIR_ROOT/release
+    BUILD_MODE = release
 }
 BATCH {
-    DESTDIR = $$FBSF_LIB_DIR_ROOT/batch
+    BUILD_MODE = batch
 }
+DESTDIR = $$FBSF_LIB_DIR_ROOT/$$BUILD_MODE
 message( "destdir" $$DESTDIR )
 
 FBSF_LIB_DIR =$$DESTDIR

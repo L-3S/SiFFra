@@ -92,8 +92,8 @@ int FbsfApplication::parseArguments() {
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     if (args.isEmpty())
     {
-        QString msg="Argument 'configuration file.xml' is missing.\n"
-                  + FbsfApplication::parser().helpText();
+        QString msg="Argument 'configuration file.xml' is missing.\n";
+//                  + FbsfApplication::parser().helpText();
         qCritical(msg.toStdString().c_str());
         return 1;
     }

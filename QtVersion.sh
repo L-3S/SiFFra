@@ -2,8 +2,8 @@
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Path for QT toolkit
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-export QTDIR=/opt/Qt
-export QT_VERSION=5.15.2
+export QTDIR=/home/antoine/Qt/
+export QT_VERSION=5.15.1
 export QT_COMPILER=gcc_64
 
 echo Make sure that you are using the correct Qt Version :
