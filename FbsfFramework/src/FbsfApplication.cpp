@@ -36,7 +36,6 @@ FbsfApplication *FbsfApplication::app(int & argc, char **argv)
     for (int i=0;i < argc ; i++)
     {
         QString argMode(argv[i]);
-        argMode=argMode.toLower();
         arglist << argMode;
     }
     // Parse the command line
