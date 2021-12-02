@@ -24,7 +24,7 @@ void FbsfPerfMeter::openFile(QString aFileName)
     mActive=true;
     // Name of columns, since pre/post time have been added
     // some empty columns are inserted
-    mOutStream	<< "Step;Type;Name;CpuPre;CpuCycle;CpuPost"
+    mOutStream	<< "Step;Type;Name;CpuTime"
                 << "\n";
     mOutStream.flush();
     mOutFile.flush();
@@ -42,7 +42,7 @@ void FbsfPerfMeter::DumpToFile(uint stepNumber,Phase aPhase)
     }
     mOutStream	<< (aPhase==cInitial?"Init":
                                      aPhase==cFinal?"Final":
-                                                    QString::number(stepNumber))
+                                                    "step "+QString::number(stepNumber))
                 << ";Executive;"
                 << "" << ";"
                 << perfData
@@ -66,7 +66,7 @@ void FbsfPerfMeter::DumpSequenceTree(uint stepNumber,Phase aPhase,
         }
         mOutStream	<< (aPhase==cInitial?"Init":
                                          aPhase==cFinal?"Final":
-                                                        QString::number(stepNumber))
+                                                        "step "+QString::number(stepNumber))
                     << ";sequence;"
                     << seq->name() << ";"
                     << perfData

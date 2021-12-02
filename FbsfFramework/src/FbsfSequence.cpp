@@ -273,6 +273,9 @@ void FbsfSequence::computeStep()
     QElapsedTimer timer;
     timer.start();
     mStatus = FBSF_OK;
+    // reset module cpu time to avoid persistance
+    for (int i = 0; i < mModelList.size(); i++)mModelList[i]->resetCpuTime();
+
     if (mPeriod >1) // SLOW iteration
     {
         if (mStepNumber%(int)mPeriod==0)
@@ -394,18 +397,13 @@ QString FbsfSequence::getPerfMeterInitial()
                                             FbsfDataExchange::cExporter,
                                             name(),"ms","Step time");
     // return initalization time as a string
-    return  ";"+QString::number(mCpuInitializationTime);
+    return QString::number(mCpuInitializationTime);
 }
 QString FbsfSequence::getPerfMeterFinal()
 {
-    return  ";"+QString::number(mCpuFinilizationTime);
+    return QString::number(mCpuFinilizationTime);
 }
 QString FbsfSequence::getPerfMeterStep()
 {
-//    return  QString::number(mCpuPreTime->getIntValue()) + ";"
-//          + QString::number(mCpuStepTime->getIntValue()) + ";"
-//          + QString::number(mCpuPostTime->getIntValue() )+ ";";
-    return  ";"
-          + QString::number(mCpuStepTime->getIntValue()) + ";"
-          + ";";
+    return QString::number(mCpuStepTime->getIntValue()) ;
 }

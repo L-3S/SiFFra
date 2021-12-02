@@ -17,7 +17,7 @@ class FbsfSequence;
 class FbsfNetClient;
 class FbsfNetServer;
 class FbsfDataExchange;
-
+class FbsfPerfMeter;
 class FBSF_FRAMEWORKSHARED_EXPORT FbsfExecutive : public QThread
 {
     Q_OBJECT
@@ -133,7 +133,8 @@ private:
     long long               mCpuInitializationTime=0;
     long long               mCpuFinilizationTime=0;
     FbsfDataExchange*       mCpuStepTime=nullptr;
-
+    // set the perfmeter
+    FbsfPerfMeter*          perfmeter=nullptr;
 };
 
 #endif // FBSFEXECUTIVE_H

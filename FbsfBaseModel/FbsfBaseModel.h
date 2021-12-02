@@ -82,6 +82,7 @@ public:
     QString             getPerfMeterInitial();
     QString             getPerfMeterFinal();
     QString             getPerfMeterStep();
+    void                resetCpuTime();
 
     //~~~~~~~~~~~~~ Set of methods to link produced, consumed and state data ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     void            publish(QString aName, int *aAddress,QString aUnit="", QString aDescription="",
@@ -266,9 +267,7 @@ private :
 
     int                     mCpuInitializationTime=0;
     int                     mCpuFinilizationTime=0;
-    int                     mCpuPreTime=0;
-    int                     mCpuStepTime=0;
-    int                     mCpuPostTime=0;
+    FbsfDataExchange*       mCpuStepTime=nullptr;
 };
 QDebug operator<<(QDebug dbg, const FBSFBaseModel::StateData &data);
 

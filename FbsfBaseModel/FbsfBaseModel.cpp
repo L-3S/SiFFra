@@ -138,10 +138,7 @@ void FBSFBaseModel::finalize()
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void FBSFBaseModel::consumeData()
 {
-    QElapsedTimer timer;
-    timer.start();
     preStep();
-    mCpuPreTime=timer.elapsed();
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// \brief FBSFBaseModel::computeStep
@@ -152,10 +149,9 @@ void FBSFBaseModel::computeStep()
     QElapsedTimer timer;
     timer.start();
     mStatus = doStep();
-    mCpuStepTime=timer.restart();
-
+    if(mCpuStepTime!=nullptr)
+        mCpuStepTime->setIntValue(timer.elapsed());
     postStep();
-    mCpuPostTime=timer.elapsed();
 
     mSimulationTime+=mTimeStep;// seconds
 }
@@ -769,12 +765,14 @@ void    FBSFBaseModel::state(QString aName, QVector<real> *aVector)
 QString FBSFBaseModel::getPerfMeterInitial()
 {
     // declare export
-    publish(name()+":CpuPreTime", &mCpuPreTime,
-            "ms","Pre step time");
-    publish(name()+":CpuStepTime", &mCpuStepTime,
-            "ms","Step time");
-    publish(name()+":CpuPostTime", &mCpuPostTime,
-            "ms","Post step time");
+//    publish(name()+":CpuStepTime", &mCpuStepTime,
+//            "ms","Step time");
+    // declare export
+    mCpuStepTime =
+        FbsfDataExchange::declarePublicData(name()+":CpuStepTime",
+                                            cInteger,
+                                            FbsfDataExchange::cExporter,
+                                            name(),"ms","Step time");
     // return initalization time
     return  QString::number(mCpuInitializationTime);
 }
@@ -784,9 +782,12 @@ QString FBSFBaseModel::getPerfMeterFinal()
 }
 QString FBSFBaseModel::getPerfMeterStep()
 {
-    return  QString::number(mCpuPreTime) + ";"
-          + QString::number(mCpuStepTime) + ";"
-          + QString::number(mCpuPostTime) + ";";
+    return QString::number(mCpuStepTime->getIntValue());
+}
+void  FBSFBaseModel::resetCpuTime()
+{
+    if(mCpuStepTime!=nullptr)
+        mCpuStepTime->setIntValue(0);
 }
 //~~~~~~~~~~~~~~~~~~ Debug helper ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 QDebug operator<<(QDebug dbg, const FBSFBaseModel::StateData &data)

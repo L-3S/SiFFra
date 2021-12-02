@@ -45,9 +45,7 @@ public:
 private:
     long long           mCpuInitializationTime=0;
     long long           mCpuFinilizationTime=0;
-    FbsfDataExchange*   mCpuPreTime=nullptr;
     FbsfDataExchange*   mCpuStepTime=nullptr;
-    FbsfDataExchange*   mCpuPostTime=nullptr;
 
 private :
     QString             mName;

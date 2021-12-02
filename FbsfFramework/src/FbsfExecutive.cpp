@@ -182,8 +182,6 @@ void FbsfExecutive::run()
     QTime batchTime;
     int   totalSteps=0;
 
-    // set the perfmeter
-    FbsfPerfMeter* perfmeter=nullptr;
     if(sOptPerfMeter)
     {
         perfmeter=new FbsfPerfMeter(this);
@@ -252,10 +250,6 @@ void FbsfExecutive::run()
 
         totalSteps+=1;
 
-        // dump the perf info to file
-        if(sOptPerfMeter && perfmeter!=nullptr)
-            perfmeter->DumpToFile(mStepNumber, FbsfPerfMeter::cStep);
-
         // Compute suspend delay
         if (stepTime.elapsed() < mCycleTime) //real time checking
         {
@@ -318,6 +312,10 @@ void FbsfExecutive::doCycle()
     // perf meter
     if(mCpuStepTime!=nullptr)
         mCpuStepTime->setIntValue(stepDuration.elapsed());
+
+    // dump the perf info to file
+    if(sOptPerfMeter && perfmeter!=nullptr)
+        perfmeter->DumpToFile(mStepNumber+1, FbsfPerfMeter::cStep);
 
     if (bComputeTime)
     {
@@ -603,15 +601,13 @@ QString FbsfExecutive::getPerfMeterInitial()
                                             FbsfDataExchange::cExporter,
                                             "Executive","ms","Step time");
     // return initalization time as a string
-    return  ";"+QString::number(mCpuInitializationTime);
+    return  QString::number(mCpuInitializationTime);
 }
 QString FbsfExecutive::getPerfMeterFinal()
 {
-    return  ";"+QString::number(mCpuFinilizationTime);
+    return  QString::number(mCpuFinilizationTime);
 }
 QString FbsfExecutive::getPerfMeterStep()
 {
-    return  ";"
-          + QString::number(mCpuStepTime->getIntValue()) + ";"
-          + ";";
+    return QString::number(mCpuStepTime->getIntValue());
 }
