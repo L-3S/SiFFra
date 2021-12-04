@@ -110,9 +110,9 @@ void  FbsfExecutive::ReplayMode(bool aFlag, QString aFile)
     mReplayMode=aFlag;
 
     if(aFlag && FbsfDataExchange::ReplayFull())// replay mode
-        {mExeMode=eFullReplay;} // no produced data
+    {mExeMode=eFullReplay;} // no produced data
     else
-        {mExeMode=ePartialReplay;}// still any produced data
+    {mExeMode=ePartialReplay;}// still any produced data
 
     qDebug()<< "Replay Mode : " << ExecutionMode()
             << "Duration :" << mReplayLength << "steps";
@@ -128,7 +128,7 @@ void  FbsfExecutive::BatchMode(bool aFlag)
 #endif
     Speed(mFastSpeedFactor);
 
-    qDebug()<< "Mode : " << ExecutionMode();
+    qInfo()<< "Mode : " << ExecutionMode();
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// Registration of sequences
@@ -200,10 +200,10 @@ void FbsfExecutive::run()
     else
     {
         mPublicSimulationTime =
-            FbsfDataExchange::declarePublicData("Simulation.Time",
-                                                cReal,
-                                                FbsfDataExchange::cExporter,
-                                                "FbsfExecutive","s","Simulation Time");
+                FbsfDataExchange::declarePublicData("Simulation.Time",
+                                                    cReal,
+                                                    FbsfDataExchange::cExporter,
+                                                    "FbsfExecutive","s","Simulation Time");
     }
     mDataControler.initializePublicDataList();
     FbsfDataExchange::recorderSize(Recorder());// set the maximum recording size
@@ -250,21 +250,25 @@ void FbsfExecutive::run()
 
         totalSteps+=1;
 
-        // Compute suspend delay
-        if (stepTime.elapsed() < mCycleTime) //real time checking
+        if(!BatchMode())
         {
-            if(mCycleTime - stepTime.elapsed() < 10 && !BatchMode())
+            // Compute suspend delay
+            if (stepTime.elapsed() < mCycleTime) //real time checking
             {
-                suspend(10);// time guard
+                if(mCycleTime - stepTime.elapsed() < 10)
+                {
+                    suspend(10);// time guard
+                }
+                else
+                {
+                    emit statusChanged(ExecutionMode(),"waiting");
+                    suspend(mCycleTime - stepTime.elapsed());// suspend for realtime
+                }
             }
-            else
-            {
-                emit statusChanged(ExecutionMode(),"waiting");
-                suspend(mCycleTime - stepTime.elapsed());// suspend for realtime
-            }
+            else suspend(10);// time guard
         }
-        else if (!BatchMode()) suspend(10);// time guard
-    }
+    }//end while
+
     for(int s=0;s<mSequenceList.size();s++) mSequenceList[s]->finalize();
 
     // dump the perf info to file
@@ -356,7 +360,7 @@ void FbsfExecutive::control(QString command, QString param1, QString param2)
         emit FbsfExecutive::cancelStep();
         workflowState = ePause;
         if (isSuspended()) wakeup();
-    //~~~~~~~~~~~~~~~~~~ Pause simulation ~~~~~~~~~~~~~~~~~~~~~~~
+        //~~~~~~~~~~~~~~~~~~ Pause simulation ~~~~~~~~~~~~~~~~~~~~~~~
     } else if (command == "pause") {
         //~~~~~~~~~~~~~~~~~~ Pause simulation ~~~~~~~~~~~~~~~~~~~~~
         workflowState = ePause;
@@ -425,7 +429,7 @@ void FbsfExecutive::control(QString command, QString param1, QString param2)
         if (!snapFile.open(QIODevice::WriteOnly))
         {
             QString msg("Could not write to snapshot file:"+ param1
-                     + "\n" + snapFile.errorString());
+                        + "\n" + snapFile.errorString());
 #ifndef MODE_BATCH
             QMessageBox::critical( nullptr, "[Error]", msg);
 #endif
@@ -450,7 +454,7 @@ void FbsfExecutive::control(QString command, QString param1, QString param2)
         if (!snapFile.open(QIODevice::ReadOnly))
         {
             QString msg("Could not read snapshot file:"+ param1
-                     + "\n" + snapFile.errorString());
+                        + "\n" + snapFile.errorString());
 #ifndef MODE_BATCH
             QMessageBox::warning( nullptr, "[Error]", msg);
 #endif
@@ -535,10 +539,10 @@ void FbsfExecutive::control(QString command, QString param1, QString param2)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void FbsfExecutive::errorString(QString err)
 {
-        qDebug() << "[Error] : " <<  err;
-        mStatus=FBSF_ERROR;
-        emit statusChanged(ExecutionMode(),"error");
-        control("pause","");
+    qDebug() << "[Error] : " <<  err;
+    mStatus=FBSF_ERROR;
+    emit statusChanged(ExecutionMode(),"error");
+    control("pause","");
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// Get execution mode as string
@@ -547,27 +551,27 @@ QString FbsfExecutive::ExecutionMode()
 {
     switch(mExeMode)
     {
-        case eCompute       : return "compute";
-        case eFullReplay    : return "fullreplay";
-        case ePartialReplay : return "partialreplay";
-        case eBatch         : return "batch";
-        default             : return "";
+    case eCompute       : return "compute";
+    case eFullReplay    : return "fullreplay";
+    case ePartialReplay : return "partialreplay";
+    case eBatch         : return "batch";
+    default             : return "";
     }
 }//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// Get workflow state as string
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 QString FbsfExecutive::State()
 {
-   switch(workflowState)
-   {
-        case eInitialize    : return "initialized";
-        case ePause         : return "paused";
-        case eRun           : return "running";
-        case eStep          : return "stepping";
-        case eStop          : return "stopped";
-        case eWait          : return "waiting";
-        default             : return "";
-   }
+    switch(workflowState)
+    {
+    case eInitialize    : return "initialized";
+    case ePause         : return "paused";
+    case eRun           : return "running";
+    case eStep          : return "stepping";
+    case eStop          : return "stopped";
+    case eWait          : return "waiting";
+    default             : return "";
+    }
 }
 
 
@@ -596,10 +600,10 @@ QString FbsfExecutive::getPerfMeterInitial()
 {
     // declare export
     mCpuStepTime =
-        FbsfDataExchange::declarePublicData("Executive:CpuStepTime",
-                                            cInteger,
-                                            FbsfDataExchange::cExporter,
-                                            "Executive","ms","Step time");
+            FbsfDataExchange::declarePublicData("Executive:CpuStepTime",
+                                                cInteger,
+                                                FbsfDataExchange::cExporter,
+                                                "Executive","ms","Step time");
     // return initalization time as a string
     return  QString::number(mCpuInitializationTime);
 }

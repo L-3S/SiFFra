@@ -138,9 +138,9 @@ int FbsfApplication::parseCommandLine(QStringList arglist)
                                         QCoreApplication::translate("main", "file"));
     mParser.addOption(replayModeOption);// replay
 
-    QCommandLineOption batchModeOption(QStringList() << "b" << "batch",
+    QCommandLineOption noGuiOption(QStringList() << "ng" << "no-gui",
                                        QCoreApplication::translate("main", "running batch mode"));
-    mParser.addOption(batchModeOption);// batch
+    mParser.addOption(noGuiOption);// noGui
 
     QCommandLineOption clientOption(QStringList() << "c" << "client",
                                     QCoreApplication::translate("main", "Run as network client"));
@@ -393,7 +393,7 @@ int FbsfGuiApplication::start(uint aPeriod, float aFactor, uint aRecorder)
     Executive->fastSpeed(aFactor);
     Executive->Recorder(aRecorder);
 
-    if (FbsfApplication::parser().isSet(QCommandLineOption("batch")))
+    if (FbsfApplication::parser().isSet(QCommandLineOption("no-gui")))
     {
         // running batch mode
         Executive->BatchMode(true);
