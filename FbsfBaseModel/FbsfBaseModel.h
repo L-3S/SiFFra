@@ -123,10 +123,23 @@ public:
     int             status(){return mStatus;}
     void            name(QString aName) {mName = aName;}
     QString         name() {return mName;}
+    // TODO TM
     void            simulationTime(float aSimTime) { mSimulationTime=aSimTime;}
     const float&    simulationTime() { return mSimulationTime;}
     void            timeStep(float aTimeStep) { mTimeStep=aTimeStep;}
     const float&    timeStep() { return mTimeStep;}
+    // TO ADD TM
+    /*
+    quint64         getDataDateTime ( );        //retourne le from[M]SecsSinceEpoch des données du pas de temps courant pour un temps scalaire (mode Standard).
+    quint64         getSimulationTime( );       //retourne le temps écoulé depuis 0.
+    quint64         getDataDateTime(int index );//retourne le from[M]SecsSinceEpoch des données du pas de temps indexé pour un vecteur temps (mode MPC).
+    quint64         getStepCount();             //retourne le nombre de pas exécutés.
+    quint64         getTimeStepMS();            //retourne le pas de temps en millisecondes.
+    quint64         getPastSize();              //retourne la dimension past du mode MPC.
+    quint64         getFuturSize();             //retourne la dimension futur du mode MPC.
+    bool            isTimeUnitMS();             //indicateur de la résolution secondes/millisecondes.
+    */
+    // end TODO TM
     //~~~~~~~~~~~~~~ Model configuration ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     QMap<QString,QString>& config(){return mConfig;}
     void            config(QMap<QString,QString> aConfig){mConfig=aConfig;}

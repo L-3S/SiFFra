@@ -57,7 +57,7 @@ public:
     // QML binding
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // scalar getters
-    const int       getIntValue ( ) const
+    int       getIntValue ( ) const
     {
         if (pDataExchange->backtracked() && m_isBacktrack) {
             return pDataExchange->m_backtrack_value.mInteger;
@@ -65,7 +65,7 @@ public:
             return pDataExchange->m_value.mInteger;
         }
     }
-    const float     getRealValue( ) const
+    float     getRealValue( ) const
     {
         if (pDataExchange->backtracked() && m_isBacktrack) {
             return pDataExchange->m_backtrack_value.mReal;
@@ -113,7 +113,7 @@ public:
     // push vector data to QML - redefined in subclass
     virtual void            setData ( QList<int> aVector ){Q_UNUSED(aVector)}
     virtual void            setData ( QList<qreal> aVector ){Q_UNUSED(aVector)}
-
+    virtual void            notifyChanged(){}
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // members
     FbsfDataExchange*           pDataExchange;
@@ -136,9 +136,9 @@ class FbsfExporterIntItem
     Q_PROPERTY( QString unit WRITE setUnit)
     Q_PROPERTY( QString description WRITE setDescription)
 public:
-    explicit FbsfExporterIntItem( QQuickItem *parent = 0 );
-    virtual ~FbsfExporterIntItem( );
-    virtual void    setIntValue     ( const int aValue );
+    explicit FbsfExporterIntItem( QQuickItem *parent = nullptr );
+    virtual ~FbsfExporterIntItem( ) override;
+    virtual void    setIntValue     ( const int aValue ) override;
 } ;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 class FbsfImporterIntItem
@@ -156,10 +156,9 @@ signals:
     void        historyChanged    ( );
 
 public:
-    explicit FbsfImporterIntItem( QQuickItem *parent = 0 );
-    virtual ~FbsfImporterIntItem( );
-
-    virtual void    setIntValue     ( const int aValue );
+    explicit FbsfImporterIntItem( QQuickItem *parent = nullptr );
+    virtual ~FbsfImporterIntItem( ) override;
+    virtual void    setIntValue     ( const int aValue ) override;
 } ;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 class FbsfExporterRealItem
@@ -172,11 +171,9 @@ class FbsfExporterRealItem
     Q_PROPERTY( QString description WRITE setDescription)
 
 public:
-    explicit FbsfExporterRealItem( QQuickItem *parent = 0 );
-
-    virtual ~FbsfExporterRealItem( );
-
-    virtual void    setRealValue    ( const float aValue );
+    explicit FbsfExporterRealItem( QQuickItem *parent = nullptr );
+    virtual ~FbsfExporterRealItem( ) override;
+    virtual void    setRealValue    ( const float aValue ) override;
 } ;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 class FbsfImporterRealItem
@@ -194,11 +191,9 @@ signals:
     void            historyChanged    ( );
 
 public:
-    explicit FbsfImporterRealItem( QQuickItem *parent = 0 );
-
-    virtual ~FbsfImporterRealItem( );
-
-    virtual void    setRealValue    ( const float aValue );
+    explicit FbsfImporterRealItem( QQuickItem *parent = nullptr );
+    virtual ~FbsfImporterRealItem( )override;
+    virtual void    setRealValue    ( const float aValue )override;
 } ;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 class FbsfImporterVectorIntItem
@@ -219,11 +214,10 @@ signals:
     void            dataChanged    ();
 
 public:
-    explicit FbsfImporterVectorIntItem( QQuickItem *parent = 0 );
-
-    virtual ~FbsfImporterVectorIntItem( );
-
-    virtual void    setData    (QList<int> aVector );
+    explicit FbsfImporterVectorIntItem( QQuickItem *parent = nullptr );
+    virtual ~FbsfImporterVectorIntItem( )override;
+    virtual void    setData    (QList<int> aVector )override;
+    virtual void    notifyChanged() override {emit dataChanged();}
 } ;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -245,11 +239,10 @@ signals:
     void            dataChanged    ();
 
 public:
-    explicit FbsfImporterVectorRealItem( QQuickItem *parent = 0 );
-
-    virtual ~FbsfImporterVectorRealItem( );
-
-    virtual void    setData    (QList<qreal> aList );
+    explicit FbsfImporterVectorRealItem( QQuickItem *parent = nullptr );
+    virtual ~FbsfImporterVectorRealItem( )override;
+    virtual void    setData    (QList<qreal> aList )override;
+    virtual void    notifyChanged() override {emit dataChanged();}
 } ;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 class FbsfExporterVectorIntItem
@@ -267,8 +260,8 @@ signals:
     void timeshiftChanged();
     void timeindexChanged();
 public:
-    explicit FbsfExporterVectorIntItem( QQuickItem *parent = 0 );
-    virtual ~FbsfExporterVectorIntItem( );
+    explicit FbsfExporterVectorIntItem( QQuickItem *parent = nullptr );
+    virtual ~FbsfExporterVectorIntItem( )override;
     void setPublicData(QList<int> aList);
     void setTimeShift(int value){mTimeShift=value;}
     void setTimeIndex(int value){mTimeIndex=value;}
@@ -293,8 +286,8 @@ signals:
     void timeshiftChanged();
     void timeindexChanged();
 public:
-    explicit FbsfExporterVectorRealItem( QQuickItem *parent = 0 );
-    virtual ~FbsfExporterVectorRealItem( );
+    explicit FbsfExporterVectorRealItem( QQuickItem *parent = nullptr );
+    virtual ~FbsfExporterVectorRealItem( )override;
     void setPublicData(QList<qreal> aList);
     void setTimeShift(int value){mTimeShift=value;}
     void setTimeIndex(int value){mTimeIndex=value;}

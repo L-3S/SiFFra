@@ -2,6 +2,7 @@
 #define FBSFGUIAPPLICATION_H
 
 #include "FbsfConfiguration.h"
+#include "FbsfTimeManager.h"
 #include "FbsfBaseModel.h"
 #include "FbsfGlobal.h"
 #include "FbsfPublicDataModel.h"
@@ -66,15 +67,18 @@ public :
 
     FbsfConfiguration&              config(){return mConfig;}
     QString&                        configName() {return config().Name();}
+    FbsfTimeManager&                timeManager(){return mTimeManager;}
 
     static QCommandLineParser       mParser;
     static QStringList              arglist;
 
     static FbsfConfiguration        mConfig;
+    FbsfTimeManager                 mTimeManager;
     // runtime path set from EV
     static QString                  sFrameworkHome;
     static QString                  sApplicationHome;
     static QString                  sComponentsPath;
+
     float   timeStep    = 0.5;
     float   speedFactor = 1.0;// n > 1  => slow time by n
     uint    recorderSize = UINT_MAX;

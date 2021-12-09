@@ -55,7 +55,7 @@ ToolBar
             replaySlider.visible=true
             saveButton.enabled=false
             restoreButton.enabled=false
-            replaySlider.maximumValue=FbsfDataModel.historySize("Simulation.Time")-1
+            replaySlider.maximumValue=FbsfTimeManager.historySize()-1
             nbSteps.enabled=false
             stepToExit.enabled=false
             stepToPause.enabled=false
@@ -73,7 +73,7 @@ ToolBar
         if(state==="paused")
         {
             pauseButton.enabled=false
-            backtrackButton.enabled=FbsfDataModel.historySize("Simulation.Time") >= 1 ? true : false
+            backtrackButton.enabled=FbsfTimeManager.historySize()-1 >= 1 ? true : false
             runButton.enabled=true
             speedButton.enabled=true
             stepButton.enabled=true
@@ -87,7 +87,7 @@ ToolBar
             runButton.enabled=false
             speedButton.enabled=false
             stepButton.enabled=false
-            backtrackButton.enabled=FbsfDataModel.historySize("Simulation.Time") >= 1 ? true : false
+            backtrackButton.enabled=FbsfTimeManager.historySize()-1 >= 1 ? true : false
             pauseButton.enabled=true
             saveButton.enabled=false
             restoreButton.enabled=false
@@ -174,41 +174,21 @@ ToolBar
     // Data.Time : replayed with bactrack
     // Both are vectors in case simuMpc and Scalars otherwise
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    SubscribeReal{id: simuTimeScalar;
-        tag1 : simuMpc ? "" : "Simulation.Time"
-        onValueChanged: {
-                        simulationTime.text = formatTimeDate(value)
-        }
-    }
-    SubscribeReal{id: dataTimeScalar;
+    // Data.Time is replayed with bactrack
+    // Data.Time is vector in case simuMpc and Scalars otherwise
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    SubscribeInt{id: dataTimeScalar;
         tag1 : simuMpc ? "" : "Data.Time"
         onValueChanged: {
-                        backtrackTime.text = formatTimeDate(value)
-        }
-    }
-
-    SubscribeVectorInt{id: simuTimeVector;
-        tag1 : simuMpc ? "Simulation.Time" : ""
-        onDataChanged  : {
-            simulationTime.text = formatTimeDate(data[pastSize-1])
+             backtrackTime.text = FbsfTimeManager.dateTimeStr(value)
         }
     }
     SubscribeVectorInt{id: dataTimeVector;
         tag1 : simuMpc ? "Data.Time" : ""
         onDataChanged  : {
-            backtrackTime.text = formatTimeDate(data[pastSize-1])
+            backtrackTime.text = FbsfTimeManager.dateTimeStr(data[pastSize-1])
         }
     }
-
-
-
-
-    function formatTimeDate(sepoch)
-    {
-        var date_str = FbsfDataModel.getDateFromTime (sepoch).split(" ")
-        return (date_str[2] + " " + date_str[1] + " " + date_str[0]+"\n"+date_str[3])
-    }
-
     RowLayout{
         anchors.left: parent.left
         anchors.verticalCenter: parent.verticalCenter
@@ -223,7 +203,7 @@ ToolBar
         // Simulation Time
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         Text{id: simulationTime
-            text:"dd MM yyy" + "\n" + "HH:mm:ss"
+            text:FbsfTimeManager.DateTimeStr
             font.pixelSize: 20
             color: "green"
             horizontalAlignment: Text.AlignHCenter
@@ -442,11 +422,11 @@ ToolBar
                         framework.executiveControl("backtrack", "off");
                     } else {
                         if (simuMpc) {
-                            backtrackSlider.maximumValue=FbsfDataModel.historySize("Simulation.Time")-1 + parseInt(futurSize)
-                            framework.executiveControl("backtrack", "on",backtrackSlider.maximumValue - futurSize);
+                            backtrackSlider.maximumValue=FbsfTimeManager.historyWithFuturSize()-1
+                            framework.executiveControl("backtrack", "on",FbsfTimeManager.historySize());
                             backtrackSlider.value = backtrackSlider.maximumValue - futurSize
                         } else {
-                            backtrackSlider.maximumValue=FbsfDataModel.historySize("Simulation.Time")-1;
+                            backtrackSlider.maximumValue=FbsfTimeManager.historySize()-1;
                             framework.executiveControl("backtrack", "on",backtrackSlider.maximumValue);
                             backtrackSlider.value = backtrackSlider.maximumValue;
                         }
@@ -462,10 +442,6 @@ ToolBar
                 visible                     : false
                 minimumValue                : 0
                 value                       : FbsfDataModel.replaySteps
-                onValueChanged  : {
-                    if (visible)
-                        simulationTime.text = formatTimeDate(time.history[0]*(value+1))
-                }
                 onPressedChanged:{
                     if(pressed==false)
                         framework.executiveControl("replay",value.toString());
@@ -534,7 +510,6 @@ ToolBar
             // Slider replay time min and max
             Text {id : sliderReplayMax
                 visible : replaySlider.visible
-                text: visible ? formatTimeDate(time.history[0]*(replaySlider.maximumValue+1)):""
                 color : "white"
             }
 
@@ -542,7 +517,6 @@ ToolBar
             Text {id : backtrackTime
                 visible : backtrackSlider.visible
                 color:"blue"
-                text: formatTimeDate(0)
                 y:10;
                 font.pixelSize: 20
                 horizontalAlignment: Text.AlignHCenter

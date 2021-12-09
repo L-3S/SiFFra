@@ -292,7 +292,7 @@ void FbsfExporterVectorIntItem::setPublicData(QList<int> aList)
         FbsfQmlExchange::setPublicData(aList);// Copy vector to Public Data
         if(!pDataExchange->m_qml_exchange.isEmpty())
             for (int i=0;i<pDataExchange->m_qml_exchange.count();i++)
-                 pDataExchange->m_qml_exchange[i]->setData(aList);
+                 pDataExchange->m_qml_exchange[i]->notifyChanged();
     }
     else
     {
@@ -327,7 +327,7 @@ void FbsfExporterVectorRealItem::setPublicData(QList<qreal> aList)
         FbsfQmlExchange::setPublicData(aList); // Copy vector to Public Data
         if(!pDataExchange->m_qml_exchange.isEmpty())
             for (int i=0;i<pDataExchange->m_qml_exchange.count();i++)
-                 pDataExchange->m_qml_exchange[i]->setData(aList);
+                 pDataExchange->m_qml_exchange[i]->notifyChanged();
     }
     else
     {

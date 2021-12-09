@@ -153,8 +153,15 @@ int FbsfApplication::parseCommandLine(QStringList arglist)
     mParser.parse(arglist);
     return 1;
 }
-int FbsfApplication::generateSequences() {
-
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/// Instanciate sequences
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int FbsfApplication::generateSequences()
+{
+    // FIX setup : moved from CTOR
+#ifndef BUILD_API
+    setup();
+#endif
     // check modeMcp
 
     bool modeMcp=config().Simulation().value("simuMpc")=="true"?true:false;
@@ -163,11 +170,6 @@ int FbsfApplication::generateSequences() {
     // check option perfMeter
     bool optPerfMeter=config().Simulation().value("perfMeter")=="true"?true:false;
     setOptPerfMeter(optPerfMeter);
-
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // creation of the QML viewer UI
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    loadQML();
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Get the simulation parameters
@@ -192,6 +194,19 @@ int FbsfApplication::generateSequences() {
         if (key == "recorder")      recorderSize=value.toUInt();
     }
     qInfo() << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+    //GRO-TM : Setup time manager parameters mode standard or modeMcp
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    timeManager().setup(modeMcp,config().Simulation(),timeStep);
+
+    qInfo() << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+    //GRO-TM-END
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // creation of the QML viewer UI
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    loadQML();
+
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // network client : should it be restricted to UI only ???
     if (mode()==client) return start(timeStep*1000,1,recorderSize);
@@ -288,12 +303,8 @@ FbsfGuiApplication::FbsfGuiApplication(eApplicationMode aMode,int & argc,char** 
     , mMode(aMode)
 {
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Executive = new FbsfExecutive(aMode);
+    Executive = new FbsfExecutive(aMode,mTimeManager);
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#ifndef BUILD_API
-    setup();
-#endif
-
 }
 void FbsfGuiApplication::setup() {
 #ifndef MODE_BATCH
@@ -301,12 +312,16 @@ void FbsfGuiApplication::setup() {
     // Path acces in QML
     ctxt->setContextProperty("FBSF_HOME",QUrl::fromLocalFile(sFrameworkHome));
     ctxt->setContextProperty("APP_HOME",QUrl::fromLocalFile(sApplicationHome));
-    ctxt->setContextProperty("FBSF_CONFIG",QUrl::fromLocalFile(mConfig.Name()));
+    ctxt->setContextProperty("FBSF_CONFIG",QUrl::fromLocalFile(mConfig.Name()+".xml"));// FIX setup
     ctxt->setContextProperty("CURRENT_DIR",QUrl::fromLocalFile(QDir::currentPath()));
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // QML data exchange listmodel binding
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     ctxt->setContextProperty("FbsfDataModel", FbsfdataModel::sFactoryListviewDataModel());
+    // QML data exchange listmodel binding
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ctxt->setContextProperty("FbsfTimeManager", &mTimeManager);
+
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // add import paths for plugins
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -469,7 +484,7 @@ FbsfBatchApplication::FbsfBatchApplication(eApplicationMode aMode,int & argc,cha
     : QCoreApplication(argc, argv)
     , mMode(aMode)
 {
-    Executive = new FbsfExecutive(aMode);
+    Executive = new FbsfExecutive(aMode,mTimeManager);
     // running batch mode
     if(aMode==batch) Executive->BatchMode(true);
 

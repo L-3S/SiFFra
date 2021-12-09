@@ -9,6 +9,7 @@ SOURCES +=  \
     $$PWD/src/FbsfControler.cpp \
     $$PWD/src/FbsfConfiguration.cpp \
     $$PWD/src/FbsfNode.cpp\
+    $$PWD/src/FbsfTimeManager.cpp \
     $$PWD/src/main.cpp \
 
 HEADERS +=  \
@@ -22,6 +23,7 @@ HEADERS +=  \
             $$PWD/src/FbsfApplication.h \
             $$PWD/src/FbsfControler.h \
             $$PWD/src/FbsfConfiguration.h \
-            $$PWD/src/FbsfNode.h
+            $$PWD/src/FbsfNode.h \
+            $$PWD/src/FbsfTimeManager.h
 
 RESOURCES += $$PWD/resources.qrc

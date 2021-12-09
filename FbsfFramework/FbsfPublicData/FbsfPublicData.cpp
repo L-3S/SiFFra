@@ -320,7 +320,7 @@ void FbsfDataExchange::setData (QVector<int>* aVector, bool backtrack )
     // Check if exist a QML consummer
     if(!m_qml_exchange.isEmpty())
         for (int i=0;i<m_qml_exchange.count();i++)
-            m_qml_exchange[i]->setData((*aVector).toList());
+            m_qml_exchange[i]->notifyChanged();
 #endif
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -337,10 +337,8 @@ void FbsfDataExchange::setData (QVector<real>* aVector, bool backtrack )
 #ifndef MODE_BATCH
     if(!m_qml_exchange.isEmpty())
     {
-        QList<qreal> vList;// copy due to QML (use Qist<double> only)
-        for (int i=0; i < aVector->size();i++)   vList.append((*aVector)[i]);
         for (int i=0;i<m_qml_exchange.count();i++)
-            m_qml_exchange[i]->setData(vList);
+            m_qml_exchange[i]->notifyChanged();
     }
 #endif
 }
@@ -364,31 +362,22 @@ void FbsfDataExchange::setData (const QVariantList& aVectorValues, bool backtrac
                 p_data[i].mReal = aVectorValues[i].toFloat();
         }
     }
+#ifndef MODE_BATCH
     // Check if exist a QML consummer
     if(!m_qml_exchange.isEmpty())
     {
         if (Type()==cInteger)
         {
-            QList<int> vList;
-            for (int i=0; i < aVectorValues.size();i++)
-                vList.append(p_data[i].mInteger);
-#ifndef MODE_BATCH
             for (int i=0;i<m_qml_exchange.count();i++)
-                m_qml_exchange[i]->setData(vList);
-#endif
+                m_qml_exchange[i]->notifyChanged();
         }
         else
         {
-            // copy due to QML (use Qist<double> only)
-            QList<qreal> vList;
-            for (int i=0; i < aVectorValues.size();i++)
-                vList.append(p_data[i].mReal);
-#ifndef MODE_BATCH
             for (int i=0;i<m_qml_exchange.count();i++)
-                m_qml_exchange[i]->setData(vList);
-#endif
+                m_qml_exchange[i]->notifyChanged();
         }
     }
+#endif
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// check if a variable is produced and published
@@ -442,13 +431,14 @@ void FbsfDataExchange::processPublicData(int aStep)
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// reset history of all the produced public data
-/// aSimulationTime : time to reset to
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void FbsfDataExchange::resetHistory(float aTime)
+/// get the step number according public dataDateTime value
+/// TODO TM not sure this works with MPC mode
+///~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+void FbsfDataExchange::resetHistory()
 {
-    // get time index from "Simulation.Time" history
+    // get time index from "dataDateTime" history
     FbsfDataExchange *publicAddress;
-    publicAddress = FbsfDataExchange::sPublicDataMap.value("Simulation.Time");
+    publicAddress = FbsfDataExchange::sPublicDataMap.value(dataDateTime);
     QVariantList& timeList=publicAddress->history();
 
     int stepNumber=timeList.indexOf(publicAddress->value());
@@ -477,7 +467,7 @@ void FbsfDataExchange::switchBacktrack(bool flag)
 
     if (flag == true) {
         for (auto it = publicData.begin(); it != publicData.end(); it++) {
-            if (it.value()->isUnresolved() || it.key() == "Simulation.Time")
+            if (it.value()->isUnresolved() || it.key() == "Simulation.Time")// TODO TM no more published
                 continue;
             it.value()->backtracked(true);
             if (simuMpc) {
@@ -533,9 +523,9 @@ void FbsfDataExchange::writeDataToFile(QString aFileName)
     out << static_cast<quint32>(FBSF_MAGIC);
     out << 1 ;// format number
 
-    // get the replay length from recorded history of Simulation.Time
+    // get the replay length from recorded history of dataDateTime
     FbsfDataExchange *publicAddress;
-    publicAddress = FbsfDataExchange::sPublicDataMap.value("Simulation.Time");
+    publicAddress = FbsfDataExchange::sPublicDataMap.value(dataDateTime);
     out << publicAddress->historySize();
 
     // process serialization

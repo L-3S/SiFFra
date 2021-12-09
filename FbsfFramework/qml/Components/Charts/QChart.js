@@ -29,7 +29,7 @@ var Chart = function(canvas, context) {
             scaleGridLineColor: "rgba(250,250,250,.2)",
             scaleGridLineWidth: 1,
             scaleXMargin:40,
-            scaleYMargin:40,
+            scaleYMargin:60,
             bezierCurve: true,
             pointDot: true,
             pointDotRadius: 4,
@@ -272,7 +272,7 @@ var Chart = function(canvas, context) {
                 {
                     ctx.save();
                     //~~~~~~~~~~ GRO added ~~~~~~~~~~
-                    if (i%rateX==0 || i==data.timeSet.length-1 || data.timeSet.length <data.labelsNumber )
+                    if (i%rateX==0 || i===data.timeSet.length-1 || data.timeSet.length <data.labelsNumber )
                     {   // display X Labels
                         if (rotateLabels > 0) {
                             ctx.translate(yAxisPosX + i*valueHop,
@@ -284,9 +284,12 @@ var Chart = function(canvas, context) {
                             if (i<data.timeSet.length-1 &&
                                 i*valueHop+widestXLabel>(data.timeSet.length-1)*valueHop)
                                 continue
-                            ctx.fillText(getDateStr(data.timeSet[i]),
-                                         yAxisPosX + i*valueHop,
-                                         xAxisPosY + config.scaleFontSize+3);
+                            // manage multiple lines
+                            var lines = getDateStr(data.timeSet[i]).split('\n');
+                            for (var l = 0; l<lines.length; l++)
+                                ctx.fillText(lines[l],
+                                             yAxisPosX + i*valueHop,
+                                             xAxisPosY + (l+1)*config.scaleFontSize);
                         }
                     }
                     ctx.beginPath();
@@ -295,11 +298,11 @@ var Chart = function(canvas, context) {
                     // draw vertical lines
                     if(config.scaleShowGridLines && i>0)
                     {
-                        if (i%rateX==0 || i==data.timeSet.length-1)
+                        if (i%rateX==0 || i===data.timeSet.length-1)
                             ctx.strokeStyle = "rgba(250,250,250,0.5)";
                         else
                             ctx.strokeStyle = config.scaleGridLineColor;
-                        if (i%(rateX/2)==0 || i==data.timeSet.length-1)
+                        if (i%(rateX/2)==0 || i===data.timeSet.length-1)
                         {
                             ctx.lineWidth = config.scaleGridLineWidth;
                             ctx.lineTo(yAxisPosX + i * valueHop, config.scaleYMargin);

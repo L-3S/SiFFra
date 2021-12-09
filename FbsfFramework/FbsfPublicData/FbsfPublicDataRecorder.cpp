@@ -298,52 +298,69 @@ void FbsfPublicDataRecorder::setBacktrack(int aStep)
             int FutureSize = pPublicData->size() - mTimeIndex;
             int PastSize = pPublicData->size() - FutureSize;
 
-            if (pPublicData->Type() == cInteger) {
+            if (pPublicData->Type() == cInteger)
+            {
                 QList<int> backVector;
                 QVector<int> pData(pPublicData->size(),0);
-
-                for (auto it : pPublicData->backtrackHistory())
+                const QVariantList& backHistory=pPublicData->backtrackHistory();
+                for (const auto& it : backHistory)
                     backVector.push_back(it.toInt());
-                if (aStep * mTimeShift + FutureSize >= backVector.size()) {
-                    int max = (backVector.size() - FutureSize) / mTimeShift - 1;
-                    int add = aStep - max;
+
+                // max index of timeShift block from history
+                int max = (backVector.size() - FutureSize) / mTimeShift - 1;
+                int limit=PastSize -1;
+
+                if (aStep + FutureSize >= backVector.size())
+                {
+                    int add = aStep - max*mTimeShift;
+                    int index=max*mTimeShift+add;
 
                     for(int i=0 ;i < PastSize;i++)
-                        if (max*mTimeShift+add+i >= PastSize - mTimeShift)
-                            pData[i]= backVector[max*mTimeShift+add+i - (PastSize-mTimeShift)];
-                    for(int i=0;i < FutureSize && max*mTimeShift+PastSize+i+add - (PastSize-mTimeShift) < backVector.size();i++)
-                        pData[PastSize+i]= backVector[max*mTimeShift+PastSize+i+add - (PastSize-mTimeShift)];
-                    pPublicData->setData(&pData, true);
-                } else {
-                    for(int i=0 ;i < PastSize;i++)
-                        if (aStep*mTimeShift+i >= PastSize - mTimeShift)
-                            pData[i]= backVector[aStep*mTimeShift+i - (PastSize-mTimeShift)];
-                    for(int i=0;i < FutureSize;i++)
-                        pData[PastSize+i]= backVector[aStep*mTimeShift+PastSize+i - (PastSize-mTimeShift)];
+                        if (index+i >= limit)
+                        {
+                            pData[i]= backVector[index+i - limit];
+                        }
+                    for(int i=0;i < FutureSize && PastSize+index+i - limit < backVector.size();i++)
+                        pData[PastSize+i]= backVector[PastSize+index+i - limit];
                     pPublicData->setData(&pData, true);
                 }
-            } else {
+                else
+                {
+                    for(int i=0 ;i < PastSize;i++)
+                        if (aStep+i >= limit)
+                            pData[i]= backVector[aStep+i - limit];
+                    for(int i=0;i < FutureSize;i++)
+                        pData[PastSize+i]= backVector[aStep+PastSize+i - limit];
+                    pPublicData->setData(&pData, true);
+                }
+            }
+            else
+            {
                 QList<qreal> backVector;
                 QVector<real> pData(pPublicData->size(),0);
 
                 for (auto it : pPublicData->backtrackHistory())
                     backVector.push_back(it.toFloat());
-                if (aStep * mTimeShift + FutureSize >= backVector.size()) {
-                    int max = (backVector.size() - FutureSize) / mTimeShift - 1;
+                // max index of timeShift block from history
+                int max = (backVector.size() - FutureSize) / mTimeShift - 1;
+                int limit=PastSize -1;
+
+                if (aStep + FutureSize >= backVector.size()) {
                     int add = aStep - max;
+                    int index=max*mTimeShift+add;
 
                     for(int i=0 ;i < PastSize;i++)
-                        if (max*mTimeShift+add+i >= PastSize - mTimeShift)
-                            pData[i]= backVector[max*mTimeShift+add+i - (PastSize-mTimeShift)];
-                    for(int i=0;i < FutureSize && max*mTimeShift+PastSize+i+add - (PastSize-mTimeShift) < backVector.size();i++)
-                        pData[PastSize+i]= backVector[max*mTimeShift+PastSize+i+add - (PastSize-mTimeShift)];
+                        if (index+i >= limit)
+                            pData[i]= backVector[index+i - limit];
+                    for(int i=0;i < FutureSize && PastSize+index+i - limit < backVector.size();i++)
+                        pData[PastSize+i]= backVector[PastSize+index+i - limit];
                     pPublicData->setData(&pData, true);
                 } else {
                     for(int i=0 ;i < PastSize;i++)
-                        if (aStep*mTimeShift+i >= PastSize - mTimeShift)
-                            pData[i]= backVector[aStep*mTimeShift+i - (PastSize-mTimeShift)];
+                        if (aStep+i >= limit)
+                            pData[i]= backVector[aStep+i - limit];
                     for(int i=0;i < FutureSize;i++)
-                        pData[PastSize+i]= backVector[aStep*mTimeShift+PastSize+i - (PastSize-mTimeShift)];
+                        pData[PastSize+i]= backVector[aStep+PastSize+i - limit];
                     pPublicData->setData(&pData, true);
                 }
             }

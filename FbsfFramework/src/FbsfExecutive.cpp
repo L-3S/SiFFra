@@ -1,7 +1,7 @@
 
 #include "FbsfExecutive.h"
 #include "FbsfApplication.h"
-
+#include "FbsfTimeManager.h"
 #include "FbsfSequence.h"
 #include "FbsfControler.h"
 #include "FbsfBaseModel.h"
@@ -34,7 +34,8 @@ bool           FbsfExecutive::sOptPerfMeter=false;
 /// Timer for control computation loop (default 100 ms)
 /// Control the simulation states and modes
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-FbsfExecutive::FbsfExecutive(eApplicationMode aMode)
+FbsfExecutive::FbsfExecutive(eApplicationMode aMode,
+                             FbsfTimeManager& aTimeManager)
     : bSuspended(false)
     , workflowState( ePause )
     , mAppMode(aMode)
@@ -44,14 +45,11 @@ FbsfExecutive::FbsfExecutive(eApplicationMode aMode)
     , mReplayLength(0)
     , mCycleTime(100)
     , mPeriod (100)
-    , mSimulationTime(0)
-    , bComputeTime(true)
-    , mStepNumber(0)
     , mStatus(FBSF_OK)
     , mLastSuccessfulStep(0)
     , mMultiSteps(INFINITE)
     , bExitAfterSteps(false)
-
+    , mTimeManager(aTimeManager)
 {
     if (mAppMode == client)
     {
@@ -180,7 +178,6 @@ void FbsfExecutive::run()
 {
     QTime stepTime;
     QTime batchTime;
-    int   totalSteps=0;
 
     if(sOptPerfMeter)
     {
@@ -188,23 +185,9 @@ void FbsfExecutive::run()
         QString vPerfFile = QDir::currentPath() + "/PerfMeter.csv";
         perfmeter->openFile(vPerfFile);
         // dump the perf info to file
-        perfmeter->DumpToFile(mStepNumber, FbsfPerfMeter::cInitial);
+        perfmeter->DumpToFile(mTimeManager.stepCount(), FbsfPerfMeter::cInitial);
     }
 
-    // Compute Simulation Time only if Server,
-    // Standalone modes and not already produced
-    if (mAppMode == client || FbsfDataExchange::isPublished("Simulation.Time"))
-    {
-        bComputeTime=false;
-    }
-    else
-    {
-        mPublicSimulationTime =
-                FbsfDataExchange::declarePublicData("Simulation.Time",
-                                                    cReal,
-                                                    FbsfDataExchange::cExporter,
-                                                    "FbsfExecutive","s","Simulation Time");
-    }
     mDataControler.initializePublicDataList();
     FbsfDataExchange::recorderSize(Recorder());// set the maximum recording size
 
@@ -248,8 +231,6 @@ void FbsfExecutive::run()
         }
         else if (workflowState==eStop) break; // break loop
 
-        totalSteps+=1;
-
         if(!BatchMode())
         {
             // Compute suspend delay
@@ -273,13 +254,13 @@ void FbsfExecutive::run()
 
     // dump the perf info to file
     if(sOptPerfMeter && perfmeter!=nullptr)
-        perfmeter->DumpToFile(mStepNumber, FbsfPerfMeter::cFinal);
+        perfmeter->DumpToFile(mTimeManager.stepCount(), FbsfPerfMeter::cFinal);
 
     if (BatchMode())
     {
-        qDebug() << "Batch total steps        :" << mStepNumber ;
-        qDebug() << "Batch Simulated time     :" << Period()*(mStepNumber) << "ms";
-        qDebug() << "Batch mode expected time :" << mCycleTime*(mStepNumber) << "ms";
+        qDebug() << "Batch total steps        :" << mTimeManager.stepCount() ;
+        qDebug() << "Batch Simulated time     :" << Period()*(mTimeManager.stepCount()) << "ms";
+        qDebug() << "Batch mode expected time :" << mCycleTime*(mTimeManager.stepCount()) << "ms";
         qDebug() << "Batch mode elapsed time  :" << batchTime.elapsed() << "ms";
         qDebug() << "Defined time step        :" << Period() << "ms";
         qDebug() << "Effective Cycle time     :" << mCycleTime << "ms";
@@ -313,7 +294,7 @@ void FbsfExecutive::doCycle()
             }
         }
     }
-    // perf meter
+    // publish perf meter
     if(mCpuStepTime!=nullptr)
         mCpuStepTime->setIntValue(stepDuration.elapsed());
 
@@ -321,30 +302,23 @@ void FbsfExecutive::doCycle()
     if(sOptPerfMeter && perfmeter!=nullptr)
         perfmeter->DumpToFile(mStepNumber+1, FbsfPerfMeter::cStep);
 
-    if (bComputeTime)
-    {
-        // Compute and publish simulation time
-        mSimulationTime+=mPeriod;
-        if (mAppMode != client && mPublicSimulationTime)
-            mPublicSimulationTime->setRealValue(mSimulationTime/(1000));
-    }
-    // broadcast public data values to clients
-    mDataControler.process(mStepNumber);
-    // signal status changed to plugins
+    // manage data time progression
+    if (mAppMode != client) mTimeManager.progress();
 
+    // broadcast public data values to clients
+    mDataControler.process(mTimeManager.stepCount());
+
+    // signal status changed to plugins
     emit statusChanged(ExecutionMode(),"stepEnd");
 
     // process replay steps until end
-    if (ReplayMode() && mStepNumber >= mReplayLength)
+    if (ReplayMode() &&  mTimeManager.stepCount() >= mReplayLength)
     {   // Update UI with the initial mode/state
         control("pause","");
     }
-    else
-    {
-        mStepNumber++;// usefull for replay
-    }
+
     if (mStatus == FBSF_OK) {
-        mLastSuccessfulStep = mPeriod * mStepNumber;
+        mLastSuccessfulStep = mPeriod *  mTimeManager.stepCount();
     }
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -440,7 +414,9 @@ void FbsfExecutive::control(QString command, QString param1, QString param2)
         out << static_cast<quint32>(FBSF_MAGIC);    // Magic number
         out << static_cast<quint32>(1);             // Format version
         out << QString(FBSF_VERSION);               // Framework version
-        out << mSimulationTime;                     // Global simulation time
+        out << mTimeManager.dataDateTime();         // simulation time
+        out << mTimeManager.stepCount();            // step count
+
         for (int iSeq=0;iSeq < mSequenceList.size();iSeq++)
         {
             mSequenceList[iSeq]->doSaveState(out);
@@ -479,7 +455,10 @@ void FbsfExecutive::control(QString command, QString param1, QString param2)
         QString version;
         in >> version;
         // Get the global simulation time
-        in >> mSimulationTime;
+        qint64  dateTime;
+        uint    stepCount;
+        in >> dateTime;mTimeManager.setDataDateTime(dateTime);
+        in >> stepCount;mTimeManager.setStepCount(stepCount);
         // For each modules restore the states data
         while (!in.atEnd())
         {
@@ -491,24 +470,24 @@ void FbsfExecutive::control(QString command, QString param1, QString param2)
                 FBSFBaseModel::consumeStateData(in);// consume stream data
         }
         snapFile.close();
-        if (bComputeTime)
-        {
-            // Publish simulation time
-            if (mAppMode != client && mPublicSimulationTime)
-                mPublicSimulationTime->setRealValue(mSimulationTime/(1000));
-        }
-        //FbsfDataExchange::resetHistory(mSimulationTime);
-        QString strTime;
-        control("resettime",strTime.setNum(mSimulationTime));
+        // TODO TM ---> clarify that for MPC
+        // Publish simulation time
+//        if (mAppMode != client && mPublicSimulationTime)
+//            mPublicSimulationTime->setRealValue(mSimulationTime/(1000));
+//        QString strTime;
+//        control("resettime",strTime.setNum(mSimulationTime));
+        FbsfDataExchange::resetHistory();
+
 #ifndef MODE_BATCH
         mDataControler.updateMonitor();// update only data values
 #endif
         //mDataControler.process(mStepNumber);// broadcast values to clients
     }
-    //~~~~~~~~~~~~~~~~~~ Rest simulation start time ~~~~~~~~~~~~~~~~~~~~~
+    //~~~~~~~~~~~~~~~~~~ Reset simulation start time ~~~~~~~~~~~~~~~~~~~~~
+    // TODO TM ---> clarify where is it used
     else if (command == "resettime")
     {   // simulation time in ms
-        FbsfDataExchange::resetHistory(static_cast<float>(param1.toInt())/(1000));
+        FbsfDataExchange::resetHistory();
         emit statusChanged(ExecutionMode(),"reseted");
     }
     //~~~~~~~~~~~~~~~~~~ Record simulation ~~~~~~~~~~~~~~~~~~~~~
@@ -519,16 +498,18 @@ void FbsfExecutive::control(QString command, QString param1, QString param2)
     //~~~~~~~~~~~~~~~~~~ Replay simulation ~~~~~~~~~~~~~~~~~~~~~
     else if (command == "replay")
     {
-        mStepNumber = param1.toUInt();
-        mDataControler.process(mStepNumber);
-        mStepNumber++; // for next doCycle
+        mTimeManager.setStepCount(param1.toUInt());
+        mDataControler.process(mTimeManager.stepCount());
+        mTimeManager.setStepCount(mTimeManager.stepCount()+1); // for next doCycle
     }
     //~~~~~~~~~~~~~~~~~~ Stop simulation ~~~~~~~~~~~~~~~~~~~~~
     else if (command == "stop")
     {
         workflowState = eStop;
-        if (isSuspended()) wakeup();
-        else mPauseCond.release();//exit from pause state
+        if (isSuspended())
+            wakeup();
+        else
+            mPauseCond.release();//exit from pause state
         emit statusChanged(ExecutionMode(),State());
     }
     else

@@ -59,14 +59,14 @@ Window {
     property bool   flagUpdateView  : false             // update flag always false
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    SubscribeReal       { id : timeBase1 ; tag1 : "Simulation.Time"}
-    SubscribeVectorInt  { id : timeBase2 ; tag1 : "Data.Time"}
+    SubscribeInt        { id : timeBaseSTD ; tag1 : simuMpc ? "" : "Data.Time"}
+    SubscribeVectorInt  { id : timeBaseMPC ; tag1 : simuMpc ? "Data.Time" : ""}
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Component.onCompleted:
     {
         // switch on the relevant time base according the mode
-        isStandard=FbsfDataModel.isUnresolved("Data.Time") ? true : false
-        if (isStandard)timeBase=timeBase1; else timeBase=timeBase2;
+        isStandard=!simuMpc
+        timeBase=isStandard?timeBaseSTD:timeBaseMPC
     }
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

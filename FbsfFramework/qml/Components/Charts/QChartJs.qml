@@ -90,6 +90,6 @@ Canvas {
   // proxy for QChart.js
   function getDateStr(time)
   {
-     return Util.getDateStr(time)
-  }
+      // get display date from time manager
+      return FbsfTimeManager.dateTimeStr(time)  }
 }

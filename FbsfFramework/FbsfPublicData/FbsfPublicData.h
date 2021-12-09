@@ -18,6 +18,10 @@
 
 #include "FbsfGlobal.h"
 #include "FbsfPublicDataRecorder.h"
+// The name of the time manager variable in exchange zone
+//static const char* dataDateTime="Simulation.Time";
+// TODO TM better to get it from FbsfTimeManager
+static const char* dataDateTime="Data.Time";
 
 typedef void ( *STATICFUNC ) ( QString, QVariant );
 typedef float real;
@@ -226,7 +230,7 @@ public :
     static uint m_recorderSize;
     static void recorderSize(uint aSize) {m_recorderSize=aSize;}    // Optional limit
     static uint recorderSize()           {return m_recorderSize;}   // get limit
-    static void resetHistory(float aTime);                          // reset history stack
+    static void resetHistory();                                     // reset history stack
 
     // Broadcast public data
     static void processPublicData(int aStep);

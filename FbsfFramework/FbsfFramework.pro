@@ -40,9 +40,6 @@ DEFINES     += STANDALONE_XML_PARSER
 
 include($$PWD/FbsfFrameworkSources.pri)
 
-SOURCES +=  \
-
-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Deployment target
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

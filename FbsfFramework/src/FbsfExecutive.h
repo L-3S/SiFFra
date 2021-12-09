@@ -18,6 +18,7 @@ class FbsfNetClient;
 class FbsfNetServer;
 class FbsfDataExchange;
 class FbsfPerfMeter;
+class FbsfTimeManager;
 class FBSF_FRAMEWORKSHARED_EXPORT FbsfExecutive : public QThread
 {
     Q_OBJECT
@@ -25,8 +26,9 @@ class FBSF_FRAMEWORKSHARED_EXPORT FbsfExecutive : public QThread
 
 // public methods
 public:
-    explicit        FbsfExecutive(eApplicationMode aMode);
-    virtual         ~FbsfExecutive();
+    explicit        FbsfExecutive(eApplicationMode aMode,
+                                  FbsfTimeManager& aTimeManager);
+    virtual         ~FbsfExecutive()override ;
     int             addSequence(QString aName, float aPeriod,
                                 QList<FbsfConfigNode>& aNodes,
                                 QList<QMap<QString, QString> > &aModels,
@@ -47,8 +49,6 @@ public:
     bool            ReplayMode()            {return mReplayMode;}
     void            BatchMode(bool aFlag);
     bool            BatchMode()            {return mExeMode==eBatch;}
-    void            stepNumber(uint aNum)    {mStepNumber=aNum;}
-    uint            stepNumber()            {return mStepNumber;}
     void            Speed(float aFactor)    {mSpeedFactor=aFactor;mCycleTime=mSpeedFactor*mPeriod;}
     void            fastSpeed(float aFast)  {mFastSpeedFactor=aFast;}
     QString         State();
@@ -107,16 +107,13 @@ private:
     eExecutionMode          mExeMode;            // Execution mode : compute,replay or batch
     bool                    mReplayMode;         // mode is replay
     QString                 mReplayFile;         // file to replay
-    int                     mReplayLength;       // Number of steps to replay
+    uint                    mReplayLength;       // Number of steps to replay
     float                   mCycleTime;          // period*speed factor (ms) for computation loop
     uint                    mPeriod;             // period (ms) for computation loop
-    float                   mSimulationTime;     // Simulation time
-    bool                    bComputeTime;        // Compute or not Simulation time
     uint                    mStepNumber;         // step number for a run
     float                   mSpeedFactor;        // Simulation speed (slow or accelerate)
     float                   mFastSpeedFactor;    // Simulation fast speed
     uint                    mRecorderSize;       // Recording limit size
-    FbsfDataExchange*       mPublicSimulationTime;
     fbsfStatus              mStatus;             // FBSF_OK, FBSF_ERROR
     uint                    mLastSuccessfulStep; // TimeStanp of the last succeded step
     uint                    mMultiSteps;         // Number of step to execute
@@ -129,6 +126,9 @@ private:
     static FbsfNetClient*   mNetClient;          // Network Client
     static FbsfNetServer*   mNetServer;          // Network Server
 
+    FbsfTimeManager&        mTimeManager;
+
+    // perfomance metering
     static bool             sOptPerfMeter;
     long long               mCpuInitializationTime=0;
     long long               mCpuFinilizationTime=0;

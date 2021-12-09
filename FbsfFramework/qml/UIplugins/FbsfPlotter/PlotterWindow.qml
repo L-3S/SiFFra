@@ -13,6 +13,7 @@ import "qrc:/qml/Javascript/Common.js" as Util
 Rectangle
 {
     id : plotWindow
+    objectName: "PlotterWindow.qml"
     anchors.fill : parent
     color: "lightgrey"
 
@@ -39,40 +40,22 @@ Rectangle
 
     property color  paletteColor    :"#666676"
 
-    property string timeFormat      : ""
-    property string timeStartUTC    : ""
-
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    SubscribeReal       { id : timeBase1 ; tag1 : "Simulation.Time"}
-    SubscribeVectorInt  { id : timeBase2 ; tag1 : "Data.Time"}
+    SubscribeInt        { id : timeBaseSTD ; tag1 : simuMpc ? "" : "Data.Time"}
+    SubscribeVectorInt  { id : timeBaseMPC ; tag1 : simuMpc ? "Data.Time" : ""}
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // LIFE START
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Component.onCompleted:
     {
         // switch on the relevant time base according the mode
-        isStandard=FbsfDataModel.isUnresolved("Data.Time") ? true : false
-        timeBase=isStandard?timeBase1:timeBase2
+        isStandard=!simuMpc
+        timeBase=isStandard?timeBaseSTD:timeBaseMPC
         currentPlotArea.viewSize=isStandard ? stdViewSize : timeBase.data.length
-        if (!isStandard)
-            Util.setFormatDateUTC() // UTC format from application code
+
         // import display unit data
         loadDisplayUnit()
         //console.log("PlotterWindow::onCompleted")
-    }
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // Initial time settings from configuration
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    function timeSettings(format,time)
-    {
-        if (format==="utc")
-        {
-            if (time==="")
-                Util.setFormatDateUTC(new Date()) // UTC format from now
-            else
-                Util.setFormatDateUTC(new Date(time)) // UTC fixed
-            console.log("[Plotter] UTC time settings starting from",Util.getStartTime())
-        }
     }
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Slot triggered from executive mode and status changes

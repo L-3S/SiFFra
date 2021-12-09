@@ -19,9 +19,9 @@ Rectangle {anchors.fill    : parent
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     property string     path          : ""
     property string     configuration : "" // plugin configuration
-
-    property string     timeFormat : "s"
-    property string     timeStartUTC : ""
+// TO REMOVE TM
+//    property string     timeFormat : "s"
+//    property string     timeStartUTC : ""
 
     property bool        backtrackable:false
 
@@ -50,7 +50,6 @@ Rectangle {anchors.fill    : parent
              switch (status)
              {
              case XmlListModel.Ready :
-                     plugin.timeSettings(get(0).timeformat,get(0).timestart)
                      plugin.deserialize(APP_HOME+get(0).initialPlotList)
 
                  break;

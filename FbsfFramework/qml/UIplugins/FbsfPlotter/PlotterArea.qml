@@ -100,8 +100,8 @@ SplitView {
             dataModel.clear()
             for(var i=start;i<start+size&&i<dataSetTime.length;i++)
             {   // fill rows
-                dataModel.append({time:Util.getDateStr(dataSetTime[i]),
-                                  timeValue:dataSetTime[i]})
+                dataModel.append({time:FbsfTimeManager.dateTimeStr(dataSetTime[i]),
+                                     timeValue:dataSetTime[i]})
                 if (selectedValue===dataSetTime[i])
                 {
                     selectRow(i-start) // when change to visible;
