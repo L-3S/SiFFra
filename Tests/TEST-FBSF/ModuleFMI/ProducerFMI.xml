@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fmiModelDescription
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    fmiVersion="2.0"
+    modelName="ProducerFMI"
+    guid="">
+    <CoSimulation modelIdentifier="ProducerFMI"/>
+
+    <ModelVariables>
+    <ScalarVariable
+            name="Temperature"
+            valueReference="0"
+            description="Tunable parameter"
+            causality="parameter"
+            variability="tunable">
+            <Real
+            unit="°C"
+            start=""/>
+    </ScalarVariable>
+    <ScalarVariable
+            name="State"
+            valueReference="0"
+            description="Tunable parameter"
+            causality="parameter"
+            variability="tunable">
+            <Boolean
+            unit=""
+            start="true"/>
+     </ScalarVariable>
+     <ScalarVariable
+            name="Const1"
+            valueReference="0"
+            description="Constant parameter"
+            causality="parameter"
+            variability="fixed">
+            <Integer
+            unit="W"
+            start="123"/>
+    </ScalarVariable>
+    </ModelVariables>
+</fmiModelDescription>

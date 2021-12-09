@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<plotterlist>
+	<chart>
+	<index>0</index>
+	<chartname>Plot1</chartname>
+	<charttype>1</charttype>
+
+		<plotter>
+			<name>plotUnit1</name>
+			<chartindex>0</chartindex>
+			<data>Producer.random_pos</data>
+			<datasetFill>false</datasetFill>
+			<steppedLine>false</steppedLine>
+			<pointDot>false</pointDot>
+		</plotter>
+
+		<plotter>
+			<name>plotUnit2</name>
+			<chartindex>0</chartindex>
+			<data>Producer.random_neg</data>
+			<datasetFill>false</datasetFill>
+			<steppedLine>false</steppedLine>
+			<pointDot>false</pointDot>
+		</plotter>
+
+	</chart>
+</plotterlist>

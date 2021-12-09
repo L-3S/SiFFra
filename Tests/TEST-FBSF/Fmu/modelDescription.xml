@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fmiModelDescription
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  fmiVersion="2.0"
+  modelName="ConsoTiTi"
+  guid="{7a30ea2e-0345-494f-95f3-255140a0c382}"
+  generationTool="Dymola Version 2018 FD01 (64-bit), 2017-10-11"
+  generationDateAndTime="2018-03-16T08:20:11Z"
+  variableNamingConvention="structured"
+  numberOfEventIndicators="0">
+  <CoSimulation
+    modelIdentifier="ConsoTiTi"
+    canHandleVariableCommunicationStepSize="true"
+    canInterpolateInputs="true"
+    maxOutputDerivativeOrder="1"
+    canGetAndSetFMUstate="true"
+    canSerializeFMUstate="true"
+    providesDirectionalDerivative="true"/>
+  <TypeDefinitions>
+    <SimpleType
+      name="Modelica.Blocks.Interfaces.RealInput">
+      <Real/>
+    </SimpleType>
+    <SimpleType
+      name="Modelica.Blocks.Interfaces.RealOutput">
+      <Real/>
+    </SimpleType>
+  </TypeDefinitions>
+  <DefaultExperiment startTime="0.0"
+    stopTime="1.0"
+    tolerance="0.0001"/>
+  <ModelVariables>
+    <!-- Index for next variable = 1 -->
+    <ScalarVariable
+      name="titi"
+      valueReference="352321536"
+      causality="input">
+      <Real
+        declaredType="Modelica.Blocks.Interfaces.RealInput"
+        start="0.5"/>
+    </ScalarVariable>
+    <!-- Index for next variable = 2 -->
+    <ScalarVariable
+      name="OutPutFMU"
+      valueReference="335544320"
+      causality="output">
+      <Real
+        declaredType="Modelica.Blocks.Interfaces.RealOutput"/>
+    </ScalarVariable>
+  </ModelVariables>
+  <ModelStructure>
+    <Outputs>
+      <Unknown index="2"
+        dependencies="1"
+        dependenciesKind="fixed"/>
+    </Outputs>
+    <InitialUnknowns>
+      <Unknown index="2"
+        dependencies="1"
+        dependenciesKind="dependent"/>
+    </InitialUnknowns>
+  </ModelStructure>
+</fmiModelDescription>
