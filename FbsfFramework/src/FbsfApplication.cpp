@@ -310,7 +310,7 @@ void FbsfGuiApplication::setup() {
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // add import paths for plugins
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    mEngine.addImportPath(sFrameworkHome + "/FbsfFramework");
+    mEngine.addImportPath(qApp->applicationDirPath());
     mEngine.addImportPath("qrc:/GraphicEditor");
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // add import paths for components

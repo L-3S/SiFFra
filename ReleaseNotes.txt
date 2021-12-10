@@ -15,3 +15,17 @@ Correctifs mode batch :
 	Renommage de l'option -batch en -no-gui  et mise a jour de la documentation
 	Mode full batch et -no-gui avec execution en mode au plus vite et lancement directe de la simulation
 	
+Correctifs Data Flow Graph 
+	Mise a jour de la documentation
+	ajout de guillemets dans le fichier produit pour les noms des variables de la ZE
+
+	
+Build de la version	
+	Build.bat permet avec l'option "all" de compiler Fbsf sur les 3 targetts , release, debug et batch
+		Les bianiares de chaque target sont séparés dans 3 sous dossier du répertoire lib
+		Chaque sous répertoire contient FbsfUtilities et fbsfplugins compilés avec l'option de la target
+	FbsfEnv.bat et FbsfEnv.sh sont mis à jour suite au déplacement de la libraire dynamqiue FbsfPublicData dans lib/"target"/fbsfplugins/	
+		
+Dossier Tests
+	Renomage de la démo MEZT en testMini
+	Ajout du projet TEST-FBSF 	
