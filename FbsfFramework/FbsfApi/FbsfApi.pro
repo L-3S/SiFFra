@@ -28,9 +28,9 @@ message("build api")
 INCLUDEPATH += $$FBSF_FRAMEWORK_DIR/FbsfPublicData\
                $$FBSF_FRAMEWORK_DIR/FbsfNetwork
 
-LIBS    += -L$$FBSF_LIB_DIR                     -lFbsfNetwork
-LIBS    += -L$$FBSF_FRAMEWORK_DIR/fbsfplugins   -lFbsfPublicData
-LIBS    += -L$$FBSF_LIB_DIR                     -lFbsfBaseModel
+LIBS    += -L$$FBSF_LIB_DIR         -lFbsfNetwork
+LIBS    += -L$$FBSF_PLUGINS_DIR     -lFbsfPublicData
+LIBS    += -L$$FBSF_LIB_DIR         -lFbsfBaseModel
 
 # ADD DLL for FbsfBaseModel
 DEPENDPATH  += $$FBSF_HOME/FbsfBaseModel

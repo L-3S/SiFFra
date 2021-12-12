@@ -1,11 +1,12 @@
 TARGET = FbsfUtilities
 TEMPLATE = lib
+include(../../FbsfTargets.pri)
 
 QT      += core qml quick xml widgets
 
 CONFIG  += qt plugin c++11
 
-DESTDIR = $$PWD
+DESTDIR = $$FBSF_UTILITIES_DIR
 
 # export symbols
 DEFINES += FBSF_UTILITIES

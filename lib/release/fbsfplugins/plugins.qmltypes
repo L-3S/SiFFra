@@ -1,0 +1,117 @@
+import QtQuick.tooling 1.1
+
+// This file describes the plugin-supplied types contained in the library.
+// It is used for QML tooling purposes only.
+
+Module {
+    Component {
+        name: "FBSFQmlExchange"
+        defaultProperty: "data"
+        prototype: "QDeclarativeItem"
+        Property { name: "tag1"; type: "string" }
+        Property { name: "tag2"; type: "string" }
+
+        Signal {
+            name: "valueToBeExportedChanged"
+            Parameter { name: "aExportName"; type: "string" }
+            Parameter { name: "aValue"; type: "int" }
+        }
+        Signal {
+            name: "valueToBeExportedChanged"
+            Parameter { name: "aExportName"; type: "string" }
+            Parameter { name: "aValue"; type: "float" }
+        }
+        Signal { name: "tag1Changed" }
+        Signal { name: "tag2Changed" }
+
+    }
+    Component {
+        name: "FBSFBaseNotification"
+        defaultProperty: "data"
+        prototype: "QDeclarativeItem"
+        Property { name: "receiveSimulatorState"; type: "bool" }
+        Signal {
+            name: "messageSent"
+            Parameter { name: "aMessageType"; type: "FBSFNotificationTypes" }
+            Parameter { name: "aMessage"; type: "QList<QVariant>" }
+        }
+    }
+
+    Component {
+        name: "FBSFExporterIntItem"
+        defaultProperty: "data"
+        prototype: "FBSFQmlExchange"
+        exports: [
+            "plugins/FBSFExporterInt 1.0"
+        ]
+        Property { name: "value"; type: "int" }
+    }
+    Component {
+        name: "FBSFExporterRealItem"
+        defaultProperty: "data"
+        prototype: "FBSFQmlExchange"
+        exports: [
+            "plugins/FBSFExporterReal 1.0"
+        ]
+        Property { name: "value"; type: "float" }
+    }
+    Component {
+        name: "FBSFImporterIntItem"
+        defaultProperty: "data"
+        prototype: "FBSFQmlExchange"
+        exports: [
+            "plugins/FBSFImporterInt 1.0"
+        ]
+        Property { name: "value"; type: "int" }
+        Signal {
+            name: "valueIntChanged"
+            Parameter { name: "aValue"; type: "int" }
+        }
+    }
+    Component {
+        name: "FBSFImporterRealItem"
+        defaultProperty: "data"
+        prototype: "FBSFQmlExchange"
+        exports: [
+            "plugins/FBSFImporterReal 1.0"
+        ]
+        Property { name: "value"; type: "float" }
+        Signal {
+            name: "valueRealChanged"
+            Parameter { name: "aValue"; type: "float" }
+        }
+    }
+    Component {
+        name: "FBSFNotificationItem"
+        defaultProperty: "data"
+        prototype: "FBSFBaseNotification"
+        exports: [
+            "plugins/FBSFNotification 1.0"
+        ]
+        Enum {
+            name: "ReceiveTypes"
+            values: {
+                "SimuFrozen": 1181904762,
+                "SimuLoadingSnap": 1399742832,
+                "SimuRunning": 5404014
+            }
+        }
+        Enum {
+            name: "SendTypes"
+            values: {
+                "MessageForSimulator": 4353895,
+            }
+        }
+        Signal {
+            name: "messageReceived"
+            Parameter { name: "messageType"; type: "FBSFNotificationItem::ReceiveTypes" }
+            Parameter { name: "aActionFlag"; type: "int" }
+            Parameter { name: "message"; type: "QList<QVariant>" }
+        }
+        Method {
+            name: "sendMessage"
+            Parameter { name: "aMessageType"; type: "int" }
+            Parameter { name: "aMessage"; type: "QList<QVariant>" }
+        }
+    }
+}

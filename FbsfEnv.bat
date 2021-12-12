@@ -5,9 +5,9 @@ rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 if "%1" == "" (
 	echo Defaut build mode is release
-	set /p fbsfMode= release
+	set fbsfMode=release
 ) else (
-	set /p fbsfMode = %1
+	set fbsfMode=%1
 )
 
 rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -16,5 +16,5 @@ rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 set FBSF_HOME=%~dp0
 
 rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-set PATH=%FBSF_HOME%lib;%FBSF_HOME%lib\%fbsfMode%\;%FBSF_HOME%\FbsfFramework\fbsfplugins;%FBSF_HOME%\Addons;%FBSF_HOME%\Depends;%PATH%
+set PATH=%FBSF_HOME%lib;%FBSF_HOME%lib\%fbsfMode%\;%FBSF_HOME%lib\%fbsfMode%\fbsfplugins;%FBSF_HOME%\Addons;%FBSF_HOME%\Depends;%PATH%
 
