@@ -199,7 +199,7 @@ void TreeModel::readSequence(TreeItem* parent,FbsfConfigSequence& aSeq,bool isSu
 void TreeModel::readPlugins(FbsfConfigSequence& aPluginList)
 {
     // insert a plugin list node
-    auto pluginList = new TreeItem("plugin list",typePlugins);
+    auto pluginList = new TreeItem("plugin list",typePluginList);
     rootItem->appendChild(pluginList);
     mHasPluginList=true; // only one instance allowed
 
@@ -275,7 +275,7 @@ void TreeModel::getXmlSubtree(QString& aXmlConfig,TreeItem* item, int level)
     QString tag;
     if(item->name()=="root")              tag="Items";
     else if(item->type()==typeConfig)     tag="simulation";
-    else if(item->type()==typePlugins)    tag="PluginsList";
+    else if(item->type()==typePluginList)    tag="PluginsList";
     else if(item->type()==typeFork)
         tag=(item->parentItem()->type()==typeSequence?"node":"sequences");
     else if(item->type()==typeSequence)
@@ -467,12 +467,12 @@ void TreeModel::insertModule(const QModelIndex &idx)
 
     QString vName= QString("abstract%1").arg(moduleAutoIndex);
     QString vType=typeModule;
-    QString vCategory=(itemTarget->type()==typePlugins||parent->type()==typePlugins?
+    QString vCategory=(itemTarget->type()==typePluginList||parent->type()==typePluginList?
                        typePlugin:""); // plugin else no category
 
     if( itemTarget->type()==typeConfig
             ||itemTarget->type()==typeSequence
-            || itemTarget->type()==typePlugins)
+            || itemTarget->type()==typePluginList)
     {
         // insert if target type is config,sequence,plugin list
         auto child = new TreeItem(vName,vType,vCategory);
@@ -481,7 +481,7 @@ void TreeModel::insertModule(const QModelIndex &idx)
     }
     else if(parent->type()==typeConfig
             || parent->type()==typeSequence
-            || parent->type()==typePlugins)
+            || parent->type()==typePluginList)
     {
         // insert if item type is module
         auto child = new TreeItem(vName,vType,vCategory);
@@ -505,7 +505,7 @@ void TreeModel::addPluginList()
 {
     if(mHasPluginList) return;
 
-    auto pluginList = new TreeItem("plugin list", typePlugins);
+    auto pluginList = new TreeItem("plugin list", typePluginList);
 
     // insert a plugin list node
     beginInsertRows(QModelIndex(),0,0);
@@ -609,9 +609,9 @@ void TreeModel::pasteSelection(const QModelIndex &index)
         TreeItem* itemPaste=cloneItem(item);
 
         if(itemTarget->type()==typeConfig)
-        {// only module and fork allowed if target is config
-            if(itemPaste->type()==typeModule||itemPaste->type()==typeFork)
-                insertItem(index.parent(),itemPaste,itemTarget->row()+1);
+        {// only PluginList allowed if target is config
+            if(itemPaste->type()==typePluginList)
+                insertItem(index.parent(),itemPaste,0);
         }
         else if(itemTarget->type()==typeFork)
         {// only sequence allowed if target is fork
@@ -630,7 +630,7 @@ void TreeModel::pasteSelection(const QModelIndex &index)
             if(itemPaste->type()==typeModule||itemPaste->type()==typeFork)
                 insertItem(index.parent(),itemPaste,itemTarget->row()+1);
         }
-        else if(itemTarget->type()==typePlugins)
+        else if(itemTarget->type()==typePluginList)
         {// only plugin if target is plugin list
             if(itemPaste->category()==typePlugin)
                 insertItem(index,itemPaste,0);

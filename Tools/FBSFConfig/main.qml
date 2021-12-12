@@ -13,7 +13,9 @@ ApplicationWindow {
     height : 600
     header: AppToolBar{id:toolBar}
     color                       : "Dimgrey"
-    property real zoom          : 1
+    property real zoomFactor          : 1
+    property real zoomFactorMin       : 0.1
+    property real zoomFactorMax       : 2
 
     property var currentConfigEditor : configEditor1.isCurrent?
                                            configEditor1:configEditor2
@@ -22,7 +24,8 @@ ApplicationWindow {
     // close project and quit Application
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     onClosing:{close.accepted =false; quit() }
-    function quit(){
+    function quit()
+    {
         if(controller.config.modified) msgQuit.visible=true
         else  Qt.quit()
     }
@@ -113,11 +116,16 @@ ApplicationWindow {
             SplitView.minimumHeight : 100
             SplitView.fillHeight    : true
             clip: true
-            contentWidth    : configArea1.width*(zoom>=1?zoom:1)
-            contentHeight   : configArea1.height*(zoom>=1?zoom:1)
-
+            contentWidth    : configEditor1.width
+            contentHeight   : configEditor1.height
+            property ScrollBar hScrollBar: ScrollBar.horizontal
+            property ScrollBar vScrollBar: ScrollBar.vertical
+            // Selection rectangle
             Rectangle {
-                anchors.fill : parent
+                x            : configArea1.hScrollBar.position*configArea1.contentWidth
+                y            : configArea1.vScrollBar.position*configArea1.contentHeight
+                width        : configArea1.width
+                height       : configArea1.height
                 color        : rootApp.color
                 border.width : configEditor1.isCurrent? 3:0
                 border.color : configEditor1.isCurrent? "lime":"black"
@@ -129,11 +137,11 @@ ApplicationWindow {
                     onWheel : {
                         if (wheel.angleDelta.y > 0)
                         {   //zoom in
-                            if(zoom<2) zoom*=1.1
+                            if(zoomFactor<zoomFactorMax) zoomFactor*=1.1
                         }
                         else
                         {   // zoom out
-                            if(zoom>0.5) zoom*=0.9
+                            if(zoomFactor>zoomFactorMin) zoomFactor*=0.9
                         }
                         keyboard.focus=true
                     }
@@ -143,18 +151,17 @@ ApplicationWindow {
                         setFooterText("")
                         setCurrentConfig(1)}
                 }
+            }
+            FBSFConfig{
+                id: configEditor1
+                transformOrigin : Item.TopLeft
+                isCurrent       : true
+                treeModel       : controller.config1
+                transform       :
+                    Scale { origin.x: 0; origin.y: 0
+                    xScale: zoomFactor;yScale:zoomFactor}
+                function itemSelected() {setCurrentConfig(1)}
 
-                FBSFConfig{
-                    id: configEditor1
-                    transformOrigin : Item.TopLeft
-                    isCurrent       : true
-                    treeModel       : controller.config1
-                    transform       :
-                        Scale { origin.x: 0; origin.y: 0
-                        xScale: zoom;yScale:zoom}
-                    function itemSelected() {setCurrentConfig(1)}
-
-                }
             }
         }
         //~~~~~~~~~~~~~~~~~~~~~~ Config 1 UI layers ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -164,11 +171,16 @@ ApplicationWindow {
             SplitView.minimumHeight: 20
             SplitView.preferredHeight: 20
             SplitView.maximumHeight: rootApp.height/2
-            contentWidth    : configArea2.width*(zoom>=1?zoom:1)
-            contentHeight   : configArea2.height*(zoom>=1?zoom:1)
-
+            contentWidth    : configEditor2.width
+            contentHeight   : configEditor2.height
+            property ScrollBar hScrollBar: ScrollBar.horizontal
+            property ScrollBar vScrollBar: ScrollBar.vertical
+            // Selection rectangle
             Rectangle {
-                anchors.fill : parent
+                x            : configArea2.hScrollBar.position*configArea2.contentWidth
+                y            : configArea2.vScrollBar.position*configArea2.contentHeight
+                width        : configArea2.width
+                height       : configArea2.height
                 color        : rootApp.color
                 border.width : configEditor2.isCurrent? 3:0
                 border.color : configEditor2.isCurrent? "lime":"black"
@@ -180,11 +192,11 @@ ApplicationWindow {
                     onWheel : {
                         if (wheel.angleDelta.y > 0)
                         {   //zoom in
-                            if(zoom<2) zoom*=1.1
+                            if(zoomFactor<zoomFactorMax) zoomFactor*=1.1
                         }
                         else
                         {   // zoom out
-                            if(zoom>0.5) zoom*=0.9
+                            if(zoomFactor>zoomFactorMin) zoomFactor*=0.9
                         }
                         keyboard.focus=true
 
@@ -195,15 +207,15 @@ ApplicationWindow {
                         setFooterText("")
                         setCurrentConfig(2)}
                 }
-                FBSFConfig{
-                    id: configEditor2
-                    transformOrigin : Item.TopLeft
-                    treeModel       : controller.config2
-                    transform       :
-                        Scale { origin.x: 0; origin.y: 0
-                        xScale: zoom;yScale:zoom}
-                    function itemSelected() { setCurrentConfig(2)}
-                }
+            }
+            FBSFConfig{
+                id: configEditor2
+                transformOrigin : Item.TopLeft
+                treeModel       : controller.config2
+                transform       :
+                    Scale { origin.x: 0; origin.y: 0
+                    xScale: zoomFactor;yScale:zoomFactor}
+                function itemSelected() { setCurrentConfig(2)}
             }
         }
     }
@@ -296,16 +308,7 @@ ApplicationWindow {
         }
     }
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-//    Dialog {
-//        id      : msgCheck
-//        title   : "FBSF configuration verification"
-//        standardButtons : Dialog.Cancel
-//        property alias report : lbText.text
-//        Label {id : lbText
-//            color : "black"
-//            text: ""
-//        }
-//    }
+
     CheckReport{id : msgCheck}
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

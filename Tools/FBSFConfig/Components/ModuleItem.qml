@@ -56,9 +56,10 @@ Element {
                     if (type=="module")
                     {
                         if(category=="plugin")
-                             footerText=category + " " + name
+                             footerText=category + " : " + name
                         else
-                            footerText=type + " " + name + " Type : " + moduleType
+                            footerText=type + " : " + name
+                                    + " (Type : " + (moduleType!==""?moduleType:"abstract") +")"
                     }
                     setSelected(footerText)
                 }

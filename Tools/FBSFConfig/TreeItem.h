@@ -63,6 +63,10 @@ public:
                       TreeItem *parent = nullptr);
 
     ~TreeItem();
+
+    TreeItem&       operator=(const TreeItem& other);
+                    TreeItem(const TreeItem &other);
+
     void            createItemParamList();
     void            getXmlItemData(QString& aXmlConfig,int level=0);
     QList<QObject*>& getParamList();
@@ -98,9 +102,6 @@ public:
     bool            hasError() const {return mHasError; }
     void            hasError(bool aFlag) {mHasError=aFlag;}
 
-    TreeItem&       operator=(const TreeItem& other);
-                    TreeItem(const TreeItem &other);
-
     TreeItem *      getItem(const QModelIndex &index) const;
 
 private:
@@ -118,7 +119,7 @@ static QString typeConfig="config";
 static QString typeFork="fork";
 static QString typeSequence="sequence";
 static QString typeSubSequence="SubSequence";
-static QString typePlugins="plugins";
+static QString typePluginList="plugins";
 static QString typeModule="module";
 static QString typePlugin="plugin";
 static QString typeVisual="visual";

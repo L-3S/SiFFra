@@ -15,3 +15,10 @@ Correctifs mode batch :
 	Renommage de l'option -batch en -no-gui  et mise a jour de la documentation
 	Mode full batch et -no-gui avec execution en mode au plus vite et lancement directe de la simulation
 	
+Correctifs Configurateur
+
+	1	Correctif concernant les scrolls bar et le zoom
+	2	Différenciation graphique du « main feeder » global
+	3	Impossible de supprimer le groupe principal
+	4 	Impossible de coller un plugin vers une sequence
+	5	Possible de copier/coller d'une PluginList entre configurations

@@ -7,13 +7,16 @@ Element {
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     width   : itemRow.width + hSpacing + itemShape.width
     height  : itemRow.height + sequenceHeight/2
+    property color forkColor : category==="rootFork"?"#1f89d9":"#0ccfa5"
+    property color frameColor : category==="rootFork"?"#1f89d9":"#0ccfa5"
+
     Rectangle{
         id          : itemShape
-        width       : forkWidth
-        x           : -forkWidth
+        width       : category==="rootFork"?forkWidth*2:forkWidth
+        x           : -width
         y           : moduleHeight/2-sequenceHeight/2-3
         height      : base.height
-        color       : highlight ? "lime" : "#0ccfa5"
+        color       : highlight ? Qt.lighter(forkColor,1.5) : forkColor
         border.color: highlight ? "red" : "#113"
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -26,10 +29,12 @@ Element {
             onClicked:{
                 if (mouse.button === Qt.LeftButton)
                 {
-                    setSelected("")
+                    setSelected("group : " + name)
                 }
-                else
+                else // diplay popup menu
                 {
+                    if(menuEnabled)
+                        forkBeginMenu.removeGroupEnabled=(category!=="rootFork")
                     forkBeginMenu.popup()
                 }
             }
@@ -38,9 +43,10 @@ Element {
         // ForkEnd delimiter
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         Rectangle{id:forkEnd
-            width       : 5
+            width       : itemShape.width
             height      : itemShape.height
             color       : itemShape.color
+            border.color: itemShape.border.color
             anchors.verticalCenter: itemShape.verticalCenter
             anchors.left: itemShape.right
             anchors.leftMargin:  itemRow.width + 1.5*hSpacing
@@ -66,7 +72,7 @@ Element {
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Rectangle{ id: forkFrame
         z       : -10
-        color   :"#217780"
+        color   : frameColor//"#217780"
         border.color: "yellow"
         visible : highlight
         y       : itemShape.y
