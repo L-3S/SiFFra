@@ -154,7 +154,7 @@ int FbsfApplication::parseCommandLine(QStringList arglist)
     return 1;
 }
 int FbsfApplication::generateSequences() {
-
+    setup();
     // check modeMcp
 
     bool modeMcp=config().Simulation().value("simuMpc")=="true"?true:false;
@@ -255,7 +255,7 @@ int FbsfApplication::generateDataFlowGraph()
                 for (int i = 0; i < consumersList.size(); i++)
                 {
                     outStream << "\n\t" << data->producer() << " -> " << consumersList[i]
-                    << "\t [Name = " << data->name() <<"]"
+                    << "\t [Name =\"" << data->name() <<"\"]"
                     << "\t [Type = "  << config().getDataFlowEdgeStatus(data->producer(),consumersList[i]) << "]";
                 }
             }
@@ -301,7 +301,7 @@ void FbsfGuiApplication::setup() {
     // Path acces in QML
     ctxt->setContextProperty("FBSF_HOME",QUrl::fromLocalFile(sFrameworkHome));
     ctxt->setContextProperty("APP_HOME",QUrl::fromLocalFile(sApplicationHome));
-    ctxt->setContextProperty("FBSF_CONFIG",QUrl::fromLocalFile(mConfig.Name()));
+    ctxt->setContextProperty("FBSF_CONFIG",QUrl::fromLocalFile(mConfig.Name() + ".xml"));
     ctxt->setContextProperty("CURRENT_DIR",QUrl::fromLocalFile(QDir::currentPath()));
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // QML data exchange listmodel binding
