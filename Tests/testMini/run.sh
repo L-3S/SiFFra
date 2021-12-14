@@ -20,5 +20,5 @@ export APP_HOME=$PWD
 export PATH="$APP_HOME/lib/$BUILD_MODE":$PATH
 export LD_LIBRARY_PATH="$APP_HOME/lib/$BUILD_MODE":$LD_LIBRARY_PATH
 
-qtcreator &
+FbsfFramework simul.xml &
 

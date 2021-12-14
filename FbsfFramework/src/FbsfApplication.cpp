@@ -255,7 +255,7 @@ int FbsfApplication::generateDataFlowGraph()
                 for (int i = 0; i < consumersList.size(); i++)
                 {
                     outStream << "\n\t" << data->producer() << " -> " << consumersList[i]
-                    << "\t [Name = " << data->name() <<"]"
+                    << "\t [Name =\"" << data->name() <<"\"]"
                     << "\t [Type = "  << config().getDataFlowEdgeStatus(data->producer(),consumersList[i]) << "]";
                 }
             }
