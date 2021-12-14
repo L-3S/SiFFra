@@ -20,8 +20,10 @@ Correctifs Configurateur
 	1	Correctif concernant les scrolls bar et le zoom
 	2	Différenciation graphique du « main feeder » global
 	3	Impossible de supprimer le groupe principal
-	4 	Impossible de coller un plugin vers une sequence
-	5	Possible de copier/coller d'une PluginList entre configurations
+    4   Impossible de copier/coller un main feeder
+    5 	Impossible de coller un plugin vers une sequence
+    6	Possible de copier/coller d'une PluginList entre configurations
+    7   Renommage automatique par suffixe compteur (ex: module#1)
 	
 Correctifs Data Flow Graph 
 	Mise a jour de la documentation

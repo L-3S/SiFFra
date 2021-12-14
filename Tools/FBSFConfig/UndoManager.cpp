@@ -111,6 +111,7 @@ void insertItemCommand::redo()
 {
     // we get the model index by name since the parent is a new item
     mParentIndex=mModel.getIndexByName(mParentName);
+
     // doesn't work if add plugin
     if(mItem->type()!=typePluginList && !mParentIndex.isValid())
     {
@@ -127,6 +128,12 @@ void insertItemCommand::redo()
     if(mItem->type()==typePluginList) mModel.hasPluginList(true);
     // Insert item
     parent->insertChild(mItem,mPosition);
+
+    // We get unique name for Item(s)
+    //      1. since Item(s) are inserted in treeModel
+    //      2. Before we store a copy
+    mModel.setUniqueName(mItem);
+
     //FIX: get a copy by item in case removed
     mItem = mModel.cloneItem(mItem);
 
