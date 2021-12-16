@@ -30,33 +30,44 @@ if exist %CompilerPath% (
 rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 rem clean
 rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-rem if exist Makefile call jom distclean
+rem if exist Makefile call jom clean
 
+if exist Makefile call jom distclean 
 
 if /i %fbsfMode% == all (
 	echo Build FBSF all target 
-	call qmake FBSF.pro
-	echo build fbsf release mode
-	call jom
-	
-	echo Build FBSF debug mode	
-	call jom debug
 	
 	echo Build FBSF batch mode
-	call qmake "CONFIG+=BATCH" FBSF.pro
+	call qmake -recursive "CONFIG+=BATCH" FBSF.pro
 	call jom
+	
+	call jom clean
+
+	echo build fbsf release mode
+	call qmake -recursive FBSF.pro
+	call jom
+
+	call jom clean
+
+	echo Build FBSF debug mode	
+	call qmake -recursive FBSF.pro
+	call jom debug
+		
 ) else if /i %fbsfMode% == release (
 	echo Build FBSF release mode
-	call qmake FBSF.pro
+	call qmake -recursive FBSF.pro
 	call jom
+	
 ) else if /i %fbsfMode% == debug (
 	echo Build FBSF debug mode
 	call qmake FBSF.pro
 	call jom debug 
+	
 ) else if /i %fbsfMode% == batch (
 	echo Build FBSF batch mode
 	call qmake "CONFIG+=BATCH" FBSF.pro
 	call jom
+	
 ) else (
 	echo %fbsfMode% is not a build mode. Please enter release, debug, batch or all
 )
