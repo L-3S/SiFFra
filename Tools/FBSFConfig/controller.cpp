@@ -14,6 +14,92 @@ Controller::Controller()
 {
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int Controller::parseCommandLine(QStringList arglist)
+{
+    QCoreApplication::setOrganizationName("L3S");
+    QCoreApplication::setOrganizationDomain("web.l-3s.com");
+    QCoreApplication::setApplicationName("FbsfConfig");
+    QCoreApplication::setApplicationVersion(FBSF_VERSION);
+
+    mParser.setApplicationDescription(QCoreApplication::translate("main","Editor for simulation configuration"));
+    mParser.setSingleDashWordOptionMode(QCommandLineParser::ParseAsLongOptions);
+    mParser.addHelpOption();
+    mParser.addVersionOption();
+    mParser.addPositionalArgument("Configuration file",
+                                  QCoreApplication::translate("main", " : xml description file"));
+
+    QCommandLineOption typeModuleList(QStringList() << "ml" << "module-list",
+                                      "Read type of modules from <file>.", "file");
+    mParser.addOption(typeModuleList);// type module
+
+    mParser.process(arglist);
+
+    const QStringList args = mParser.positionalArguments();
+
+    QString mlFile  = mParser.value(typeModuleList);
+    qInfo() << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+    qInfo() << "FBSF_HOME dir       : "<< qgetenv("FBSF_HOME");
+    qInfo() << "APP_HOME dir        : "<< getAppHome();
+    qInfo() << "Current working dir : "<< QDir::currentPath();
+    // get the description for Fbsf modules
+    findModuleLib(QCoreApplication::applicationDirPath());
+    mModuleTypeList.append(new ModuleDescriptor("fmu","fmu",""));
+
+    if (!mlFile.isEmpty())
+    {   // defined file
+        qInfo() << "Module list : " << mlFile;
+        readModuleList(mlFile);
+    }
+    else
+    {   // default file
+        mlFile=getAppHome()+"/"+"ModuleList.lst";
+        if(QFile::exists(mlFile))
+        {
+            qDebug() << "Module list :"<< mlFile;
+            readModuleList(mlFile);
+        }
+        else
+        {
+            qDebug() << "Looking in APP_HOME/lib for Modulexxx[.dll,.so] ";
+            // Get the application module libraries
+            findModuleLib(getAppHome()+"/lib");
+        }
+    }
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // Check if the configuration file is available
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    if (!args.isEmpty())
+    {
+        const QString filename = args.at(0);
+        qDebug() << "Loading configuration file : " << filename;
+        getConfig().setupModelData(filename);// load config
+    }
+    qInfo() << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+
+    return 1;
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+void Controller::readModuleList(QString aFileName)
+{
+    QFile vFile(aFileName);
+    if (!vFile.open(QFile::ReadOnly))
+    {
+        qDebug() << "Error openning " << aFileName << vFile.errorString();
+        return;
+    }
+    QString moduleType;
+    QTextStream inStream( &vFile );
+    inStream.setCodec("UTF-8");
+
+    do {
+        moduleType = inStream.readLine();
+        if((!moduleType.isNull()))
+        {
+            mModuleTypeList.append(new ModuleDescriptor("manual",moduleType,moduleType+".dll"));
+        }
+    } while (!moduleType.isNull());
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 QString Controller::getAppHome()
 {
     QString applicationHome = qgetenv("APP_HOME");
@@ -42,7 +128,7 @@ QString Controller::getRelativePath(QUrl aPath)
     }
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void Controller::findModuleLib()
+void Controller::findModuleLib(QString aPath)
 {
     QStringList filter;
 #if (defined (_WIN32) || defined (_WIN64))
@@ -52,32 +138,15 @@ void Controller::findModuleLib()
 #endif
 
     // first get the FBSF module libraries
-    QDirIterator it(QCoreApplication::applicationDirPath(),
-                    filter,QDir::AllEntries | QDir::NoDotAndDotDot);
+    QDirIterator it(aPath,filter,QDir::AllEntries | QDir::NoDotAndDotDot);
 
     while (it.hasNext())
     {
         QFileInfo file=it.next();
         QString typeCpp=file.baseName();
         QString category=moduleCategoryMap[typeCpp];
-        mModuleTypeList.append(new ModuleDescriptor(category,typeCpp,file.absoluteFilePath()));
+        mModuleTypeList.append(new ModuleDescriptor(category,typeCpp,file.fileName()));
     }
-    // then get the application module libraries
-    QString applicationHome = qgetenv("APP_HOME");
-    if (!applicationHome.isEmpty())
-    {
-        QDirIterator it(applicationHome+"/lib",// TODO may be Debug or Release
-                        filter,QDir::AllEntries | QDir::NoDotAndDotDot);
-        while (it.hasNext())
-        {
-            QFileInfo file=it.next();
-            QString typeCpp=file.baseName();
-            QString category=moduleCategoryMap.value(typeCpp,"manual");
-            mModuleTypeList.append(new ModuleDescriptor(category,typeCpp,file.absoluteFilePath()));
-        }
-    }
-    ////////// Test purpose /////////
-    mModuleTypeList.append(new ModuleDescriptor("fmu","fmu",""));
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 QAbstractItemModel* Controller::config()
@@ -111,7 +180,7 @@ QUrl Controller::newConfig()
 void Controller::openConfig(QUrl aFilename)
 {
     if((mCurrentModel==&mTreeModel2 && mTreeModel1.configUrl()==aFilename)
-    || (mCurrentModel==&mTreeModel1 && mTreeModel2.configUrl()==aFilename))
+            || (mCurrentModel==&mTreeModel1 && mTreeModel2.configUrl()==aFilename))
     {
         QMessageBox msgBox;
         msgBox.setText("Opening twice same document is not allowed");

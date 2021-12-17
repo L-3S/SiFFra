@@ -16,9 +16,15 @@ int main(int argc, char *argv[])
     QCoreApplication::setApplicationName("FbsfConfig");
 
     QApplication app(argc, argv);
-
+    QStringList arglist;
+    for (int i=0;i < argc ; i++)
+    {
+        QString argMode(argv[i]);
+        arglist << argMode;
+    }
+    // Parse the command line
     Controller  controller;
-    controller.findModuleLib();
+    controller.parseCommandLine(arglist);
 
     QQmlApplicationEngine engine;
     //~~~~~~~~~~ Check application EV ~~~~~~~~~~~~~~~~~~~~~~~~~~

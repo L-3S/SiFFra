@@ -20,10 +20,16 @@ Correctifs Configurateur
 	1	Correctif concernant les scrolls bar et le zoom
 	2	Différenciation graphique du « main feeder » global
 	3	Impossible de supprimer le groupe principal
-    4   Impossible de copier/coller un main feeder
+    4  Impossible de copier/coller un main feeder
     5 	Impossible de coller un plugin vers une sequence
     6	Possible de copier/coller d'une PluginList entre configurations
-    7   Renommage automatique par suffixe compteur (ex: module#1)
+    7  Renommage automatique par suffixe compteur (ex: module#1)
+	8  Possible de fixer un nom de configuration en argument.
+	9  Possible de definir une liste de type de modules (noms sans prefixe lib ni extension) par :
+			- chemin absolu du fichier
+			- un fichier ModuleList.lst a la racine APP_HOME
+		Par defaut les types sont detectés depuis APP_HOME/lib par le prefix Module 
+			ex : ModuleXXX.dll, libModuleXXX.so => ModuleXXX
 	
 Correctifs Data Flow Graph 
 	Mise a jour de la documentation

@@ -170,9 +170,8 @@ TreeItem *TreeModel::readSimulation(FbsfConfiguration &aXmlConfig)
     configItem=config;
 
     //insert a fork item
-    TreeItem* fork = new TreeItem(QString("fork%1").arg(forkAutoIndex),
+    TreeItem* fork = new TreeItem(typeRootFork,
                                   typeFork,typeRootFork);
-    forkAutoIndex++;
     configItem->appendChild(fork);
 
     return  fork;
@@ -628,8 +627,9 @@ void TreeModel::pasteSelection(const QModelIndex &index)
                 insertItem(index,cloneItem(itemPaste),0);
         }
         else if(itemTarget->type()==typeModule && itemTarget->category()!=typePlugin)
-        {// only module and fork allowed if target is module
-            if(itemPaste->type()==typeModule||itemPaste->type()==typeFork)
+        {// only module and subfork allowed if target is module
+            if((itemPaste->type()==typeModule && itemPaste->category()!=typePlugin)
+             ||(itemPaste->type()==typeFork && itemPaste->name()!=typeRootFork))
                 insertItem(index.parent(),itemPaste,itemTarget->row()+1);
         }
         else if(itemTarget->type()==typePluginList)
