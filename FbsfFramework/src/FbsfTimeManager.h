@@ -10,7 +10,9 @@ class FbsfTimeManager:public QObject
 {
     Q_OBJECT
 public:
-    enum eTimeMode {eDateTime, eElapsedTime};
+    enum eTimeMode {eDateTime, eElapsedTime,eCumulTime};
+    enum eCumulUnit {eCumulHours, eCumulMinutes,eCumulSeconds};
+    enum eCumulFormat {eCumulSingle,eCumulHMS, eCumulHM, eCumulMS};
     enum eResolution {eSeconds=1000, eMilliSeconds=1};
 
     // Initial setup
@@ -69,6 +71,7 @@ private :
     void   setTimeStepMS(float aTimeStepS);
 
     QString ElapsedTimeMSStr(qint64 aElapsedMS);
+    QString CumulTimeMSStr(qint64 aElapsedMS);
     void    setDisplayFormat(QString aFormat);
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -80,6 +83,10 @@ private:
     bool        mModeMPC=false;
     eTimeMode   mTimeMode=eDateTime;
     eResolution mResolution=eSeconds;
+
+    // mode cumul time
+    eCumulUnit  mCumulUnit;
+    eCumulFormat  mCumulFormat=eCumulSingle;
 
     // initial date and time
     QDate       mDateStart;         // origin date user defined
@@ -96,6 +103,7 @@ private:
 
     qint64      mDataDateTime=0;     // computed date-time
     qint64      mElapsedTimeMS=0;    // computed elapsed time (millisecondes)
+    qint64      mCumulatedTimeMS=0;  // computed cumulated time (millisecondes)
 
     int         mTimeStepMS=0;       // simulation step time (dt)
     uint        mStepCount=0;        // step count

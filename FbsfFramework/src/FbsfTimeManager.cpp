@@ -44,19 +44,31 @@ void FbsfTimeManager::setup(bool aMode,QMap<QString,QString>& aConfig,float aTim
 void FbsfTimeManager::setDateTime(QString aDateStart, QString aTimeStart,
                                   QString aDateFormat, QString aTimeFormat)
 {
-    QRegExp rxs("^[s][s][s](.*)?$");
-    if(rxs.exactMatch(aTimeFormat)) qDebug() << __FUNCTION__<< "cumul secondes";
-    QRegExp rxm("^[m][m][m](.*)?$");
-    if(rxm.exactMatch(aTimeFormat)) qDebug() << __FUNCTION__<< "cumul minutes";
-
-    //    QString a1("sss");
-    //    QString a2("sss.zzz");
-    //    QString a3("ss");
-    //    QString a4("ss.zzz");
-    //    if(rx.exactMatch(a1)) qDebug() << __FUNCTION__<< "1 cumul secondes";
-    //    if(rx.exactMatch(a2)) qDebug() << __FUNCTION__<< "2 cumul secondes";
-    //    if(rx.exactMatch(a3)) qDebug() << __FUNCTION__<< "3 cumul secondes";
-    //    if(rx.exactMatch(a4)) qDebug() << __FUNCTION__<< "4 cumul secondes";
+    // Check if cumulated time format is defined
+    QRegExp rxh("^([h]{3})(:mm)?(:ss)?$");
+    if(rxh.exactMatch(aTimeFormat))
+    {
+        mTimeMode=eCumulTime;
+        mCumulUnit=eCumulHours;
+        if(rxh.matchedLength()==6)
+        {mCumulFormat=eCumulHM;} // hours:minutes
+        else if(rxh.matchedLength()==9)
+        {mCumulFormat=eCumulHMS;}// hours:minutes:seconds
+    }
+    QRegExp rxm("^([m]{3})(:ss)?$");
+    if(rxm.exactMatch(aTimeFormat))
+    {
+        mTimeMode=eCumulTime;
+        mCumulUnit=eCumulMinutes;
+        if(rxm.matchedLength()==6)
+            mCumulFormat=eCumulMS;//minutes:seconds
+    }
+    QRegExp rxs("^[s]{3}(.zzz)?$");
+    if(rxs.exactMatch(aTimeFormat))
+    {
+        mTimeMode=eCumulTime;
+        mCumulUnit=eCumulSeconds;
+    }
 
 #ifdef AUTO_RESOLUTION
     // set the milliseconde display according the timestep value
@@ -74,7 +86,7 @@ void FbsfTimeManager::setDateTime(QString aDateStart, QString aTimeStart,
             }
         }
         else
-        {   
+        {
             // Check if ms set for time format, if not set it to .zzz
             QRegExp rx("^(.*)([.z][zz]?)$");
             if(!rx.exactMatch(aTimeFormat)) aTimeFormat+=".zzz";
@@ -82,6 +94,15 @@ void FbsfTimeManager::setDateTime(QString aDateStart, QString aTimeStart,
         mResolution=eResolution::eMilliSeconds;
     }
 #endif
+    // set the initial instant time or elapsedTime=0 as default
+    if(mTimeMode==eCumulTime && !aTimeStart.isEmpty())
+    {
+        mTimeStart = QTime::fromString(aTimeStart,Qt::ISODate);
+        mDateTimeOrigin=mTimeStart.msecsSinceStartOfDay();
+        return;
+    }
+
+    // Check date/time set and date/time formats set
     if(!aDateFormat.isEmpty())mDateFormat=aDateFormat; // set the user format if defined
 
     if(!aTimeFormat.isEmpty())mTimeFormat=aTimeFormat; // set the user format if defined
@@ -99,10 +120,7 @@ void FbsfTimeManager::setDateTime(QString aDateStart, QString aTimeStart,
             else
             {
                 // mode MPC set the start date and time to current
-                mDateStart=QDate::currentDate();
-                mStartDateTime.setDate(mDateStart);
-                mTimeStart=QTime::currentTime();
-                mStartDateTime.setTime(mTimeStart);
+                // at first step
                 setDisplayFormat(mDateFormat);
                 setDisplayFormat(mTimeFormat);
             }
@@ -113,7 +131,7 @@ void FbsfTimeManager::setDateTime(QString aDateStart, QString aTimeStart,
             {
                 if(mModeMPC)
                 {
-                    mDateStart=QDate::currentDate();
+                    //mDateStart=QDate::currentDate();
                     mStartDateTime.setDate(mDateStart);
                 }
                 setDisplayFormat(mDateFormat);
@@ -124,7 +142,7 @@ void FbsfTimeManager::setDateTime(QString aDateStart, QString aTimeStart,
                 {
                     // we must set the date to get an initial valid date-time
                     if(mDateStart.isNull())mStartDateTime.setDate(QDate::currentDate());
-                    mTimeStart=QTime::currentTime();
+                    //mTimeStart=QTime::currentTime();
                     mStartDateTime.setTime(mTimeStart);
                 }
                 setDisplayFormat(mTimeFormat);
@@ -133,15 +151,17 @@ void FbsfTimeManager::setDateTime(QString aDateStart, QString aTimeStart,
     }
     else
     {   // date or time defined, date format or time format defined
+        // ISO 8601 extended format: either yyyy-MM-dd for dates
+        // and HH:mm:ss[.zzz] for time (e.g. 2017-07-24T15:46:29[.000]),
         // Date part
         if(!aDateStart.isEmpty())
         {
-            // set the start date as defined with user defined format or default
-            mDateStart = QDate::fromString(aDateStart,mDateFormat);
+            //  get the date as ISO 8601 format
+            mDateStart = QDate::fromString(aDateStart,Qt::ISODate);
             if(!mDateStart.isValid())
             {
-                QString msg="\tInvalid start date :"+aDateStart
-                        + "\n\tCheck with expected date format : "+ mDateFormat;
+                QString msg="\tInvalid start date : "+aDateStart
+                        + "\n\tCheck with ISO 8601 date format : yyyy-MM-dd";
                 qFatal(msg.toStdString().c_str());
             }
             mStartDateTime.setDate(mDateStart);
@@ -161,22 +181,23 @@ void FbsfTimeManager::setDateTime(QString aDateStart, QString aTimeStart,
         if(!aTimeStart.isEmpty())
         {
             // set the start time as defined with user defined format or default
-            mTimeStart = QTime::fromString(aTimeStart,mTimeFormat);
+            mTimeStart = QTime::fromString(aTimeStart,Qt::ISODate);
             if(!mTimeStart.isValid())
             {
-                QString msg="\tInvalid start time :"+aTimeStart
-                        + "\n\tCheck with expected time format : "+ mTimeFormat;
+                QString msg="\tInvalid start time : "+aTimeStart
+                        + "\n\tCheck with ISO 8601 time format : HH:mm:ss[.zzz]";
                 qFatal(msg.toStdString().c_str());
             }
             // we must set the date to get an initial valid date-time
-            if(mDateStart.isNull())mStartDateTime.setDate(QDate::currentDate());
+            if(mDateStart.isNull()) mStartDateTime.setDate(QDate::currentDate());
 
             mStartDateTime.setTime(mTimeStart);
             setDisplayFormat(mTimeFormat);
         }
         else if(!aTimeFormat.isEmpty())
         {
-            // only format defined, set the current time with user defined format
+            // only time format defined, set the current
+            // time with user defined format
             if(mModeMPC)
             {
                 mTimeStart=QTime::currentTime();
@@ -197,6 +218,19 @@ void FbsfTimeManager::setModeSTD()
     if(mTimeMode==eElapsedTime)
     {
         qInfo() << "\ttime mode : elapsed time";
+    }
+    // Cumulated time is set
+    else if(mTimeMode==eCumulTime)
+    {
+        QString unit;
+        switch (mCumulUnit)
+        {
+        case eCumulHours   : unit="hours";  break;
+        case eCumulMinutes : unit="minutes";break;
+        case eCumulSeconds : unit="seconds";break;
+        }
+        qInfo() << "\ttime mode : cumulated time as"<<unit
+                << "since" << mTimeStart.toString();
     }
     else
     {   // if start date or time unset we set current later at the first step
@@ -244,13 +278,36 @@ void FbsfTimeManager::setModeMPC(int     aPastsize,
     qInfo() << "\tpast time  :" <<aPastsize;
     qInfo() << "\tfutur time :" <<aFutursize;
     qInfo() << "\ttimeshift  :" <<aTimeshift;
-    qInfo() << "\tStart date-time :"
+    if(mTimeMode==eCumulTime)
+    {
+        QString unit;
+        switch (mCumulUnit)
+        {
+        case eCumulHours : unit="hours";break;
+        case eCumulMinutes : unit="minutes";break;
+        case eCumulSeconds : unit="seconds";break;
+        }
+        qInfo() << "\ttime mode : cumulated time as"<<unit
+                << "since" << mTimeStart.toString();
+        // set initial instant time for display
+        mDataDateTime=mTimeStart.msecsSinceStartOfDay()/mResolution;
+    }
+    else
+    {// if start date or time unset we set current later at the first step
+        if(mStartDateTime.isNull())
+        {
+            qInfo() << "\tStart date-time set at first step current time";
+        }
+        else
+        {
+            qInfo() << "\tStart date-time :"
             << mStartDateTime.toString(mDateFormat + " " + mTimeFormat);
 
-    mDateTimeOrigin=mResolution==eResolution::eMilliSeconds?
-                mStartDateTime.toMSecsSinceEpoch()
-              : mStartDateTime.toSecsSinceEpoch();
-
+            mDateTimeOrigin=mResolution==eResolution::eMilliSeconds?
+                        mStartDateTime.toMSecsSinceEpoch()
+                      : mStartDateTime.toSecsSinceEpoch();
+        }
+    }
     // set MPC parameters
     mPastsize=aPastsize;
     mFutursize=aFutursize;
@@ -265,7 +322,7 @@ void FbsfTimeManager::setModeMPC(int     aPastsize,
     mMPCDataDateTime[mPastsize-1]=mDataDateTime;
     emit DateTimeStrChanged();
 
-//    // Publish Simulation.Time and Data.Time
+    //    // Publish Simulation.Time and Data.Time
     mPublicDataTime=
             FbsfDataExchange::declarePublicData("Data.Time",cInteger,
                                                 FbsfDataExchange::cExporter,
@@ -275,7 +332,7 @@ void FbsfTimeManager::setModeMPC(int     aPastsize,
                                                 aTimeshift,aPastsize);
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/// set the dat/time as new line formatted
+/// set the date/time as new line formatted
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void FbsfTimeManager::setDisplayFormat(QString aFormat)
 {
@@ -291,7 +348,7 @@ void FbsfTimeManager::progress()
     static int firstStep=true;
     if(firstStep)
     {   // STD mode and at least one format defined
-        if(!mModeMPC && !mDateTimeFormat.isEmpty())
+        if(!mDateTimeFormat.isEmpty())
         {
             // set the current date time of the first step if undefined
             if (mDateStart.isNull())
@@ -305,42 +362,56 @@ void FbsfTimeManager::progress()
                 mStartDateTime.setTime(mTimeStart);
             }
         }
-        // set the origin timestamp according resolution
-        mDateTimeOrigin=mResolution==eResolution::eMilliSeconds?
-                    mStartDateTime.toMSecsSinceEpoch()
-                  : mStartDateTime.toSecsSinceEpoch();
+        if(mTimeMode!=eCumulTime)
+        {
+            // set the origin timestamp according resolution
+            mDateTimeOrigin=mResolution==eResolution::eMilliSeconds?
+                        mStartDateTime.toMSecsSinceEpoch()
+                      : mStartDateTime.toSecsSinceEpoch();
+        }
 #ifdef TIMESTAMP
-        mDateTime=mDateTimeOrigin;
+        mDataDateTime=mDateTimeOrigin;
 #endif
         firstStep=false;
     }
     mElapsedTimeMS+=mTimeStepMS;
 
     if(mModeMPC)
-    {   // Fill the published time vector
-        mDataDateTime +=((mTimeStepMS/mResolution) * mTimeshift);
+    {   // MPC mode : Compute the data date and time
+        if(mTimeMode==eCumulTime)
+        {
+            mDataDateTime = (mDateTimeOrigin+mElapsedTimeMS* mTimeshift)/mResolution;
+        }else{
+            mDataDateTime =(mElapsedTimeMS* mTimeshift)/mResolution ;
+        }
+        // Fill the published time vector
         QVector<int> pData(mPublicDataTime->size(),0);
         for (int i=0;i < mMPCDataDateTime.size();i++)
         {
-            #ifdef MPC_ONLINE
+#ifdef MPC_ONLINE
             // first element in the Past will correspond to chosen Date
-            mTimeData[i]= mDateTime + (i*mTimeStepMS/mResolution);
-            #else
+            mMPCDataDateTime[i]= mDataDateTime989i + (i*mTimeStepMS/mResolution);
+#else
             // last element in the Past will correspond to chosen Date
             mMPCDataDateTime[i]= (mDataDateTime + (i - (mPastsize-1))*mTimeStepMS/mResolution);
-            #endif
-            // set time in seconds in ZE
+#endif
+            // set time according resolution (s or ms) in ZE
             pData[i]=mMPCDataDateTime[i];
         }
+        // Publish data date and time
         mPublicDataTime->setData(&pData);
     }
-    else // standard mode
+    else //~~~~~~~~~~~~ standard mode ~~~~~~~~~~~~~~
     {
 #ifdef TIMESTAMP
-        mDateTime = mDateTimeOrigin+mElapsedTimeMS/mResolution;
+        mDataDateTime += mDateTimeOrigin;
 #else
-        mDataDateTime += mTimeStepMS/mResolution;
+        if(mTimeMode==eCumulTime)
+            mDataDateTime = (mDateTimeOrigin+mElapsedTimeMS)/mResolution;
+        else
+            mDataDateTime = mElapsedTimeMS/mResolution;
 #endif
+        // Publish data date and time
         mPublicDataTime->setIntValue(mDataDateTime);
     }
     mStepCount++;
@@ -459,9 +530,64 @@ QString FbsfTimeManager::ElapsedTimeMSStr(qint64 aElapsedMS)
     return timeString;
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/// display cumulated time with format : hhh mmm sss
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+QString FbsfTimeManager::CumulTimeMSStr(qint64 aElapsedMS)
+{
+    QString timeString;
+
+    switch(mCumulUnit)
+    {
+    case eCumulHours:
+    {
+        qint64 seconds  = (aElapsedMS /1000) % 60;
+        qint64 minutes  = (aElapsedMS / 60000) % 60;
+        qint64 hours    = aElapsedMS / 3600000;
+        switch (mCumulFormat)
+        {
+        case eCumulSingle : timeString=QString("%1 h").arg(hours);break;
+        case eCumulHMS : timeString=QString("%1 h %2 mn %3 s").arg(hours)
+                    .arg(minutes,2,10,QChar('0'))
+                    .arg(seconds,2,10,QChar('0'));break;
+        case eCumulHM : timeString=QString("%1 h %2 mn").arg(hours)
+                    .arg(minutes,2,10,QChar('0'));break;
+        default : break;
+        }
+        break;
+    }
+    case eCumulMinutes:
+    {
+        qint64 seconds  = (aElapsedMS /1000) % 60;
+        qint64 minutes  = aElapsedMS / 60000;
+        switch (mCumulFormat)
+        {
+        case eCumulSingle : timeString=QString("%1 mn").arg(minutes);break;
+        case eCumulMS : timeString=QString("%1 mn %2 s").arg(minutes)
+                    .arg(seconds,2,10,QChar('0'));break;
+        default : break;
+        }
+        break;
+    }
+    case eCumulSeconds:
+    {
+        qint64 mseconds = aElapsedMS % 1000;
+        qint64 seconds  = aElapsedMS /1000;
+        if(mResolution==eResolution::eMilliSeconds)
+            timeString=QString("%1.%2").arg(seconds).arg(mseconds,3,10,QChar('0'));
+        else
+            timeString=QString("%1 s").arg(seconds);
+        break;
+    }
+    }
+
+    return timeString;
+}
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// return display formatted string for current simulation date/time
-///      elapsed       :  d hh:mm:ss:ms
-///      utc date time : dd.MM.yyyy hh:mm:ss
+///      elapsed        : d hh:mm:ss:ms
+///      cumul          : hhh mmm sss
+///      date time      : dd/MM/yyyy hh:mm:ss
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // test local format
 //  QLocale locale(QLocale("en_US"));
@@ -472,6 +598,18 @@ QString FbsfTimeManager::DateTimeStr()
     if(mTimeMode==eElapsedTime)
     {   // display elapsed time
         return ElapsedTimeMSStr(mElapsedTimeMS);
+    }
+    else if(mTimeMode==eCumulTime)
+    {   // display cumulated time
+        if(mModeMPC)
+        {
+            qint64 dataTime=mMPCDataDateTime[mPastsize-1]*mResolution;
+            return CumulTimeMSStr(dataTime);
+        }
+        else
+        {
+            return CumulTimeMSStr(mDateTimeOrigin+mElapsedTimeMS);
+        }
     }
     else
     {   // display date and/or time according format
@@ -489,7 +627,7 @@ QString FbsfTimeManager::DateTimeStr()
 
         QDateTime DateTime=mResolution==eResolution::eMilliSeconds?
                     QDateTime::fromMSecsSinceEpoch(dataDateTime)
-                   :QDateTime::fromSecsSinceEpoch(dataDateTime);
+                  :QDateTime::fromSecsSinceEpoch(dataDateTime);
 
         return DateTime.toString(mDateTimeFormat);
     }
@@ -505,6 +643,11 @@ QString FbsfTimeManager::dateTimeStr(int aTime)
     {
         return ElapsedTimeMSStr(aTime*mResolution);
     }
+    else if(mTimeMode==eCumulTime)
+    {
+        // display elapsed time
+        return CumulTimeMSStr(aTime*mResolution);
+    }
     else
     {
         qint64 dataDateTime=aTime;
@@ -514,7 +657,7 @@ QString FbsfTimeManager::dateTimeStr(int aTime)
 #endif
         QDateTime DateTime=mResolution==eResolution::eMilliSeconds?
                     QDateTime::fromMSecsSinceEpoch(dataDateTime)
-                   :QDateTime::fromSecsSinceEpoch(dataDateTime);
+                  :QDateTime::fromSecsSinceEpoch(dataDateTime);
 
         return DateTime.toString(mDateTimeFormat);
     }
@@ -524,10 +667,10 @@ QString FbsfTimeManager::dateStr(int aTime)
 {
     QStringList dateTime=dateTimeStr(aTime).split("\n");
     return dateTime.length()>0?dateTimeStr(aTime).split("\n")[0]:"";
-}
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-QString FbsfTimeManager::timeStr(int aTime)
-{
+    }
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    QString FbsfTimeManager::timeStr(int aTime)
+    {
     QStringList dateTime=dateTimeStr(aTime).split("\n");
     return dateTime.length()>1?dateTimeStr(aTime).split("\n")[1]:"";
-}
+    }
