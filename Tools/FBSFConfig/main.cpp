@@ -4,9 +4,7 @@
 #include <QApplication>
 #include <QQmlApplicationEngine>
 #include <QtQml>
-#include <QFile>
 #include <QtWidgets/QMessageBox>
-
 
 int main(int argc, char *argv[])
 {
@@ -14,6 +12,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName("L3S");
     QCoreApplication::setOrganizationDomain("web.l-3s.com");
     QCoreApplication::setApplicationName("FbsfConfig");
+    QCoreApplication::setApplicationVersion(FBSF_VERSION);
 
     QApplication app(argc, argv);
     QStringList arglist;
@@ -42,3 +41,4 @@ int main(int argc, char *argv[])
 
     return app.exec();
 }
+

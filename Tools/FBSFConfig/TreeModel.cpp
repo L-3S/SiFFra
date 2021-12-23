@@ -606,7 +606,7 @@ void TreeModel::pasteSelection(const QModelIndex &index)
     for(auto item:qAsConst(sClipBoard))
     {
         TreeItem* itemPaste=cloneItem(item);
-
+        if(itemPaste==nullptr) continue;// case Config
         if(itemTarget->type()==typeConfig)
         {// only PluginList allowed if target is config
             if(itemPaste->type()==typePluginList)

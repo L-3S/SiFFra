@@ -20,6 +20,7 @@ public:
     int             parseCommandLine(QStringList arglist);
     void            readModuleList(QString aFileName);
     void            findModuleLib(QString aPath); // search for Module libraries
+    QCommandLineParser&     parser(){return mParser;}
 
     // QML interface
     Q_PROPERTY(QAbstractItemModel* config READ config NOTIFY configChanged)

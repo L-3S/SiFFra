@@ -8,6 +8,12 @@
 #include <QDirIterator>
 #include <QtGlobal>
 #include <QMessageBox>
+#include <QFile>
+#include <QMutex>
+#include <iostream>
+#include <fstream>
+
+void MessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg);
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Controller::Controller()
@@ -16,17 +22,16 @@ Controller::Controller()
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 int Controller::parseCommandLine(QStringList arglist)
 {
-    QCoreApplication::setOrganizationName("L3S");
-    QCoreApplication::setOrganizationDomain("web.l-3s.com");
-    QCoreApplication::setApplicationName("FbsfConfig");
-    QCoreApplication::setApplicationVersion(FBSF_VERSION);
-
     mParser.setApplicationDescription(QCoreApplication::translate("main","Editor for simulation configuration"));
     mParser.setSingleDashWordOptionMode(QCommandLineParser::ParseAsLongOptions);
     mParser.addHelpOption();
     mParser.addVersionOption();
     mParser.addPositionalArgument("Configuration file",
                                   QCoreApplication::translate("main", " : xml description file"));
+
+    QCommandLineOption noLogfileOption(QStringList() << "n" << "no-logfile",
+                                       QCoreApplication::translate("main", "Don't log to file."));
+    mParser.addOption(noLogfileOption);// no logfile
 
     QCommandLineOption typeModuleList(QStringList() << "ml" << "module-list",
                                       "Read type of modules from <file>.", "file");
@@ -37,17 +42,31 @@ int Controller::parseCommandLine(QStringList arglist)
     const QStringList args = mParser.positionalArguments();
 
     QString mlFile  = mParser.value(typeModuleList);
+
+    if (!mParser.isSet(QCommandLineOption("no-logfile")))
+    {
+        qInstallMessageHandler(MessageHandler);
+#ifdef QT_DEBUG
+        qSetMessagePattern("[%{time} %{type} %{file}:%{line}] %{message}");
+#else
+        qSetMessagePattern("[%{type}] %{message}");
+#endif
+    }
     qInfo() << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
     qInfo() << "FBSF_HOME dir       : "<< qgetenv("FBSF_HOME");
     qInfo() << "APP_HOME dir        : "<< getAppHome();
     qInfo() << "Current working dir : "<< QDir::currentPath();
+    qInfo() << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+
     // get the description for Fbsf modules
+    qInfo() << "FBSF Module list : ";
     findModuleLib(QCoreApplication::applicationDirPath());
     mModuleTypeList.append(new ModuleDescriptor("fmu","fmu",""));
+    qInfo() << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
 
     if (!mlFile.isEmpty())
     {   // defined file
-        qInfo() << "Module list : " << mlFile;
+        qInfo() << "Project Module list : " << mlFile;
         readModuleList(mlFile);
     }
     else
@@ -55,7 +74,7 @@ int Controller::parseCommandLine(QStringList arglist)
         mlFile=getAppHome()+"/"+"ModuleList.lst";
         if(QFile::exists(mlFile))
         {
-            qDebug() << "Module list :"<< mlFile;
+            qDebug() << "Project Module list :"<< mlFile;
             readModuleList(mlFile);
         }
         else
@@ -71,7 +90,8 @@ int Controller::parseCommandLine(QStringList arglist)
     if (!args.isEmpty())
     {
         const QString filename = args.at(0);
-        qDebug() << "Loading configuration file : " << filename;
+        qInfo() << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+        qInfo() << "Loading configuration file : " << filename;
         getConfig().setupModelData(filename);// load config
     }
     qInfo() << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
@@ -289,4 +309,26 @@ void Controller::setModuleType(const QModelIndex &aIndex,
 void Controller::checkParams(const QModelIndex &aIndex)
 {
     getConfig().checkItemParams(aIndex);
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Application message handler
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+void MessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+    QMutex mutex;
+    QMutexLocker lock(&mutex);
+    static std::ofstream logFile("FbsfConfig.log");
+
+    if (logFile)
+    {
+        logFile << qPrintable(qFormatLogMessage(type,context,msg)) << std::endl;
+        if(type==QtFatalMsg)
+        {
+#ifndef MODE_BATCH
+            QMessageBox::critical( nullptr, "[Fatal]", qPrintable(msg));
+#endif
+            abort();
+        }
+    }
 }
