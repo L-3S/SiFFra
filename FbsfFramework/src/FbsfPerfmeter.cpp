@@ -22,13 +22,8 @@ void FbsfPerfMeter::openFile(QString aFileName)
         qDebug() << __FUNCTION__ << mOutFile.errorString() ;
     mOutStream.setDevice(&mOutFile);
     mActive=true;
-    // Name of columns, since pre/post time have been added
-    // some empty columns are inserted
-    mOutStream	<< "Step;Type;Name;CpuTime"
-                << "\n";
-    mOutStream.flush();
-    mOutFile.flush();
-
+    // Name of columns
+    DumpToFile(0,cHeader);
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void FbsfPerfMeter::DumpToFile(uint stepNumber,Phase aPhase)
@@ -36,42 +31,32 @@ void FbsfPerfMeter::DumpToFile(uint stepNumber,Phase aPhase)
     QString perfData;
     switch (aPhase)
     {
-    case cInitial:perfData=mExecutive->getPerfMeterInitial();break;
-    case cStep:perfData=mExecutive->getPerfMeterStep();break;
-    case cFinal:perfData=mExecutive->getPerfMeterFinal();break;
+    case cHeader :  perfData = "Phase;Executive";break;
+    case cInitial:  perfData="Init;"+mExecutive->getPerfMeterInitial();break;
+    case cStep:     perfData="step "+QString::number(stepNumber)+";"
+                            +mExecutive->getPerfMeterStep();break;
+    case cFinal:    perfData="Final;"+mExecutive->getPerfMeterFinal();break;
     }
-    mOutStream	<< (aPhase==cInitial?"Init":
-                                     aPhase==cFinal?"Final":
-                                                    "step "+QString::number(stepNumber))
-                << ";Executive;"
-                << "" << ";"
-                << perfData
-                << "\n";
+
+    DumpSequenceTree(perfData,stepNumber,aPhase,mExecutive->sequences());
+    mOutStream << perfData << "\n";
     mOutStream.flush();
-    DumpSequenceTree(stepNumber,aPhase,mExecutive->sequences());
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void FbsfPerfMeter::DumpSequenceTree(uint stepNumber,Phase aPhase,
-                                     QList<FbsfSequence*> aSeqList)
+void FbsfPerfMeter::DumpSequenceTree(QString& perfData,uint stepNumber,
+                                     Phase aPhase,
+                                     QList<FbsfSequence*>& aSeqList)
 {
     for(int s=0;s<aSeqList.size();s++)
     {
-        QString perfData;
         FbsfSequence* seq=aSeqList[s];
         switch (aPhase)
         {
-        case cInitial:perfData=seq->getPerfMeterInitial();break;
-        case cStep:perfData=seq->getPerfMeterStep();break;
-        case cFinal:perfData=seq->getPerfMeterFinal();break;
+        case cHeader :  perfData+=";["+seq->name()+"]";break;
+        case cInitial:  perfData+=";"+seq->getPerfMeterInitial();break;
+        case cStep:     perfData+=";"+seq->getPerfMeterStep();break;
+        case cFinal:    perfData+=";"+seq->getPerfMeterFinal();break;
         }
-        mOutStream	<< (aPhase==cInitial?"Init":
-                                         aPhase==cFinal?"Final":
-                                                        "step "+QString::number(stepNumber))
-                    << ";sequence;"
-                    << seq->name() << ";"
-                    << perfData
-                    << "\n";
-        mOutStream.flush();
 
         for(int m=0;m<seq->getModelList().size();m++)
         {
@@ -81,23 +66,20 @@ void FbsfPerfMeter::DumpSequenceTree(uint stepNumber,Phase aPhase,
             if (mod->isNode())
             {
                 FbsfNode* node=dynamic_cast<FbsfNode*>(mod);// down cast
-                DumpSequenceTree(stepNumber,aPhase,node->sequences());
+                DumpSequenceTree(perfData,stepNumber,
+                                 aPhase,node->sequences());
                 continue;// do not record node time
             }
 
             switch (aPhase)
             {
-            case cInitial:perfData=mod->getPerfMeterInitial();break;
-            case cStep:perfData=mod->getPerfMeterStep();break;
-            case cFinal:perfData=mod->getPerfMeterFinal();break;
+            case cHeader :  perfData+=";"+mod->name() ;break;
+            case cInitial:  perfData+=";"+mod->getPerfMeterInitial();break;
+            case cStep:     perfData+=";"+mod->getPerfMeterStep();break;
+            case cFinal:    perfData+=";"+mod->getPerfMeterFinal();break;
             }
-            mOutStream	<< ";module;"
-                        << mod->name() << ";"
-                        << perfData
-                        << "\n";
-            mOutStream.flush();
         }
     }
-    mOutFile.flush();
 }
+
 

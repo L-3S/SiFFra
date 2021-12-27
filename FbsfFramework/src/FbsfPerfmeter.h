@@ -12,6 +12,7 @@ class FbsfPerfMeter
 public:
 
     enum Phase{
+        cHeader,
         cInitial,
         cStep,
         cFinal
@@ -22,8 +23,9 @@ public:
     void openFile(QString aFileName);
 
     void DumpToFile(uint stepNumber, Phase aPhase);
-    void DumpSequenceTree(uint stepNumber, Phase aPhase,
-                          QList<FbsfSequence*> aSeqList);
+    void DumpSequenceTree(QString& perfData, uint stepNumber, Phase aPhase,
+                          QList<FbsfSequence *> &aSeqList);
+
 private:
 
     FbsfExecutive*  mExecutive;
