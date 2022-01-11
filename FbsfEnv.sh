@@ -16,6 +16,7 @@ echo "$BUILD_MODE"
 # Path for framework
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 export FBSF_HOME=$PWD/
+export QML2_IMPORT_PATH=$FBSF_HOME/lib/$BUILD_MODE
 
 echo Fbsf Base Directory : $FBSF_HOME
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
