@@ -31,5 +31,7 @@
         <file>CheckReport.qml</file>
         <file>Inspectors/DatePicker.qml</file>
         <file>icons/calendar.png</file>
+        <file>Inspectors/TimePicker.qml</file>
+        <file>icons/clock.png</file>
     </qresource>
 </RCC>

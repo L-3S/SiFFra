@@ -304,6 +304,7 @@ void TreeModel::getXmlSubtree(QString& aXmlConfig,TreeItem* item, int level)
     if(item->type()==typeConfig)
     {
         aXmlConfig+= tab + "</"+tag+">\n";// close the "simulation" section
+        level--;
     }
     // set inner tag
     if(tag=="sequence"||tag=="SubSequence")

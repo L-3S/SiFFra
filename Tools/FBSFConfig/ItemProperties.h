@@ -1,8 +1,6 @@
 #ifndef ITEMPROPERTIES_H
 #define ITEMPROPERTIES_H
 #include <QString>
-static QString defaultDateFormat("dd/MM/yyyy");
-
 #include "ItemParams.h"
 
 

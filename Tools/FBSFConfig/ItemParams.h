@@ -65,14 +65,20 @@ public:
         case Param_type::cDateAndTimeUTC : mType=typeDateAndTimeUTC;break;
         case Param_type::cDate  : {
             mType=typeDate;
-            QString format=dateFormat.isEmpty()?defaultDateFormat:dateFormat;
-            mUnit=format;// static member
+            //QString format=dateFormat.isEmpty()?defaultDateFormat:dateFormat;
+            mUnit=dateFormat;//format;// static member
             // set date to ISO Date for JavaScript
-            mIsoDate=QDate::fromString(mValue.toString(),dateFormat);
-            //qDebug() << __FUNCTION__<<mIsoDate<<format;
+            mIsoDate=QDate::fromString(mValue.toString(),"yyyy-MM-dd");
         }
             break;
-        case Param_type::cTime          : mType=typeTime;break;
+        case Param_type::cTime          : {
+            mType=typeTime;
+            //QString format=dateFormat.isEmpty()?defaultTimeFormat:dateFormat;
+            mUnit=timeFormat;//format;// static member
+            // set time to ISO Time for JavaScript
+            mIsoTime=QTime::fromString(mValue.toString(),"hh:mm:ss");
+        }
+            break;
         case Param_type::cEnumString    : mType=typeStringList;break;
         case Param_type::cEnumInt       : mType=typeStringList;break;
         //case Param_type::cChoiceList    : mType=typeChoiceList;break;
@@ -149,6 +155,7 @@ public:
     static QString typeTime;
 //    static QString typeChoiceList;
     static QString dateFormat;
+    static QString timeFormat;
 
     // accessors
     const QString&  key()           const {return mKey;}
@@ -166,6 +173,7 @@ public:
     const QString&  description()   const {return mDescription;}
     int             index()         const {return mIndex;}
     const QDate&    isoDate()       const {return mIsoDate;}
+    const QTime&    isoTime()       const {return mIsoTime;}
     const QString&  error()         const {return mError;}
     void            error(QString msg)  {mError=msg;}
 
@@ -197,6 +205,8 @@ public slots:
         mValue=aValue;
         if(mType==typeDate)
             mIsoDate=QDate::fromString(mValue.toString(),mUnit);
+        else if(mType==typeTime)
+            mIsoTime=QTime::fromString(mValue.toString(),mUnit);
         // check validity
         bool status=isInvalid();
         hasError(status);// emit signal to QML
@@ -238,6 +248,7 @@ private :
     QString     mDescription;
     int         mIndex;     // index if type is list
     QDate       mIsoDate;
+    QTime       mIsoTime;
     QString     mError;
 
     QVariant::Type  mDefaultType;

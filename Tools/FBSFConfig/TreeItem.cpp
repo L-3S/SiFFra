@@ -287,14 +287,23 @@ void TreeItem::getXmlItemData(QString& aXmlConfig, int level)
         if(data.type()==ParamValue::typeStringList)
         {
             if (data.currentText().isEmpty()) continue;
-            aXmlConfig+= tab +"<"+ data.key()+">"+data.currentText()+"</"+ data.key()+">";
+            aXmlConfig+= tab +"<"+ data.key()+">"+data.currentText()+"</"+ data.key()+">\n";
         }
         else if(data.type()==ParamValue::typeDate)
         {
+            if(data.value().toString().isEmpty()&&data.unit().isEmpty()) continue;
             if(!data.value().toString().isEmpty())// set date if not empty
                 aXmlConfig+= tab +"<"+ data.key()+">"+data.value().toString()+"</"+ data.key()+">\n";
             if(!data.unit().isEmpty()) // set format if not empty
-                aXmlConfig+= tab +"<dateFormat>"+data.unit()+"</dateFormat>";
+                aXmlConfig+= tab +"<dateFormat>"+data.unit()+"</dateFormat>\n";
+        }
+        else if(data.type()==ParamValue::typeTime)
+        {
+            if(data.value().toString().isEmpty()&&data.unit().isEmpty()) continue;
+            if(!data.value().toString().isEmpty())// set date if not empty
+                aXmlConfig+= tab +"<"+ data.key()+">"+data.value().toString()+"</"+ data.key()+">\n";
+            if(!data.unit().isEmpty()) // set format if not empty
+                aXmlConfig+= tab +"<timeFormat>"+data.unit()+"</timeFormat>\n";
         }
         else
         {
@@ -319,6 +328,7 @@ void TreeItem::getXmlItemData(QString& aXmlConfig, int level)
             default : qDebug() << __FUNCTION__<< name()
                                << "Unknown type for key :" << data.key();break;
             }
+            aXmlConfig+="\n";
         }
         //        else if(data.type()==ParamValue::typeChoiceList)
         //        {
@@ -326,7 +336,7 @@ void TreeItem::getXmlItemData(QString& aXmlConfig, int level)
         //            for (auto val:data.value().toStringList())
         //                qDebug() << data.value();
         //        }
-        aXmlConfig+="\n";
+        //aXmlConfig+="\n";
     }
 }
 
