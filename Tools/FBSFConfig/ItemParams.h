@@ -328,17 +328,25 @@ public :
     int dataCount() const { return size();}
 
     // add value data (mandatory first)
-    void addData(const QString& aKey,const QVariant& aValue,const ParamProperties& aProps)
+    void addData(QString aKey,const QVariant& aValue,const ParamProperties& aProps)
     {
+        // Check if ordering prefix is set
+        QRegExp rx("^[A-Za-z]%(.*)$");
+        if(rx.exactMatch(aKey)) aKey=rx.cap(1);
+
         if(aProps.mP_qual==Param_quality::cMandatory)
             prepend(new ParamValue(aKey,aValue,aProps));
         else
             append(new ParamValue(aKey,aValue,aProps));
     }
     // add list data (mandatory first)
-    void addData(const QString& aKey,const QVector<QVariant>& aValue,
+    void addData(QString aKey,const QVector<QVariant>& aValue,
                  const ParamProperties& aProps,const QVariant& currentText)
     {
+        // Check if ordering prefix is set
+        QRegExp rx("^[A-Za-z]%(.*)$");
+        if(rx.exactMatch(aKey)) aKey=rx.cap(1);
+
         if(aProps.mP_qual==Param_quality::cMandatory)
             prepend(new ParamValue(aKey,aValue,aProps,currentText));
         else
