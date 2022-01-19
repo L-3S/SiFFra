@@ -1,6 +1,7 @@
 #include "FbsfBaseModel.h"
 #include "FbsfPublicData.h"
 #include "FmuWrapper.h"
+#include "FbsfTimeManager.h"
 
 #include <QVector>
 #include <QFileInfo>
@@ -788,6 +789,51 @@ void  FBSFBaseModel::resetCpuTime()
 {
     if(mCpuStepTime!=nullptr)
         mCpuStepTime->setIntValue(0);
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/// TimeManager accessors
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// retourne le from[M]SecsSinceEpoch des données du pas de
+// temps courant pour un temps scalaire (mode Standard).
+qint64 FBSFBaseModel::getDataDateTime ()
+{
+    return mTimeManager->dataDateTime();
+}
+//retourne le temps écoulé en ms depuis 0.
+qint64 FBSFBaseModel::getSimulationTime()
+{
+    return mTimeManager->elapsedTimeMS();
+}
+// retourne le from[M]SecsSinceEpoch des données du pas
+// de temps indexé pour un vecteur temps (mode MPC).
+qint64 FBSFBaseModel::getDataDateTime(int index )
+{
+    return mTimeManager->MPCDataDateTime()[index];
+}
+//retourne le nombre de pas exécutés.
+qint64 FBSFBaseModel::getStepCount()
+{
+    return mTimeManager->stepCount();
+}
+//retourne le pas de temps en millisecondes.
+qint64 FBSFBaseModel::getTimeStepMS()
+{
+    return mTimeManager->timeStepMS();
+}
+//retourne la dimension past du mode MPC.
+qint64 FBSFBaseModel::getPastSize()
+{
+    return mTimeManager->pastsize();
+}
+//retourne la dimension futur du mode MPC.
+qint64 FBSFBaseModel::getFuturSize()
+{
+    return mTimeManager->futursize();
+}
+//indicateur de la résolution secondes/millisecondes.
+bool   FBSFBaseModel::isTimeUnitMS()
+{
+    return mTimeManager->isUnitMS();
 }
 //~~~~~~~~~~~~~~~~~~ Debug helper ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 QDebug operator<<(QDebug dbg, const FBSFBaseModel::StateData &data)

@@ -5,8 +5,14 @@
 #include <QVariant>
 #include <QDateTime>
 
+#if defined(FBSF_FRAMEWORK_LIBRARY)
+#  define FBSF_FRAMEWORKSHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define FBSF_FRAMEWORKSHARED_EXPORT Q_DECL_IMPORT
+#endif
+
 class FbsfDataExchange;
-class FbsfTimeManager:public QObject
+class FBSF_FRAMEWORKSHARED_EXPORT FbsfTimeManager:public QObject
 {
     Q_OBJECT
 public:
@@ -56,20 +62,20 @@ public:
     /// properties accessors
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     QString DateTimeStr();             // current simulation time display
-    uint    stepCount();
-    void    setStepCount(uint aCount);
+    int     stepCount();
+    void    setStepCount(int aCount);
     bool    isUnitMS() {return mResolution==eMilliSeconds;}
     int     pastsize() const;
     int     futursize() const;
     int     timeshift() const;
 
-private :
     // members accessors
     qint64 elapsedTimeMS();
 
     int    timeStepMS() const;
     void   setTimeStepMS(float aTimeStepS);
 
+private :
     QString ElapsedTimeMSStr(qint64 aElapsedMS);
     QString CumulTimeMSStr(qint64 aElapsedMS);
     void    setDisplayFormat(QString aFormat);
@@ -106,7 +112,7 @@ private:
     qint64      mCumulatedTimeMS=0;  // computed cumulated time (millisecondes)
 
     int         mTimeStepMS=0;       // simulation step time (dt)
-    uint        mStepCount=0;        // step count
+    int         mStepCount=0;        // step count
 
     // mode MPC
     QVector<int> mMPCDataDateTime;   // published MPC time vector

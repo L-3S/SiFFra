@@ -390,7 +390,7 @@ void FbsfTimeManager::progress()
         {
 #ifdef MPC_ONLINE
             // first element in the Past will correspond to chosen Date
-            mMPCDataDateTime[i]= mDataDateTime989i + (i*mTimeStepMS/mResolution);
+            mMPCDataDateTime[i]= mDataDateTime + (i*mTimeStepMS/mResolution);
 #else
             // last element in the Past will correspond to chosen Date
             mMPCDataDateTime[i]= (mDataDateTime + (i - (mPastsize-1))*mTimeStepMS/mResolution);
@@ -431,12 +431,12 @@ void FbsfTimeManager::setTimeStepMS(float  aTimeStepS)
     mTimeStepMS = aTimeStepS*1000;
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-uint FbsfTimeManager::stepCount()
+int FbsfTimeManager::stepCount()
 {
     return mStepCount;
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void FbsfTimeManager::setStepCount(uint aCount)
+void FbsfTimeManager::setStepCount(int aCount)
 {
     mStepCount=aCount;
     emit stepCountChanged();

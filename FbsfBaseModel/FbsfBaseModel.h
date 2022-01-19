@@ -13,6 +13,7 @@
 #include "FbsfGlobal.h"
 #include "ParamProperties.h"
 
+class FbsfTimeManager;
 class FbsfDataExchange;
 typedef  float real;
 
@@ -22,9 +23,9 @@ typedef  float real;
 // Modification merge from CEA version
 enum class DataTypeZE: int
 {
-     typReal,
-     typBool,
-     typInt
+    typReal,
+    typBool,
+    typInt
 };
 
 static QMap<QString,DataTypeZE> DataTypeZE_map = {
@@ -35,9 +36,9 @@ static QMap<QString,DataTypeZE> DataTypeZE_map = {
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 class FBSF_BASEMODEL_EXPORT FBSFBaseModel
-                : public QObject
+        : public QObject
 {
-        Q_OBJECT
+    Q_OBJECT
 public:
     explicit FBSFBaseModel();
     virtual ~FBSFBaseModel();
@@ -96,11 +97,11 @@ public:
                             QString aUnit="", QString aDescription="",
                             int aTimeShift=0,int aIndex=0,bool aHistory=true);
     void            publishAppType(FbsfAppType aType,QString aName,int *aAddress,
-                              QString aUnit="", QString aDescription="",
-                                bool aHistory=true);
+                                   QString aUnit="", QString aDescription="",
+                                   bool aHistory=true);
     void            publishAppType(FbsfAppType aType,QString aName,float *aAddress,
-                              QString aUnit="", QString aDescription="",
-                                bool aHistory=true);
+                                   QString aUnit="", QString aDescription="",
+                                   bool aHistory=true);
 
     void            publishValue(QString aName,int aValue);
     void            publishValue(QString aName, real aValue);
@@ -123,30 +124,42 @@ public:
     int             status(){return mStatus;}
     void            name(QString aName) {mName = aName;}
     QString         name() {return mName;}
-    // TODO TM
+    // TODO TM : remove
     void            simulationTime(float aSimTime) { mSimulationTime=aSimTime;}
     const float&    simulationTime() { return mSimulationTime;}
     void            timeStep(float aTimeStep) { mTimeStep=aTimeStep;}
     const float&    timeStep() { return mTimeStep;}
-    // TO ADD TM
-    /*
-    quint64         getDataDateTime ( );        //retourne le from[M]SecsSinceEpoch des données du pas de temps courant pour un temps scalaire (mode Standard).
-    quint64         getSimulationTime( );       //retourne le temps écoulé depuis 0.
-    quint64         getDataDateTime(int index );//retourne le from[M]SecsSinceEpoch des données du pas de temps indexé pour un vecteur temps (mode MPC).
-    quint64         getStepCount();             //retourne le nombre de pas exécutés.
-    quint64         getTimeStepMS();            //retourne le pas de temps en millisecondes.
-    quint64         getPastSize();              //retourne la dimension past du mode MPC.
-    quint64         getFuturSize();             //retourne la dimension futur du mode MPC.
-    bool            isTimeUnitMS();             //indicateur de la résolution secondes/millisecondes.
-    */
     // end TODO TM
+
+    //~~~~~~~~~~~~~~ TimeManager settings ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    FbsfTimeManager* mTimeManager;// reference to application time manager
+    void TimeManager(FbsfTimeManager& tm){mTimeManager=&tm;}
+    // retourne le from[M]SecsSinceEpoch des données du pas de temps courant
+    // pour un temps scalaire (mode Standard).
+    qint64 getDataDateTime ();
+    //retourne le temps écoulé en ms depuis 0.
+    qint64 getSimulationTime();
+    // retourne le from[M]SecsSinceEpoch des données du pas de temps indexé
+    // pour un vecteur temps (mode MPC).
+    qint64 getDataDateTime(int index );
+    //retourne le nombre de pas exécutés.
+    qint64 getStepCount();
+    //retourne le pas de temps en millisecondes.
+    qint64 getTimeStepMS();
+    //retourne la dimension past du mode MPC.
+    qint64 getPastSize();
+    //retourne la dimension futur du mode MPC.
+    qint64 getFuturSize();
+    //indicateur de la résolution secondes/millisecondes.
+    bool   isTimeUnitMS();
+
     //~~~~~~~~~~~~~~ Model configuration ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     QMap<QString,QString>& config(){return mConfig;}
     void            config(QMap<QString,QString> aConfig){mConfig=aConfig;}
     //~~~~~~~~~~~~~~ Application global configuration ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     QMap<QString,QString>& AppConfig(){return mAppConfig;}
     void            AppConfig(QMap<QString,QString>& aAppConfig){mAppConfig=aAppConfig;}
-    void            resetStepRunning() {mStepRunning = true;};
+    void            resetStepRunning() {mStepRunning = true;}
 protected :
     //~~~~~~~~~~~~~~ for visual models ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     void            rootWindow(QObject* rootWindow){mRootWindow=rootWindow;}
@@ -167,9 +180,9 @@ public slots :
     // enable notification control from modules or GUI
     void ParamChanged(QString aName, QVariant aValue){notifyParamChanged(aName,aValue);}
     void cancelStep();
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// members
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // members
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 public :
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Subclass for data saving/reloading (Polymorph type)
@@ -205,9 +218,9 @@ public :
             }
             else // cReal
             {
-                 if(mDataClass==cScalar)
-                     return QVariant::fromValue(*(real*)pData);
-                 else
+                if(mDataClass==cScalar)
+                    return QVariant::fromValue(*(real*)pData);
+                else
                     return QVariant::fromValue(*(static_cast<QVector<real>*>(pData)));
             }
         }
@@ -218,7 +231,7 @@ public :
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         StateData& operator=( const QVariant& Right )
         {
-             // copy the reloaded value to local data (pointer)
+            // copy the reloaded value to local data (pointer)
             if(mDataType==cInteger)
             {
                 if(mDataClass==cScalar)
@@ -231,7 +244,7 @@ public :
                 if(mDataClass==cScalar)
                     *(static_cast<real*>(pData))= Right.toFloat();
                 else
-                   *(static_cast<QVector<real>*>(pData))= Right.value<QVector<real>>();
+                    *(static_cast<QVector<real>*>(pData))= Right.value<QVector<real>>();
             }
             return *this;
         }
@@ -253,13 +266,13 @@ public :
         void*           pData;      // Polymorphic pointer to internal data
         QVariant        mData;
     };
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 protected :
     QVariantMap             mStateDataValueMap;// map of state data value
     QObject*                mQmlPlugin;     // handle for visual plugin (main.qml)
     bool                    mStepRunning = true;
 
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 private :
     //~~~~~~~~~~~~~~~~~~~~~~~ Public data ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     QList<QPair<void*,FbsfDataExchange*>>   mProducedData;

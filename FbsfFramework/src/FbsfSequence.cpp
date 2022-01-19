@@ -151,6 +151,9 @@ int FbsfSequence::addModels(QList<QMap<QString, QString> > &aModels, QList<FbsfC
         model->config(vMap);
         // setup global configuration
         model->AppConfig(mApp->config().Simulation());
+        // setup a reference to the application time manager
+        model->TimeManager(mApp->timeManager());
+
         addModel(model);
 
     }// end Models
