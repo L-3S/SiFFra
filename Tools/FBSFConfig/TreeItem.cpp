@@ -295,7 +295,7 @@ void TreeItem::getXmlItemData(QString& aXmlConfig, int level)
             if(!data.value().toString().isEmpty())// set date if not empty
                 aXmlConfig+= tab +"<"+ data.key()+">"+data.value().toString()+"</"+ data.key()+">\n";
             if(!data.unit().isEmpty()) // set format if not empty
-                aXmlConfig+= tab +"<dateFormat>"+data.unit()+"</dateFormat>\n";
+                aXmlConfig+= tab +"<Date.format>"+data.unit()+"</Date.format>\n";
         }
         else if(data.type()==ParamValue::typeTime)
         {
@@ -303,7 +303,7 @@ void TreeItem::getXmlItemData(QString& aXmlConfig, int level)
             if(!data.value().toString().isEmpty())// set date if not empty
                 aXmlConfig+= tab +"<"+ data.key()+">"+data.value().toString()+"</"+ data.key()+">\n";
             if(!data.unit().isEmpty()) // set format if not empty
-                aXmlConfig+= tab +"<timeFormat>"+data.unit()+"</timeFormat>\n";
+                aXmlConfig+= tab +"<Time.format>"+data.unit()+"</Time.format>\n";
         }
         else
         {
