@@ -87,7 +87,6 @@ Popup {id:popup
             //width   : popup.width
 
             RowLayout {
-                Layout.fillWidth: true
                 RoundButton {
                     text: '<<'
                     onClicked: _temp_date = previous_year()
@@ -119,6 +118,7 @@ Popup {id:popup
                 Layout.fillHeight: true
                 columns: 7
                 rows: 7
+                leftPadding: 10
 
                 Repeater {
                     model:{
@@ -177,20 +177,23 @@ Popup {id:popup
                 }
             }
             // selection of the date format
-            ComboBox {
-                Layout.fillWidth: true
-                editable: true
-                selectTextByMouse: true
-                model: ["","dd-MM-yyyy","dd/MM/yyyy","dd.MM.yyyy","ddd, d-MMM-yyyy"]
-                editText:dateFormat
-                // field format changed
-                onAccepted: {
-                    dateFormat=editText
-                }
-                // item selection
-                onActivated: {
-                    displayText=currentText
-                    dateFormat=currentText
+            RowLayout{
+                Text{id:formatText;text:"format :";color:"white"}
+                ComboBox {id:formatField
+                    Layout.fillWidth: true
+                    editable: true
+                    selectTextByMouse: true
+                    model: ["","dd-MM-yyyy","dd/MM/yyyy","dd.MM.yyyy","ddd, d-MMM-yyyy"]
+                    editText:dateFormat
+                    // field format changed
+                    onAccepted: {
+                        dateFormat=editText
+                    }
+                    // item selection
+                    onActivated: {
+                        displayText=currentText
+                        dateFormat=currentText
+                    }
                 }
             }
         }
