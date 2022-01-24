@@ -173,9 +173,10 @@ static FbsfdataModel *sListviewDataModel;
     Q_PROPERTY( int replaySteps READ getReplaySteps NOTIFY replayStepsChanged )
 
     // Time DAte Conversion utility for qml objects
+    // TODO TM USED ?
     Q_INVOKABLE QString     getDateFromTime(QString time) {return QDateTime().fromSecsSinceEpoch(time.toDouble()).toString("yyyy MM dd HH:mm:ss");}
     Q_INVOKABLE int         getTimeFromDate(QDate date, QString time) {return QDateTime().fromString(date.toString("yyyy MM dd") + " " + time, "yyyy MM dd HH:mm:ss").toSecsSinceEpoch();}
-
+    //end  TODO TM
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     const QVariant     getProducers   ( ) const { return m_producerlist; }

@@ -13,10 +13,10 @@ void FbsfTimeManager::setup(bool aMode,QMap<QString,QString>& aConfig,float aTim
 {
     mModeMPC=aMode;
     // set the time manager initial values
-    QString dateStart = aConfig.value("Date.start");
-    QString timeStart = aConfig.value("Time.start");
-    QString dateFormat = aConfig.value("Date.format");
-    QString timeFormat = aConfig.value("Time.format");
+    QString dateStart = aConfig.value("startDate");
+    QString timeStart = aConfig.value("startTime");
+    QString dateFormat = aConfig.value("dateFormat");
+    QString timeFormat = aConfig.value("timeFormat");
     // set TimeStep as ms
     setTimeStepMS(aTimeStepS);
 
@@ -289,6 +289,7 @@ void FbsfTimeManager::setModeMPC(int     aPastsize,
         }
         qInfo() << "\ttime mode : cumulated time as"<<unit
                 << "since" << mTimeStart.toString();
+
         // set initial instant time for display
         mDataDateTime=mTimeStart.msecsSinceStartOfDay()/mResolution;
     }
@@ -381,20 +382,17 @@ void FbsfTimeManager::progress()
         if(mTimeMode==eCumulTime)
         {
             mDataDateTime = (mDateTimeOrigin+mElapsedTimeMS* mTimeshift)/mResolution;
-        }else{
+        }
+        else
+        {
             mDataDateTime =(mElapsedTimeMS* mTimeshift)/mResolution ;
         }
         // Fill the published time vector
         QVector<int> pData(mPublicDataTime->size(),0);
         for (int i=0;i < mMPCDataDateTime.size();i++)
         {
-#ifdef MPC_ONLINE
-            // first element in the Past will correspond to chosen Date
-            mMPCDataDateTime[i]= mDataDateTime + (i*mTimeStepMS/mResolution);
-#else
             // last element in the Past will correspond to chosen Date
             mMPCDataDateTime[i]= (mDataDateTime + (i - (mPastsize-1))*mTimeStepMS/mResolution);
-#endif
             // set time according resolution (s or ms) in ZE
             pData[i]=mMPCDataDateTime[i];
         }
@@ -438,27 +436,19 @@ int FbsfTimeManager::stepCount()
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void FbsfTimeManager::setStepCount(int aCount)
 {
-    mStepCount=aCount;
-    emit stepCountChanged();
+    mStepCount=aCount-1;
+    mElapsedTimeMS=mStepCount*mTimeStepMS;
+    progress();
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-qint64 FbsfTimeManager::dataDateTime()
+qint64 FbsfTimeManager::dataTimeStamp()
 {
-    return mDataDateTime;
-}
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void FbsfTimeManager::setDataDateTime(qint64 aDataDateTime)
-{
-    mDataDateTime = aDataDateTime;
-    if(mModeMPC)
-    {
-        // Don't know what to do, see FbsfDataExchange::resetHistory() comment
-    }
-    else
-    {
-        mPublicDataTime->setIntValue(mDataDateTime);
-    }
+    if(mTimeMode==eElapsedTime)
+        return (isUnitMS()?mElapsedTimeMS:mElapsedTimeMS/1000);
+    qint64 timestamp=mDataDateTime;
+    if(mTimeMode!=eCumulTime) timestamp+=dateTimeOrigin();// Datation
+    return timestamp;
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 qint64 FbsfTimeManager::elapsedTimeMS()
@@ -482,6 +472,8 @@ int FbsfTimeManager::historyWithFuturSize()
     return historySize()+mFutursize;
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/// MPC settings
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 int FbsfTimeManager::timeshift() const
 {
     return mTimeshift;
@@ -502,6 +494,21 @@ int FbsfTimeManager::pastsize() const
 const QVector<int>& FbsfTimeManager::MPCDataDateTime() const
 {
     return mMPCDataDateTime;
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/// MPC Time vector access by index
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+qint64 FbsfTimeManager::dataTimeStamp(int index )
+{
+    if(index>mMPCDataDateTime.length()){
+        qDebug()<<__FUNCTION__
+                << "Index out of bound"
+                << index << " > " << mPastsize+mFutursize;
+        return 0;// ERROR
+    }
+    qint64 timestamp=mMPCDataDateTime[index];
+    if(mTimeMode!=eCumulTime) timestamp+=dateTimeOrigin();
+    return timestamp;
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// display elapsed time with format : [d] hh:mm:ss[.ms]

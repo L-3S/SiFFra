@@ -282,6 +282,9 @@ void FbsfExecutive::doCycle()
     emit cycleStart();
     // loop until all iterations completed for all sequences
     mStatus = FBSF_OK;
+    // manage data time progression
+    if (mAppMode != client) mTimeManager.progress();
+
     while (stillWorking()>0)
     {
         emit consume();// Synchronous consumption of inputs
@@ -302,8 +305,7 @@ void FbsfExecutive::doCycle()
     if(sOptPerfMeter && perfmeter!=nullptr)
         perfmeter->DumpToFile(mStepNumber+1, FbsfPerfMeter::cStep);
 
-    // manage data time progression
-    if (mAppMode != client) mTimeManager.progress();
+
 
     // broadcast public data values to clients
     mDataControler.process(mTimeManager.stepCount());
@@ -414,7 +416,6 @@ void FbsfExecutive::control(QString command, QString param1, QString param2)
         out << static_cast<quint32>(FBSF_MAGIC);    // Magic number
         out << static_cast<quint32>(1);             // Format version
         out << QString(FBSF_VERSION);               // Framework version
-        out << mTimeManager.dataDateTime();         // simulation time
         out << mTimeManager.stepCount();            // step count
 
         for (int iSeq=0;iSeq < mSequenceList.size();iSeq++)
@@ -455,9 +456,7 @@ void FbsfExecutive::control(QString command, QString param1, QString param2)
         QString version;
         in >> version;
         // Get the global simulation time
-        qint64  dateTime;
-        uint    stepCount;
-        in >> dateTime;mTimeManager.setDataDateTime(dateTime);
+        int    stepCount;
         in >> stepCount;mTimeManager.setStepCount(stepCount);
         // For each modules restore the states data
         while (!in.atEnd())
@@ -476,7 +475,7 @@ void FbsfExecutive::control(QString command, QString param1, QString param2)
 //            mPublicSimulationTime->setRealValue(mSimulationTime/(1000));
 //        QString strTime;
 //        control("resettime",strTime.setNum(mSimulationTime));
-        FbsfDataExchange::resetHistory();
+        FbsfDataExchange::rewindHistory(stepCount);
 
 #ifndef MODE_BATCH
         mDataControler.updateMonitor();// update only data values
@@ -486,8 +485,8 @@ void FbsfExecutive::control(QString command, QString param1, QString param2)
     //~~~~~~~~~~~~~~~~~~ Reset simulation start time ~~~~~~~~~~~~~~~~~~~~~
     // TODO TM ---> clarify where is it used
     else if (command == "resettime")
-    {   // simulation time in ms
-        FbsfDataExchange::resetHistory();
+    {   // reset full history
+        FbsfDataExchange::rewindHistory(0);
         emit statusChanged(ExecutionMode(),"reseted");
     }
     //~~~~~~~~~~~~~~~~~~ Record simulation ~~~~~~~~~~~~~~~~~~~~~

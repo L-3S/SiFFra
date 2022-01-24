@@ -30,18 +30,15 @@ public:
     void setModeMPC(int       aPastsize,
                     int       aFutursize,
                     int       aTimeshift);
+    void setTimeStepMS(float aTimeStepS);
+
     // Synch with cycle activity
-    void    progress() ;
-
-
-    qint64  dataDateTime();
-    void    setDataDateTime(qint64 aDataDateTime);
-
-    // MPC mode
-    const QVector<int>& MPCDataDateTime() const;
-
+    void progress() ;
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    ///////////////////////// QML interface ////////////////////
+    ///~~~~~~~~~~~~ Interface with C++ and QML ~~~~~~~~~~~~~~~~~
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ///~~~~~~~~~~~~~~ QML interface ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Q_INVOKABLE QString dateTimeStr(int aTime); // for date and time display
     Q_INVOKABLE QString dateStr(int aTime);     // for date display
@@ -49,6 +46,7 @@ public:
     Q_INVOKABLE int     historySize();
     Q_INVOKABLE int     historyWithFuturSize();
 
+public :
     // properties for QML
     Q_PROPERTY(QString  DateTimeStr  READ DateTimeStr NOTIFY DateTimeStrChanged)
     Q_PROPERTY(uint     StepCount    READ stepCount   NOTIFY stepCountChanged)
@@ -69,13 +67,17 @@ public:
     int     futursize() const;
     int     timeshift() const;
 
-    // members accessors
-    qint64 elapsedTimeMS();
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    /// public members accessors
+    qint64  elapsedTimeMS();
+    qint64  dataTimeStamp();             // STD mode
+    qint64  dataTimeStamp(int index );   // MPC mode
+    int     timeStepMS() const;
 
-    int    timeStepMS() const;
-    void   setTimeStepMS(float aTimeStepS);
-
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 private :
+    qint64  dateTimeOrigin(){return mDateTimeOrigin;}
+    const QVector<int>& MPCDataDateTime() const; // MPC mode
     QString ElapsedTimeMSStr(qint64 aElapsedMS);
     QString CumulTimeMSStr(qint64 aElapsedMS);
     void    setDisplayFormat(QString aFormat);

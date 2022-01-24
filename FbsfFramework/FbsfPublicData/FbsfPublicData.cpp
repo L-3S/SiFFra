@@ -434,29 +434,30 @@ void FbsfDataExchange::processPublicData(int aStep)
 /// get the step number according public dataDateTime value
 /// TODO TM not sure this works with MPC mode
 ///~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void FbsfDataExchange::resetHistory()
+void FbsfDataExchange::rewindHistory(int aStepNumber)
 {
-    // get time index from "dataDateTime" history
-    FbsfDataExchange *publicAddress;
-    publicAddress = FbsfDataExchange::sPublicDataMap.value(dataDateTime);
-    QVariantList& timeList=publicAddress->history();
+//    // get time index from "dataDateTime" history
+//    FbsfDataExchange *publicAddress;
+//    publicAddress = FbsfDataExchange::sPublicDataMap.value(dataDateTimeKey);
+//    QVariantList& timeList=publicAddress->history();
 
-    int stepNumber=timeList.indexOf(publicAddress->value());
-    if (stepNumber==-1)
-    {
-        stepNumber=0;// reset full history
-    }
+//    int stepNumber=timeList.indexOf(publicAddress->value());
+//    if (stepNumber==-1)
+//    {
+//        stepNumber=0;// reset full history
+//    }
     QList<FbsfDataExchange*> dataList = FbsfDataExchange::sPublicDataMap.values();
     foreach (FbsfDataExchange* data, dataList)
     {
         // get exported public data
         if (data->FlagsAny(FbsfDataExchange::cExporter)
-                || ( data->FlagsAny(FbsfDataExchange::cUnresolved) && (data->Class()==cScalar)))
+          || ( data->FlagsAny(FbsfDataExchange::cUnresolved)
+             && (data->Class()==cScalar)))
         {
-            data->resetHistory(stepNumber);
+            data->resetHistory(aStepNumber);
         }
     }
-    timeList=publicAddress->history();
+//    timeList=publicAddress->history();
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// Backtrack func
@@ -466,8 +467,10 @@ void FbsfDataExchange::switchBacktrack(bool flag)
     QMap<QString, FbsfDataExchange*> publicData = FbsfDataExchange::sPublicDataMap;
 
     if (flag == true) {
-        for (auto it = publicData.begin(); it != publicData.end(); it++) {
-            if (it.value()->isUnresolved() || it.key() == "Simulation.Time")// TODO TM no more published
+        for (auto it = publicData.begin(); it != publicData.end(); it++)
+        {
+            // TM REMOVE no more published
+            if (it.value()->isUnresolved() /*|| it.key() == "Simulation.Time"*/)
                 continue;
             it.value()->backtracked(true);
             if (simuMpc) {
@@ -525,7 +528,7 @@ void FbsfDataExchange::writeDataToFile(QString aFileName)
 
     // get the replay length from recorded history of dataDateTime
     FbsfDataExchange *publicAddress;
-    publicAddress = FbsfDataExchange::sPublicDataMap.value(dataDateTime);
+    publicAddress = FbsfDataExchange::sPublicDataMap.value(dataDateTimeKey);
     out << publicAddress->historySize();
 
     // process serialization

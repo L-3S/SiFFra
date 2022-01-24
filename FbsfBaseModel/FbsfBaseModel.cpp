@@ -62,6 +62,7 @@ FBSFBaseModel* FBSFBaseModel::loadModule(QString aModuleType,
     {
         FBSFBaseModel* pModel = factoryFunction();
         pModel->name(aModuleName);
+        // TODO TM REMOVE or KEEP
         pModel->timeStep(aTimeStep);
         pModel->rootWindow(aRootWindow);
 
@@ -443,7 +444,8 @@ int FBSFBaseModel::saveStateVisualDocument(QDataStream& out)
     mStateDataValueMap["Document"]=states.toMap();
     // serialize map to file
     out << name();
-    out << simulationTime();
+
+    out << mSimulationTime;
     out << mStateDataValueMap;
 
     return 1;
@@ -795,43 +797,48 @@ void  FBSFBaseModel::resetCpuTime()
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // retourne le from[M]SecsSinceEpoch des données du pas de
 // temps courant pour un temps scalaire (mode Standard).
-qint64 FBSFBaseModel::getDataDateTime ()
+qint64 FBSFBaseModel::dataTimeStamp ()
 {
-    return mTimeManager->dataDateTime();
+    return mTimeManager->dataTimeStamp();
 }
 //retourne le temps écoulé en ms depuis 0.
-qint64 FBSFBaseModel::getSimulationTime()
+qint64 FBSFBaseModel::simulationTime()
 {
     return mTimeManager->elapsedTimeMS();
 }
 // retourne le from[M]SecsSinceEpoch des données du pas
 // de temps indexé pour un vecteur temps (mode MPC).
-qint64 FBSFBaseModel::getDataDateTime(int index )
+qint64 FBSFBaseModel::dataTimeStamp(int index )
 {
-    return mTimeManager->MPCDataDateTime()[index];
+    return mTimeManager->dataTimeStamp(index);
 }
 //retourne le nombre de pas exécutés.
-qint64 FBSFBaseModel::getStepCount()
+qint64 FBSFBaseModel::stepCount()
 {
     return mTimeManager->stepCount();
 }
 //retourne le pas de temps en millisecondes.
-qint64 FBSFBaseModel::getTimeStepMS()
+qint64 FBSFBaseModel::timeStepMS()
 {
     return mTimeManager->timeStepMS();
 }
 //retourne la dimension past du mode MPC.
-qint64 FBSFBaseModel::getPastSize()
+qint64 FBSFBaseModel::pastSize()
 {
     return mTimeManager->pastsize();
 }
 //retourne la dimension futur du mode MPC.
-qint64 FBSFBaseModel::getFuturSize()
+qint64 FBSFBaseModel::futurSize()
 {
     return mTimeManager->futursize();
 }
+//retourne la dimension timeshift du mode MPC.
+qint64 FBSFBaseModel::timeShift()
+{
+    return mTimeManager->timeshift();
+}
 //indicateur de la résolution secondes/millisecondes.
-bool   FBSFBaseModel::isTimeUnitMS()
+bool   FBSFBaseModel::timeUnitMS()
 {
     return mTimeManager->isUnitMS();
 }

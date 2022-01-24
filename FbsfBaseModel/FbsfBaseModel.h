@@ -46,7 +46,7 @@ public:
     static FBSFBaseModel*  loadModule(QString   aModuleType,
                                       QString   aModuleName,
                                       float     aTimeStep,
-                                      QObject*  rootWindow=0);
+                                      QObject*  rootWindow=nullptr);
     static FBSFBaseModel*  loadFMUModel(QString modelName, QString aModelName,
                                         float   aStep,
                                         float   aStart=0.0,
@@ -75,7 +75,7 @@ public:
     virtual int     doRestoreState();   // Executed when application request reload state from memory
     virtual int     doSaveState(QDataStream &out);     // dump state to file
     virtual int     doRestoreState(QDataStream& in);   // Restore state from file
-    virtual int     doTransition(FBSFBaseModel::Transition aEvent){Q_UNUSED(aEvent);return 1;}
+    virtual int     doTransition(FBSFBaseModel::Transition aEvent){Q_UNUSED(aEvent)return 1;}
     virtual QMap<QString, ParamProperties> getParamList() {return {};}
 
     virtual bool        isNode(){return false;}
@@ -124,34 +124,36 @@ public:
     int             status(){return mStatus;}
     void            name(QString aName) {mName = aName;}
     QString         name() {return mName;}
-    // TODO TM : remove
-    void            simulationTime(float aSimTime) { mSimulationTime=aSimTime;}
-    const float&    simulationTime() { return mSimulationTime;}
+    // TODO TM REMOVE or KEEP
+//    void            simulationTime(float aSimTime) { mSimulationTime=aSimTime;}
+//    const float&    simulationTime() { return mSimulationTime;}
     void            timeStep(float aTimeStep) { mTimeStep=aTimeStep;}
-    const float&    timeStep() { return mTimeStep;}
+//    const float&    timeStep() { return mTimeStep;}
     // end TODO TM
 
     //~~~~~~~~~~~~~~ TimeManager settings ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     FbsfTimeManager* mTimeManager;// reference to application time manager
     void TimeManager(FbsfTimeManager& tm){mTimeManager=&tm;}
+    //retourne le temps écoulé en ms depuis 0.
+    qint64 simulationTime();
     // retourne le from[M]SecsSinceEpoch des données du pas de temps courant
     // pour un temps scalaire (mode Standard).
-    qint64 getDataDateTime ();
-    //retourne le temps écoulé en ms depuis 0.
-    qint64 getSimulationTime();
+    qint64 dataTimeStamp ();
     // retourne le from[M]SecsSinceEpoch des données du pas de temps indexé
     // pour un vecteur temps (mode MPC).
-    qint64 getDataDateTime(int index );
+    qint64 dataTimeStamp(int index );
     //retourne le nombre de pas exécutés.
-    qint64 getStepCount();
+    qint64 stepCount();
     //retourne le pas de temps en millisecondes.
-    qint64 getTimeStepMS();
+    qint64 timeStepMS();
     //retourne la dimension past du mode MPC.
-    qint64 getPastSize();
+    qint64 pastSize();
     //retourne la dimension futur du mode MPC.
-    qint64 getFuturSize();
+    qint64 futurSize();
+    //retourne la dimension timeshift du mode MPC.
+    qint64 timeShift();
     //indicateur de la résolution secondes/millisecondes.
-    bool   isTimeUnitMS();
+    bool   timeUnitMS();
 
     //~~~~~~~~~~~~~~ Model configuration ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     QMap<QString,QString>& config(){return mConfig;}
@@ -285,10 +287,10 @@ private :
     QMap<QString,QString>   mConfig;        // Module configuration
     QMap<QString,QString>   mAppConfig;     // Application configuration
     QObject*                mRootWindow;    // Visual root window
-
+// TODO TM REMOVE or KEEP
     float                   mSimulationTime; // seconds
     float                   mTimeStep;       // seconds
-
+//end TODO TM
     bool                    mFirstStep;     // initial step indicator
 
     int                     mCpuInitializationTime=0;
