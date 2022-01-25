@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Items>
+	<PluginsList>
+
+	</PluginsList>
+	<simulation>
+		<timestep>0.5</timestep>
+        <perfMeter>true</perfMeter>
+	</simulation>
+		<sequences>
+			<sequence>
+				<name>Principale</name>
+				<models>
+					<model>
+                        <name>ModuleBatch</name>
+                        <type>manual</type>
+						<module>ModuleTEST</module>
+						<vectornumber>10</vectornumber>
+					</model>
+					<model>
+						<name>moduleFMI</name>
+                        <type>manual</type>
+                        <module>ModuleFMI</module>
+                        <description>ModuleFMI/ProducerFMI.xml</description>
+					</model>
+					<model>
+						<name>TuningFMU</name>
+						<type>fmu</type>
+						<path>Fmu/ConsoTiTi.fmu</path>
+						<prefixinput>true</prefixinput>
+						<prefixoutput>true</prefixoutput>
+					</model>
+				</models>
+			</sequence>
+		</sequences>
+</Items>

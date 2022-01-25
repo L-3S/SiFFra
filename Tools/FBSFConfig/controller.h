@@ -9,7 +9,7 @@
 #include <QObject>
 #include <QUrl>
 #include <QDebug>
-
+#include <QCommandLineParser>
 class ModuleDescriptor;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 class Controller : public QObject
@@ -17,8 +17,10 @@ class Controller : public QObject
     Q_OBJECT
 public:
     Controller();
-
-    void            findModuleLib(); // search for Module libraries
+    int             parseCommandLine(QStringList arglist);
+    void            readModuleList(QString aFileName);
+    void            findModuleLib(QString aPath); // search for Module libraries
+    QCommandLineParser&     parser(){return mParser;}
 
     // QML interface
     Q_PROPERTY(QAbstractItemModel* config READ config NOTIFY configChanged)
@@ -88,6 +90,8 @@ private :
     TreeModel           mTreeModel2;
     QList<QObject*>     mModuleTypeList;
     TreeModel*          mCurrentModel=&mTreeModel1;
+    QCommandLineParser  mParser;
+
 signals :
     void configChanged();
     void moduleTypeListChanged();

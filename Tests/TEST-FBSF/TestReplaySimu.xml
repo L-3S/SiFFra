@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Items>
+    <simulation version="1.0">
+            <simuMpc>false</simuMpc>
+            <starttime>0.0</starttime>
+            <timestep>0.5</timestep>
+            <speedfactor>0.1</speedfactor>
+            <publishparam>true</publishparam>
+            <snapshotparam>true</snapshotparam>
+    </simulation>
+    <sequences>
+         <sequence>
+             <name>Principale</name>           
+             <models>
+<!--                    <model version="1.0">
+                        <module>ModuleLogic</module>
+                        <type>visual</type>
+                        <name>Logic-out</name>
+                        <document>DocLogic/ControlT.qml</document>
+                    </model>
+                    <model version="1.0">
+                        <module>ModuleLogic</module>
+                        <type>visual</type>
+                        <name>Logic-in</name>
+                        <document>DocLogic/ControlT-in.qml</document>
+                    </model>-->
+                    <model version="1.0">
+                        <module>ModuleGraphic</module>
+                        <type>visual</type>
+                        <name>Graphic</name>
+                        <document>DocGraphic/UIGraphic.qml</document>
+                    </model>
+<!--                    <model version="1.0">
+                         <name>TuningFMU</name>
+                         <path>Fmu/ConsoTiTi.fmu</path>
+                         <type>fmu</type>
+                         <prefixinput>true</prefixinput>
+                         <prefixoutput>true</prefixoutput>
+                         <starttime>0.0</starttime>
+                         <dumpcsv>false</dumpcsv>
+                     </model>
+                     <model version="1.0">
+                         <module>ModuleTEST</module>
+                         <type>manual</type>
+                         <name>Producer</name>
+                         <vectornumber>10</vectornumber>
+                     </model>
+                     <model version="1.0">
+                         <module>ModuleFMI</module>
+                         <type>manual</type>
+                         <name>ProducerFMI</name>
+                         <description>ModuleFMI/ProducerFMI.xml</description>
+                     </model>-->
+            </models>
+         </sequence>
+    </sequences>
+    <PluginsList>
+<!--        <Plugin>
+            <name>UIManual</name>
+            <path>DocGraphic</path>
+        </Plugin>-->
+    </PluginsList>
+</Items>

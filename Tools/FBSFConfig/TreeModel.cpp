@@ -15,8 +15,10 @@
 #include <sstream>
 #include <random>
 #include <string>
-
+//#define TMP_NAME
+static QString typeRootFork("rootFork");
 static QString typeRootSequence("rootsequence");
+
 QList<TreeItem *> TreeModel::sClipBoard; // shared btw the 2 editors
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -56,15 +58,13 @@ QUrl TreeModel::newModelData(QString aName)
     configItem=config;
 
     //insert an initial fork (main sequence)
-    TreeItem* fork = new TreeItem(QString("fork%1").arg(forkAutoIndex),
-                                  typeFork,"rootFork");
-    forkAutoIndex++;
+    TreeItem* fork = new TreeItem(typeRootFork,
+                                  typeFork,typeRootFork);
     configItem->appendChild(fork);
 
     // insert a main sequence node
-    auto sequence = new TreeItem(QString("sequence%1").arg(sequenceAutoIndex),
-                                 typeSequence);
-    sequenceAutoIndex++;
+    auto sequence = new TreeItem("main",typeSequence);
+
     fork->appendChild(sequence);
 
     emit layoutChanged();
@@ -170,9 +170,8 @@ TreeItem *TreeModel::readSimulation(FbsfConfiguration &aXmlConfig)
     configItem=config;
 
     //insert a fork item
-    TreeItem* fork = new TreeItem(QString("fork%1").arg(forkAutoIndex),
-                                  typeFork,"rootFork");
-    forkAutoIndex++;
+    TreeItem* fork = new TreeItem(typeRootFork,
+                                  typeFork,typeRootFork);
     configItem->appendChild(fork);
 
     return  fork;
@@ -199,7 +198,7 @@ void TreeModel::readSequence(TreeItem* parent,FbsfConfigSequence& aSeq,bool isSu
 void TreeModel::readPlugins(FbsfConfigSequence& aPluginList)
 {
     // insert a plugin list node
-    auto pluginList = new TreeItem("plugin list",typePlugins);
+    auto pluginList = new TreeItem("plugin list",typePluginList);
     rootItem->appendChild(pluginList);
     mHasPluginList=true; // only one instance allowed
 
@@ -275,7 +274,7 @@ void TreeModel::getXmlSubtree(QString& aXmlConfig,TreeItem* item, int level)
     QString tag;
     if(item->name()=="root")              tag="Items";
     else if(item->type()==typeConfig)     tag="simulation";
-    else if(item->type()==typePlugins)    tag="PluginsList";
+    else if(item->type()==typePluginList)    tag="PluginsList";
     else if(item->type()==typeFork)
         tag=(item->parentItem()->type()==typeSequence?"node":"sequences");
     else if(item->type()==typeSequence)
@@ -305,6 +304,7 @@ void TreeModel::getXmlSubtree(QString& aXmlConfig,TreeItem* item, int level)
     if(item->type()==typeConfig)
     {
         aXmlConfig+= tab + "</"+tag+">\n";// close the "simulation" section
+        level--;
     }
     // set inner tag
     if(tag=="sequence"||tag=="SubSequence")
@@ -345,11 +345,11 @@ QString TreeModel::configName()
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void TreeModel::setConfigName(const QString& aName)
 {
-   if(configItem!=nullptr)
-   {
-       configItem->name(aName);
-       emit configNameChanged();
-   }
+    if(configItem!=nullptr)
+    {
+        configItem->name(aName);
+        emit configNameChanged();
+    }
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void TreeModel::setConfigUrl(const QUrl& aFileUrl)
@@ -424,9 +424,8 @@ void TreeModel::forkItem(const QModelIndex aParentIndex, int position)
     for(int j=0;j<2;j++)
     {
         // Insert a new sequence at end
-        auto sequence = new TreeItem(QString("sequence%1").arg(sequenceAutoIndex),
+        auto sequence = new TreeItem(typeSequence,
                                      typeSequence,typeSubSequence);
-        sequenceAutoIndex++;
         fork->appendChild(sequence);
     }
 #endif
@@ -434,29 +433,30 @@ void TreeModel::forkItem(const QModelIndex aParentIndex, int position)
     insertItem(aParentIndex,fork,position);
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// QML : insert a sequence at end (undoable)
+// QML : insert a sequence at bottom (undoable)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void TreeModel::insertSequence(const QModelIndex aParentIndex)
 {
     // Append a new sequence at bottom
-    auto sequence = new TreeItem(QString("sequence%1").arg(sequenceAutoIndex),
+    auto sequence = new TreeItem(typeSequence,
                                  typeSequence);
-    sequenceAutoIndex++;
+
     TreeItem* parent=getItem(aParentIndex);
     insertItem(aParentIndex,sequence,parent->childCount());
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // C++ : generic insertion of item at index
+// use for item copy/paste
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void TreeModel::insertItem(const QModelIndex aParentIndex,
                            TreeItem* item, int position)
 {
-    setUniqueName(item);
     QUndoCommand *insertItemCmd = new insertItemCommand(*this,aParentIndex,item,position);
     mUndoManager.record(insertItemCmd);
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // QML : insert a module at position (undoable)
+// used for new module creation
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void TreeModel::insertModule(const QModelIndex &idx)
 {
@@ -465,14 +465,17 @@ void TreeModel::insertModule(const QModelIndex &idx)
     TreeItem *itemTarget = getItem(idx);
     TreeItem *parent=itemTarget->parentItem();
 
-    QString vName= QString("abstract%1").arg(moduleAutoIndex);
+    //QString vName= QString("abstract%1").arg(moduleAutoIndex);
+
     QString vType=typeModule;
-    QString vCategory=(itemTarget->type()==typePlugins||parent->type()==typePlugins?
-                       typePlugin:""); // plugin else no category
+    QString vCategory=(itemTarget->type()==typePluginList||parent->type()==typePluginList?
+                           typePlugin:""); // plugin else no category
+
+    QString vName= vCategory==typePlugin?"Plugin":"Module";
 
     if( itemTarget->type()==typeConfig
             ||itemTarget->type()==typeSequence
-            || itemTarget->type()==typePlugins)
+            || itemTarget->type()==typePluginList)
     {
         // insert if target type is config,sequence,plugin list
         auto child = new TreeItem(vName,vType,vCategory);
@@ -481,7 +484,7 @@ void TreeModel::insertModule(const QModelIndex &idx)
     }
     else if(parent->type()==typeConfig
             || parent->type()==typeSequence
-            || parent->type()==typePlugins)
+            || parent->type()==typePluginList)
     {
         // insert if item type is module
         auto child = new TreeItem(vName,vType,vCategory);
@@ -493,8 +496,6 @@ void TreeModel::insertModule(const QModelIndex &idx)
         qDebug() << __FUNCTION__<< "Parent not candidate" << parent->type();
         return;
     }
-
-    moduleAutoIndex++;
     endInsertRows();
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -505,7 +506,7 @@ void TreeModel::addPluginList()
 {
     if(mHasPluginList) return;
 
-    auto pluginList = new TreeItem("plugin list", typePlugins);
+    auto pluginList = new TreeItem("plugin list", typePluginList);
 
     // insert a plugin list node
     beginInsertRows(QModelIndex(),0,0);
@@ -563,7 +564,7 @@ void TreeModel::removeSelection()
         TreeItem *item = getItem(idx);
         if(item!=nullptr &&
                 (item->type()==typeConfig
-              || item->category()=="rootFork")) continue; // not enabled
+                 || item->category()==typeRootFork)) continue; // not enabled
 
         QUndoCommand *removeItemCmd = new removeItemCommand(*this,idx);
         mUndoManager.record(removeItemCmd);
@@ -600,37 +601,39 @@ void TreeModel::copySelection()
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void TreeModel::pasteSelection(const QModelIndex &index)
 {
-    //emit layoutAboutToBeChanged();
     beginMacro();
     if (!index.isValid()) return;
     TreeItem *itemTarget = getItem(index);
     for(auto item:qAsConst(sClipBoard))
     {
         TreeItem* itemPaste=cloneItem(item);
-
+        if(itemPaste==nullptr) continue;// case Config
         if(itemTarget->type()==typeConfig)
-        {// only module and fork allowed if target is config
-            if(itemPaste->type()==typeModule||itemPaste->type()==typeFork)
-                insertItem(index.parent(),itemPaste,itemTarget->row()+1);
+        {// only PluginList allowed if target is config
+            if(itemPaste->type()==typePluginList)
+                insertItem(index.parent(),itemPaste,0);
         }
-        else if(itemTarget->type()==typeFork)
+        else
+        if(itemTarget->type()==typeFork)
         {// only sequence allowed if target is fork
             if(itemPaste->type()==typeSequence)
                 insertItem(index,itemPaste,itemTarget->childCount());
         }
         else if(itemTarget->type()==typeSequence)
-        {// only module and fork allowed if target is sequence
-            if(itemPaste->type()==typeModule)
+        {// only module and subfork allowed if target is sequence
+            if(itemPaste->type()==typeModule && itemPaste->category()!=typePlugin)
                 insertItem(index,itemPaste,0);
-            else if(itemPaste->type()==typeFork)// could paste in itself
+            else if(itemPaste->type()==typeFork
+                 && itemPaste->name()!=typeRootFork)// could paste in itself
                 insertItem(index,cloneItem(itemPaste),0);
         }
         else if(itemTarget->type()==typeModule && itemTarget->category()!=typePlugin)
-        {// only module and fork allowed if target is module
-            if(itemPaste->type()==typeModule||itemPaste->type()==typeFork)
+        {// only module and subfork allowed if target is module
+            if((itemPaste->type()==typeModule && itemPaste->category()!=typePlugin)
+             ||(itemPaste->type()==typeFork && itemPaste->name()!=typeRootFork))
                 insertItem(index.parent(),itemPaste,itemTarget->row()+1);
         }
-        else if(itemTarget->type()==typePlugins)
+        else if(itemTarget->type()==typePluginList)
         {// only plugin if target is plugin list
             if(itemPaste->category()==typePlugin)
                 insertItem(index,itemPaste,0);
@@ -641,7 +644,6 @@ void TreeModel::pasteSelection(const QModelIndex &index)
                 insertItem(index.parent(),itemPaste,itemTarget->row()+1);
         }
     }
-    //emit layoutChanged();
     endMacro();
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -733,7 +735,7 @@ int TreeModel::setItemName(const QModelIndex &aIndex, const QVariant& aName)
 
     if(aName.toString().isEmpty()) return 2;
     QModelIndex mi=getIndexByName(aName.toString());
-    if(mi!=QModelIndex()) return 1;
+    if(mi.isValid()) return 1;
     setData(aIndex,aName,RoleName);
     modified(true);
 
@@ -780,6 +782,7 @@ void TreeModel::endMacro()
     mUndoManager.endMacro();
     emit layoutChanged();
 }
+#ifdef TMP_NAME
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // get unique id for items
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -797,6 +800,23 @@ std::string generate_hex(const unsigned int len) {
     }
     return ss.str();
 }
+#endif
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// check recursively if a name exists for a type
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+bool TreeModel::nameExist(QString aName,TreeItem* newItem, TreeItem* aLookupItem)
+{
+    if( aLookupItem->type()== newItem->type()
+     && newItem != aLookupItem
+     && aLookupItem->name()== aName) return true;
+
+    //~~~~~~~ recursive check of module and plugin items ~~~~~~~~~~
+    for (int i=0;i<aLookupItem->childCount();i++)
+    {
+        if(nameExist(aName,newItem,aLookupItem->child(i))) return true;
+    }
+    return false;
+}
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // set a unique name recursively
@@ -809,15 +829,42 @@ void TreeModel::setUniqueName(TreeItem* item)
         return;
     }
     // set unique name for cloned items
+#ifdef TMP_NAME
     item->name(item->type()+QString::fromStdString(generate_hex(2)));
+#else
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // Called after insertion of items due to copy/paste
+    // Pb : when copy/paste btw 2 config item is already
+    //      inserted and compared to itself so test is always true
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    if(item->type()!=typeFork && nameExist(item->name(),item,rootItem))
+    {
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Get unique name with suffix count
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        bool bExist;
+        int suffix=1;
+        QString vName;
+        int pos = item->name().lastIndexOf(QChar('#'));
+        QString radical=item->name().left(pos);
+        //qDebug() << "\n~~~~~~~~~~~ " << __FUNCTION__<<"looking for " <<item->name();
+        do
+        {
+            vName=QString("%1#%2").arg(radical).arg(suffix++);
+            bExist=nameExist(vName,item,rootItem);
+        }
+        while(bExist);
+        //qDebug() << __FUNCTION__<<"Changed "<< item->name() << "to "<<vName;
 
+        item->name(vName);
+    }
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#endif
     for (int i=0;i<item->childCount();i++)
     {
         setUniqueName(item->child(i));
     }
 }
-
-
 //////////////////////////////////////////////////////////////////////
 //~~~~~~~~~~~~ QAbstractItemModel overriden methods ~~~~~~~~~~~~~~~~~~
 //////////////////////////////////////////////////////////////////////

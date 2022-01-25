@@ -153,15 +153,8 @@ int FbsfApplication::parseCommandLine(QStringList arglist)
     mParser.parse(arglist);
     return 1;
 }
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/// Instanciate sequences
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-int FbsfApplication::generateSequences()
-{
-    // FIX setup : moved from CTOR
-#ifndef BUILD_API
+int FbsfApplication::generateSequences() {
     setup();
-#endif
     // check modeMcp
 
     bool modeMcp=config().Simulation().value("simuMpc")=="true"?true:false;
@@ -270,7 +263,7 @@ int FbsfApplication::generateDataFlowGraph()
                 for (int i = 0; i < consumersList.size(); i++)
                 {
                     outStream << "\n\t" << data->producer() << " -> " << consumersList[i]
-                    << "\t [Name = " << data->name() <<"]"
+                    << "\t [Name =\"" << data->name() <<"\"]"
                     << "\t [Type = "  << config().getDataFlowEdgeStatus(data->producer(),consumersList[i]) << "]";
                 }
             }
@@ -312,7 +305,7 @@ void FbsfGuiApplication::setup() {
     // Path acces in QML
     ctxt->setContextProperty("FBSF_HOME",QUrl::fromLocalFile(sFrameworkHome));
     ctxt->setContextProperty("APP_HOME",QUrl::fromLocalFile(sApplicationHome));
-    ctxt->setContextProperty("FBSF_CONFIG",QUrl::fromLocalFile(mConfig.Name()+".xml"));// FIX setup
+    ctxt->setContextProperty("FBSF_CONFIG",QUrl::fromLocalFile(mConfig.Name() + ".xml"));
     ctxt->setContextProperty("CURRENT_DIR",QUrl::fromLocalFile(QDir::currentPath()));
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // QML data exchange listmodel binding
@@ -325,7 +318,7 @@ void FbsfGuiApplication::setup() {
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // add import paths for plugins
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    mEngine.addImportPath(sFrameworkHome + "/FbsfFramework");
+    mEngine.addImportPath(qApp->applicationDirPath());
     mEngine.addImportPath("qrc:/GraphicEditor");
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // add import paths for components

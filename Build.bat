@@ -7,7 +7,7 @@ if "%1" == "" (
 	echo A build mode is required. Please enter release, debug  or batch
 	set /p fbsfMode=?:
 ) else (
-	set /p fbsfMode = %1
+	set  fbsfMode=%1
 )
 
 rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -30,23 +30,45 @@ if exist %CompilerPath% (
 rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 rem clean
 rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-rem if exist Makefile call jom distclean
+rem if exist Makefile call jom clean
 
+if exist Makefile call jom distclean 
 
-if /i %fbsfMode% == release (
+if /i %fbsfMode% == all (
+	echo Build FBSF all target 
+	
+	echo Build FBSF batch mode
+	call qmake -recursive "CONFIG+=BATCH" FBSF.pro
+	call jom
+	
+	call jom clean
+
 	echo build fbsf release mode
-	call qmake FBSF.pro
+	call qmake -recursive FBSF.pro
+	call jom
+
+	call jom clean
+
+	echo Build FBSF debug mode	
+	call qmake -recursive FBSF.pro
+	call jom debug
+		
+) else if /i %fbsfMode% == release (
+	echo Build FBSF release mode
+	call qmake -recursive FBSF.pro
 	call jom
 	
 ) else if /i %fbsfMode% == debug (
-	echo build fbsf debug mode
+	echo Build FBSF debug mode
 	call qmake FBSF.pro
 	call jom debug 
+	
 ) else if /i %fbsfMode% == batch (
-	echo build fbsf batch mode
+	echo Build FBSF batch mode
 	call qmake "CONFIG+=BATCH" FBSF.pro
 	call jom
+	
 ) else (
-	echo %fbsfMode% is not a build mode. Please enter release, debug or batch
+	echo %fbsfMode% is not a build mode. Please enter release, debug, batch or all
 )
 pause

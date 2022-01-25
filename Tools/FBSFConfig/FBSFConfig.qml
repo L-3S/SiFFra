@@ -27,8 +27,8 @@ Item{
     //signal          itemSelected(var modelIndex)
     property var    lastSelected : null
 
-    width                        : (rootList.width+2*hSpacing)*zoom
-    height                       : (rootList.height+2*vSpacing)*zoom
+    width                        : (rootList.width+4*hSpacing)*zoomFactor
+    height                       : (rootList.height+4*vSpacing)*zoomFactor
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~ functions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -171,10 +171,10 @@ Item{
     }
     Menu{
         id : forkBeginMenu
-        property bool pluginsEnabled
+        property bool removeGroupEnabled
 
         MenuItem{text: "add sequence";  onTriggered: forkItem()}
-        MenuItem{text: "remove group";  onTriggered: removeSelection()}
+        MenuItem{text: "remove group"; enabled: forkBeginMenu.removeGroupEnabled; onTriggered: removeSelection()}
     }
     Menu{
         id : forkEndMenu

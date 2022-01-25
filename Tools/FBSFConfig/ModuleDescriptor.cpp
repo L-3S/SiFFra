@@ -19,13 +19,13 @@ ModuleDescriptor::ModuleDescriptor(QString aCategory,
     // internally defined (see ItemParams.h)
     if(aFilePath.isEmpty()){
         mProperties=paramModuleMap.value(aTypeCpp);
-        qDebug() << aTypeCpp << aCategory
+        qInfo() << aTypeCpp << "type" << aCategory
                  << "properties defined internally";
         return;
     }
     // get the properties from the module library
     QLibrary sharedLibrary(aTypeCpp);
-    qDebug() << aTypeCpp << aCategory
+    qInfo() << aTypeCpp << "type" << aCategory
              << "properties defined from"
              << aFilePath;
 
@@ -63,8 +63,8 @@ const QMap<QString, ParamProperties>& ModuleDescriptor::getModuleTypeProperties(
     }
     else
     {
-        if(!aType.isEmpty()) qDebug() << __FUNCTION__
-                                      << "no properties found for type " << aType;
+        if(!aType.isEmpty())
+            qWarning() << "[Warning] no properties found for type " << aType;
         return emptyProperties;
     }
 }

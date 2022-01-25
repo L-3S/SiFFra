@@ -78,8 +78,8 @@ Element {
             onClicked:{
                 if (mouse.button == Qt.LeftButton)
                 {
-                    setSelected(type + " " + name
-                                + " " + params[0].key + " : " + params[0].value)
+                    setSelected(type + " : " + name
+                                + " (" + params[0].key + " : " + params[0].value +")")
                 }
                 else
                 {

@@ -64,6 +64,28 @@ TreeItem::~TreeItem()
     mChildItems.clear();
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Assignement operator
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TreeItem &TreeItem::operator =(const TreeItem &other)
+{
+    if(this==&other) return *this;
+    return *(new TreeItem(other));
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// copy constructor
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TreeItem::TreeItem(const TreeItem& other)
+{
+    mDescriptor=other.mDescriptor;      // QVector<QVariant>
+    mParentItem=other.mParentItem;      // TreeItem *
+    mItemParams=other.mItemParams;      // copy params
+    for (TreeItem* child : other.mChildItems)
+    {
+        TreeItem* itemBack=new TreeItem(*child);
+        appendChild(itemBack);
+    }
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Called on item creation and when module type is changed
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void TreeItem::createItemParamList()
@@ -98,7 +120,7 @@ QString  TreeItem::checkParamList()
 
     bool bHasError=false;
 
-    if(type()==typeFork || type()==typePlugins)
+    if(type()==typeFork || type()==typePluginList)
         return report;// nothing to check
 
     if(type()==typeModule && category()==typePlugin)
@@ -137,87 +159,6 @@ QString  TreeItem::checkParamList()
                 errorList += "\n\t"+data.error();
                 bHasError=true;
             }
-            // Check if mandatory is valid
-//            if(data.mandatory() && data.getValue()=="")
-//            {
-//                data.error("empty value for " + data.key());
-//                errorList += "\n\t"+data.error();
-//                data.hasError(true);
-//                bHasError=true;
-//            }
-//            // Check if value is in list
-//            if(data.type()==ParamValue::typeStringList)
-//            {
-//                if(!data.value().toList().contains(data.getValue()))
-//                {
-//                    data.error("Value not in list for " + data.key());
-//                    errorList += "\n\t"+data.error();
-//                    data.hasError(true);
-//                    data.error("Value not in list for " + data.key());
-//                    bHasError=true;
-//                }
-//            }
-//            else if(data.type()==ParamValue::typeDate && !data.value().toString().isEmpty())
-//            {
-//                QString format=data.unit().isEmpty()?defaultDateFormat:data.unit();
-//                QDate isoDate=QDate::fromString(data.value().toString(),format);
-//                if(!isoDate.isValid())
-//                {
-//                    data.error("not a valid date/format for " + data.key()
-//                                 +", check format : "+data.value().toString()+"/"+data.unit());
-//                    errorList += "\n\t"+data.error();
-//                    data.hasError(true);
-//                    bHasError=true;
-//                }
-//            }
-//            else
-//            {
-//                // Check range for value
-//                switch (data.defaultType())
-//                {
-//                case QVariant::Bool   :
-//                    if(data.value().toString().toLower()!="true"
-//                            &&data.value().toString().toLower()!="false")
-//                    {
-//                        data.error("not a boolean value for " + data.key());
-//                        errorList += "\n\t"+data.error();
-//                        data.hasError(true);
-//                        bHasError=true;
-//                    }
-//                    break;
-//                case QVariant::Int    :
-//                    if (data.value().toInt()<data.minStrict().toInt()
-//                            || data.value().toInt()>data.maxStrict().toInt())
-//                    {
-//                        data.error("value out of range for " + data.key());
-//                        errorList += "\n\t"+data.error();
-//                        data.hasError(true);
-//                        bHasError=true;
-//                    }
-//                    break;
-//                case QVariant::Double :
-//                    if (data.value().toDouble()<data.minStrict().toDouble()
-//                            || data.value().toDouble()>data.maxStrict().toDouble())
-//                    {
-//                        data.error("value out of range for " + data.key());
-//                        errorList += "\n\t"+data.error();
-//                        data.hasError(true);
-//                        bHasError=true;
-//                    }
-//                    break;
-//                case QVariant::LongLong :
-//                    if (data.value().toLongLong()<data.minStrict().toLongLong()
-//                            || data.value().toLongLong()>data.maxStrict().toLongLong())
-//                    {
-//                        data.error("value out of range for " + data.key());
-//                        errorList += "\n\t"+data.error();
-//                        data.hasError(true);
-//                        bHasError=true;
-//                    }
-//                    break;
-//                default : break;
-//                }
-//            }
         }
         if(bHasError) report = header + errorList + "\n";
         hasError(bHasError);
@@ -324,28 +265,6 @@ bool TreeItem::removeChildren(int position, int count)
     return true;
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// Assignement operator
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-TreeItem &TreeItem::operator =(const TreeItem &other)
-{
-    if(this==&other) return *this;
-    return *(new TreeItem(other));
-}
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// copy constructor
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-TreeItem::TreeItem(const TreeItem& other)
-{
-    for (TreeItem* child : other.mChildItems)
-    {
-        TreeItem* itemBack=new TreeItem(*child);
-        appendChild(itemBack);
-    }
-    mDescriptor=other.mDescriptor;      // QVector<QVariant>
-    mParentItem=other.mParentItem;      // TreeItem *
-    mItemParams=other.mItemParams;      // copy params
-}
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // get xml formatted string of item parameters
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void TreeItem::getXmlItemData(QString& aXmlConfig, int level)
@@ -368,14 +287,23 @@ void TreeItem::getXmlItemData(QString& aXmlConfig, int level)
         if(data.type()==ParamValue::typeStringList)
         {
             if (data.currentText().isEmpty()) continue;
-            aXmlConfig+= tab +"<"+ data.key()+">"+data.currentText()+"</"+ data.key()+">";
+            aXmlConfig+= tab +"<"+ data.key()+">"+data.currentText()+"</"+ data.key()+">\n";
         }
         else if(data.type()==ParamValue::typeDate)
         {
+            if(data.value().toString().isEmpty()&&data.unit().isEmpty()) continue;
             if(!data.value().toString().isEmpty())// set date if not empty
                 aXmlConfig+= tab +"<"+ data.key()+">"+data.value().toString()+"</"+ data.key()+">\n";
             if(!data.unit().isEmpty()) // set format if not empty
-                aXmlConfig+= tab +"<dateFormat>"+data.unit()+"</dateFormat>";
+                aXmlConfig+= tab +"<dateFormat>"+data.unit()+"</dateFormat>\n";
+        }
+        else if(data.type()==ParamValue::typeTime)
+        {
+            if(data.value().toString().isEmpty()&&data.unit().isEmpty()) continue;
+            if(!data.value().toString().isEmpty())// set date if not empty
+                aXmlConfig+= tab +"<"+ data.key()+">"+data.value().toString()+"</"+ data.key()+">\n";
+            if(!data.unit().isEmpty()) // set format if not empty
+                aXmlConfig+= tab +"<timeFormat>"+data.unit()+"</timeFormat>\n";
         }
         else
         {
@@ -400,6 +328,7 @@ void TreeItem::getXmlItemData(QString& aXmlConfig, int level)
             default : qDebug() << __FUNCTION__<< name()
                                << "Unknown type for key :" << data.key();break;
             }
+            aXmlConfig+="\n";
         }
         //        else if(data.type()==ParamValue::typeChoiceList)
         //        {
@@ -407,7 +336,7 @@ void TreeItem::getXmlItemData(QString& aXmlConfig, int level)
         //            for (auto val:data.value().toStringList())
         //                qDebug() << data.value();
         //        }
-        aXmlConfig+="\n";
+        //aXmlConfig+="\n";
     }
 }
 

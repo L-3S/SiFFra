@@ -1,8 +1,6 @@
 #ifndef ITEMPROPERTIES_H
 #define ITEMPROPERTIES_H
 #include <QString>
-static QString defaultDateFormat("dd/MM/yyyy");
-
 #include "ItemParams.h"
 
 
@@ -20,7 +18,10 @@ static QString defaultDateFormat("dd/MM/yyyy");
 //const QVariant & aMax_strict = QVariant(),
 //const QVariant & aMin_warn = QVariant(),
 //const QVariant & aMax_warn = QVariant()
-
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Property list
+// Hint : to keep a list order use [A-Za-z]% prefix
+//
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~~~~~~~~~~~~~~ Simulation properties ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -31,26 +32,35 @@ static QMap<QString, ParamProperties> sSimulationProperties=
                     "Simulation timestep",
                     "s", "step iteration period in seconds",
                     QVector<QVariant>(),0.5,0.1,INFINITY,0.1,INFINITY}},
-    {"date", ParamProperties{Param_quality::cOptional, Param_type::cDate,
+    {"A%startDate", ParamProperties{Param_quality::cOptional, Param_type::cDate,
                                  "Date dd/MM/yyyy format",
                                  "", "",
                                  QVector<QVariant>(),
                                  ""}},
-    {"time", ParamProperties{Param_quality::cOptional, Param_type::cTime,
+    {"B%startTime", ParamProperties{Param_quality::cOptional, Param_type::cTime,
                                  "time HH:mm:ss format",
                                  "", "",
                                  QVector<QVariant>(),
                                  ""}},
-     {"speedfactor", ParamProperties{Param_quality::cOptional, Param_type::cDbl,
-                     "timestep*factor (Fast < 1 , Slow > 1)",
-                     "", "Fast < 1 , Slow > 1",
-                     QVector<QVariant>(),0.05,0.,INFINITY,0.,INFINITY}},
-    {"simuMpc", ParamProperties{Param_quality::cOptional, Param_type::cBool,
+    {"C%simuMpc", ParamProperties{Param_quality::cOptional, Param_type::cBool,
                     "Time depend mode", "", "true/false",
                     QVector<QVariant>(),false}},
+    {"D%pastsize", ParamProperties{Param_quality::cOptional, Param_type::cInt,
+                    "Time depend past size", "", "10",
+                    QVector<QVariant>(),10}},
+    {"E%futursize", ParamProperties{Param_quality::cOptional, Param_type::cInt,
+                    "Time depend futur size", "", "10",
+                    QVector<QVariant>(),10}},
+    {"F%timeshift", ParamProperties{Param_quality::cOptional, Param_type::cInt,
+                    "Time depend time shift", "", "1",
+                    QVector<QVariant>(),1}},
     {"perfMeter", ParamProperties{Param_quality::cOptional, Param_type::cBool,
                     "Record performance time", "", "true/false",
                     QVector<QVariant>(),false}},
+    {"speedfactor", ParamProperties{Param_quality::cOptional, Param_type::cDbl,
+                    "timestep*factor (Fast < 1 , Slow > 1)",
+                    "", "Fast < 1 , Slow > 1",
+                    QVector<QVariant>(),0.05,0.,INFINITY,0.,INFINITY}},
     {"publishparam", ParamProperties{Param_quality::cOptional, Param_type::cBool,
                     "The \"tunable\" parameters, from the CAD Logic, FbsfBaseModelFMI and FMU modules, appear in the monitor list with a color code. They are editable from the interface as are unresolved importers ",
                     "", "true/false",QVector<QVariant>(),false}},
@@ -65,28 +75,28 @@ static QMap<QString, ParamProperties> sSimulationProperties=
                     "Definition file of the curve windows to be displayed when the simulator is initialized (relative to the APP_HOME variable) ",
                     "XML files (*.xml)", "",QVector<QVariant>(),""}},
     //~~~~~~~~~~~~~~~~~~~~~~~~~ ihm options ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    {"hidePauseBtn", ParamProperties{Param_quality::cOptional, Param_type::cCheckable,
+    {"z%hidePauseBtn", ParamProperties{Param_quality::cOptional, Param_type::cCheckable,
                     "Hide pause button ",
                     "", "true/false",QVector<QVariant>(),false}},
-    {"hideStepBtn", ParamProperties{Param_quality::cOptional, Param_type::cCheckable,
+    {"z%hideStepBtn", ParamProperties{Param_quality::cOptional, Param_type::cCheckable,
                     "Hide step button ",
                     "", "true/false",QVector<QVariant>(),false}},
-    {"hideRunBtn", ParamProperties{Param_quality::cOptional, Param_type::cCheckable,
+    {"z%hideRunBtn", ParamProperties{Param_quality::cOptional, Param_type::cCheckable,
                     "Hide run button ",
                     "", "true/false",QVector<QVariant>(),false}},
-    {"hideSpeedBtn", ParamProperties{Param_quality::cOptional, Param_type::cCheckable,
+    {"z%hideSpeedBtn", ParamProperties{Param_quality::cOptional, Param_type::cCheckable,
                     "Hide speed button ",
                     "", "true/false",QVector<QVariant>(),false}},
-    {"hideStepCrtBtn", ParamProperties{Param_quality::cOptional, Param_type::cCheckable,
+    {"z%hideStepCrtBtn", ParamProperties{Param_quality::cOptional, Param_type::cCheckable,
                     "Hide step crt button ",
                     "", "true/false",QVector<QVariant>(),false}},
-    {"hideSnapControlBtn", ParamProperties{Param_quality::cOptional, Param_type::cCheckable,
+    {"z%hideSnapControlBtn", ParamProperties{Param_quality::cOptional, Param_type::cCheckable,
                     "Hide snapshot button ",
                     "", "true/false",QVector<QVariant>(),false}},
-    {"hideNavigationBtn", ParamProperties{Param_quality::cOptional, Param_type::cCheckable,
+    {"z%hideNavigationBtn", ParamProperties{Param_quality::cOptional, Param_type::cCheckable,
                     "Hide navigation button ",
                     "", "true/false",QVector<QVariant>(),false}},
-    {"hideBacktrackBtn", ParamProperties{Param_quality::cOptional, Param_type::cCheckable,
+    {"z%hideBacktrackBtn", ParamProperties{Param_quality::cOptional, Param_type::cCheckable,
                     "Hide backtrack button ",
                     "", "true/false",QVector<QVariant>(),false}},
 };

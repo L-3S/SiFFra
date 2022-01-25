@@ -16,7 +16,8 @@ QString ParamValue::typeDateAndTimeUTC("DateAndTimeUTC");
 QString ParamValue::typeDate("date");
 QString ParamValue::typeTime("time");
 
-QString ParamValue::dateFormat(defaultDateFormat);// default format
+QString ParamValue::dateFormat("");// default format
+QString ParamValue::timeFormat("");// default format
 //QString ParamValue::typeChoiceList("choiceList");
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// process the data properties with xml values
@@ -121,6 +122,10 @@ void ParamList::setItemParams(QMap<QString,QString>& aXmlParamList,
     if(aXmlParamList.contains("dateFormat"))
         ParamValue::dateFormat=aXmlParamList.value("dateFormat");
 
+    // If set we store the timeFormat once.
+    if(aXmlParamList.contains("timeFormat"))
+        ParamValue::timeFormat=aXmlParamList.value("timeFormat");
+
     QMap<QString, ParamProperties>::const_iterator it = aParamProperties.constBegin();
     while (it != aParamProperties.constEnd())
     {
@@ -214,17 +219,6 @@ bool ParamValue::isInvalid()
         if(!value().toList().contains(getValue()))
         {
             error("Value not in list for " + key());
-            mHasError=true;
-        }
-    }
-    else if(type()==ParamValue::typeDate && !value().toString().isEmpty())
-    {
-        QString format=unit().isEmpty()?defaultDateFormat:unit();
-        QDate isoDate=QDate::fromString(value().toString(),format);
-        if(!isoDate.isValid())
-        {
-            error("not a valid date/format for " + key()
-                         +", check format : "+value().toString()+"/"+unit());
             mHasError=true;
         }
     }

@@ -26,7 +26,7 @@ var typeColumWidth  =100
 var rowHeight       =40
 
 // FONTS
-var fontSize        = 16
+var fontSize        = 18
 var fontCorb        = "Corbel"
 var fontCorbLight   = "Corbel Light"
 var fontSegoe       = "Segoe UI"

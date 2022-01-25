@@ -111,7 +111,9 @@ ListView {id: dataList
                 property var nameContent: model.modelData.value
                 leftPadding: 10
                 text            : model.modelData.key + " :"
-                width           : Def.nameColumWidth-(btOpen.visible||btCalendar.visible?
+                width           : Def.nameColumWidth-(btOpen.visible
+                                                      ||btCalendar.visible
+                                                      ||btClock.visible?
                                                           btOpen.width:0)
                 font.bold       : Def.Param_Stw.bold
                 font.pixelSize  : Def.Param_Stw.size
@@ -143,10 +145,25 @@ ListView {id: dataList
                 onClicked   : {
                     // set selected_date to textfield date if not empty
                     if(model.modelData.unit!=="")
-                        datePicker.format=model.modelData.unit //set date format from unit
+                        datePicker.dateFormat=model.modelData.unit //set date format from unit
                     datePicker.itemText=loader.item
                     datePicker.itemModel=model.modelData // to set unit as date format
                     datePicker.open()
+                }
+            }
+            ToolButton {id:btClock
+                visible : model.modelData.type==='time'
+                icon.name   : "Clock"
+                icon.source : "qrc:/icons/clock.png"
+                ToolTip.visible: hovered
+                ToolTip.text: qsTr("Open clock setter")
+                onClicked   : {
+                    // set selected_date to textfield date if not empty
+                    if(model.modelData.unit!=="")
+                        timePicker.timeFormat=model.modelData.unit //set date format from unit
+                    timePicker.itemText=loader.item
+                    timePicker.itemModel=model.modelData // to set unit as date format
+                    timePicker.open()
                 }
             }
             //~~~~~~~~~~~~~~~~ value field ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -284,6 +301,11 @@ ListView {id: dataList
                         text=xData.value
                     }
                 }
+                if(xData.type==='time' && xData.value!=="")
+                {
+                    timePicker.selected_time=xData.value
+                }
+
                 return xData.value
             }
 
@@ -333,14 +355,14 @@ ListView {id: dataList
 
             //Date and time validator : yyyy MM dd HH:mm:ss format
             //Date and Time (format UTC e.g. 2015-03-25T12:00:00Z)
-            inputMask: (xData.type==='DateAndTime')?
-                           "9999 99 99 99:99:99"
-                          : (xData.type==='DateAndTimeUTC')?
-                               "9999-99-99T99:99:99Z"
-                              :(xData.type==='time')?
-                                   "99:99:99":null
+            inputMask: (xData.type==='DateAndTime')?"9999 99 99 99:99:99"
+                          : (xData.type==='DateAndTimeUTC')?"9999-99-99T99:99:99Z"
+                             :(xData.type==='date')?"9999-99-99"
+                                 :(xData.type==='time')?"99:99:99"
+                                                       :null
             inputMethodHints: (   xData.type==='DateAndTime'
                                || xData.type==='DateAndTimeUTC'
+                               || xData.type==='date'
                                || xData.type==='time')?
                                   Qt.ImhDigitsOnly:Qt.ImhNone
         }
@@ -463,12 +485,31 @@ ListView {id: dataList
         onDateFormatChanged: {
             if(itemModel!==undefined) itemModel.unit=dateFormat // could be empty
             // if date is set apply format to text field
-            if(itemText!==undefined && itemText.text!=="")
-            {
-                itemText.text=selected_date.toLocaleDateString(Qt.locale(), format)
-                itemText.editingFinished()
-            }
-            inspector.modified("unit",format)
+            // CHANGE : ISO 8601 format, Do not change the date text
+//            if(itemText!==undefined && itemText.text!=="")
+//            {
+//                itemText.text=selected_date.toLocaleDateString(Qt.locale(), format)
+//                itemText.editingFinished()
+//            }
+            inspector.modified("unit",dateFormat)
+        }
+    }
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // Time chooser
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    TimePicker{
+        id:timePicker
+        property var itemText
+        property var itemModel
+        onTimeChanged: {
+            itemText.text=time
+            itemText.editingFinished()
+            inspector.modified(itemModel.key,itemModel.value)
+            console.log(time)
+        }
+        onTimeFormatChanged: {
+            if(itemModel!==undefined) itemModel.unit=timeFormat // could be empty
+            inspector.modified("unit",timeFormat)
         }
     }
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

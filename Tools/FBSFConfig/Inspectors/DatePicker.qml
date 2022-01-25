@@ -7,12 +7,11 @@ import Qt.labs.qmlmodels 1.0
 Popup {id:popup
     visible : false
     property date selected_date: new Date()
-    property string defaultFormat: 'dd/MM/yyyy'
-    property string dateFormat: defaultFormat   // external
-    property string format    : defaultFormat   // internal
-    property bool startMonDay : true // 0 Monday , 1 Sunday
+    property string isoFormat  : 'yyyy-MM-dd'// internal
+    property string dateFormat : isoFormat   // external
+    property bool startMonDay  : true // 0 Monday , 1 Sunday
 
-    width: 270
+    width: 300
     height: 400
     property date _temp_date: selected_date
     Component.onCompleted: sync_calendar(selected_date)
@@ -56,16 +55,28 @@ Popup {id:popup
         sync_calendar(_date)
         return _date
     }
+    function next_year() {
+        const _date = _temp_date
+        _date.setFullYear(_temp_date.getFullYear() + 1)
+        sync_calendar(_date)
+        return _date
+    }
 
+    function previous_year() {
+        const _date = _temp_date
+        _date.setFullYear(_temp_date.getFullYear() - 1)
+        sync_calendar(_date)
+        return _date
+    }
     Column {
         focus   : true
         //width   : popup.width
         height  : popup.height
         anchors.horizontalCenter: popup.horizontalCenter
-
+        // display date with selected format
         TextField {
             id: date_field
-            text: selected_date.toLocaleDateString(Qt.locale(), format)
+            text: selected_date.toLocaleDateString(Qt.locale(), dateFormat)
             width: parent.width
             readOnly: true
             horizontalAlignment: TextInput.AlignHCenter
@@ -76,8 +87,10 @@ Popup {id:popup
             //width   : popup.width
 
             RowLayout {
-                Layout.fillWidth: true
-
+                RoundButton {
+                    text: '<<'
+                    onClicked: _temp_date = previous_year()
+                }
                 RoundButton {
                     text: '<'
                     onClicked: _temp_date = previous_month()
@@ -85,13 +98,18 @@ Popup {id:popup
                 Label {
                     Layout.fillWidth: true
                     horizontalAlignment: Text.AlignHCenter
-                    text: _temp_date.toLocaleDateString(Qt.locale(), 'MMMM yyyy')
+                    text: _temp_date.toLocaleDateString(Qt.locale(), 'MMM yyyy')
                     font.pixelSize: 18
                 }
                 RoundButton {
                     Layout.alignment: Qt.AlignRight
                     text: '>'
                     onClicked: _temp_date = next_month()
+                }
+                RoundButton {
+                    Layout.alignment: Qt.AlignRight
+                    text: '>>'
+                    onClicked: _temp_date = next_year()
                 }
             }
 
@@ -100,6 +118,7 @@ Popup {id:popup
                 Layout.fillHeight: true
                 columns: 7
                 rows: 7
+                leftPadding: 10
 
                 Repeater {
                     model:{
@@ -149,31 +168,32 @@ Popup {id:popup
                                     _date.setDate(day)
                                     _temp_date = _date
                                     selected_date = _temp_date
-                                    if(format==="") format=defaultFormat // set internal to default
-                                    dateChanged(selected_date.toLocaleDateString(Qt.locale(), format))
+                                    // CHANGE : ISO 8601 format
+                                    dateChanged(selected_date.toLocaleDateString(Qt.locale(), isoFormat))
                                 }
                             }
                         }
                     }
                 }
             }
-            ComboBox {
-                Layout.fillWidth: true
-                editable: true
-                selectTextByMouse: true
-                model: ["dd-MM-yyyy","dd/MM/yyyy","dd.MM.yyyy","ddd, d-MMM-yyyy"]
-                editText:format
-                // field format changed
-                onAccepted: {
-                    if(editText=="") format=defaultFormat
-                    else format=editText
-                    dateFormat=editText
-                }
-                // item selection
-                onActivated: {
-                    format=currentText
-                    displayText=currentText
-                    dateFormat=currentText
+            // selection of the date format
+            RowLayout{
+                Text{id:formatText;text:"format :";color:"white"}
+                ComboBox {id:formatField
+                    Layout.fillWidth: true
+                    editable: true
+                    selectTextByMouse: true
+                    model: ["","dd-MM-yyyy","dd/MM/yyyy","dd.MM.yyyy","ddd, d-MMM-yyyy"]
+                    editText:dateFormat
+                    // field format changed
+                    onAccepted: {
+                        dateFormat=editText
+                    }
+                    // item selection
+                    onActivated: {
+                        displayText=currentText
+                        dateFormat=currentText
+                    }
                 }
             }
         }

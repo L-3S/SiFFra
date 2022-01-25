@@ -118,7 +118,7 @@ public:
     TreeItem *      cloneItem(const QModelIndex &index) const;
     TreeItem *      cloneItem(const TreeItem * aItem) const;
     void            setUniqueName(TreeItem* item);
-    quint16         getUniqId();
+    bool            nameExist(QString aName, TreeItem *newItem, TreeItem *aLookupItem);
     bool            modified() {return mModified;}
     void            modified(bool aStatus) {mModified=aStatus;emit modifiedChanged(mModified);}
     bool            loaded() {return mLoaded;}

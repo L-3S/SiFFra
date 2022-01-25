@@ -4,11 +4,10 @@ import QtQuick.Layouts 1.3
 
 ColumnLayout{
      id                  : rightToolBar
-     anchors.top         : parent.top
+     anchors.bottom      : parent.bottom
      anchors.right       : parent.right
-     anchors.topMargin   : 20
-     anchors.bottomMargin: 5
-     anchors.rightMargin : 10
+     anchors.bottomMargin : 20
+     anchors.rightMargin : 20
      spacing             : 2
      z                   : parent.z+1
 
@@ -18,7 +17,7 @@ ColumnLayout{
          icon.source: "qrc:/icons/zoomIn.png"
          ToolTip.visible: hovered
          ToolTip.text: qsTr("Zoom in")
-         onClicked:{zoom*=1.1}
+         onClicked:{if(zoomFactor<zoomFactorMax) zoomFactor*=1.1}
      }
      ToolButton {
          icon.color: "transparent"
@@ -26,7 +25,7 @@ ColumnLayout{
          icon.source : "qrc:/icons/zoomOut.png"
          ToolTip.visible: hovered
          ToolTip.text: qsTr("Zoom out")
-         onClicked   : {if(zoom>0.5) zoom*=0.9}
+         onClicked   : {if(zoomFactor>zoomFactorMin) zoomFactor*=0.9}
      }
      ToolButton {
          icon.color: "transparent"
@@ -35,7 +34,7 @@ ColumnLayout{
          ToolTip.visible: hovered
          ToolTip.text: qsTr("Reset zoom")
          onClicked   : {
-             zoom=1;
+             zoomFactor=1;
              //configArea1.returnToBounds()
              //configArea1.contentX=0;configArea1.contentY=0
          }

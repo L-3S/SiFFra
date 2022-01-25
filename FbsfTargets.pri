@@ -5,7 +5,6 @@ $$(FBSF_HOME){
 }
 FBSF_LIB_DIR_ROOT=$$PWD/lib/
 FBSF_FRAMEWORK_DIR=$$PWD/FbsfFramework/
-FBSF_PLUGINS_DIR=$$FBSF_FRAMEWORK_DIR/fbsfplugins
 
 CONFIG(debug, debug|release) {
     BUILD_MODE = debug
@@ -19,3 +18,5 @@ DESTDIR = $$FBSF_LIB_DIR_ROOT/$$BUILD_MODE
 message( "destdir" $$DESTDIR )
 
 FBSF_LIB_DIR =$$DESTDIR
+FBSF_PLUGINS_DIR=$$DESTDIR/fbsfplugins
+FBSF_UTILITIES_DIR=$$DESTDIR/FbsfUtilities
