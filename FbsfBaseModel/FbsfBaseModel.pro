@@ -8,7 +8,9 @@ include(../FbsfTargets.pri)
 
 DEFINES     += STANDALONE_XML_PARSER FMI_COSIMULATION
 
-LIBS        += $$FBSF_LIB_DIR/FbsfFramework.lib
+LIBS        += $$FBSF_LIB_DIR/FbsfTimeManager.lib
+INCLUDEPATH += ../FbsfFramework/FbsfTimeManager
+DEPENDPATH  += ../FbsfFramework/FbsfTimeManager
 
 LIBS        += -L$$FBSF_PLUGINS_DIR -lFbsfPublicData
 INCLUDEPATH += ../FbsfFramework/FbsfPublicData

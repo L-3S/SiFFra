@@ -110,6 +110,8 @@ int ModuleTEST::doStep()
                      << "FmuOutput :" << FmuOutput;
         }
     }
+    qint64 timestampMS=dataTimeStamp()*(timeUnitMS()?1:1000);
+    qDebug() << QDateTime::fromMSecsSinceEpoch(timestampMS).toString("dd/MM/yyyy hh:mm:ss");
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     return FBSF_OK;
 }

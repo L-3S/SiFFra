@@ -5,17 +5,19 @@
 #include <QVariant>
 #include <QDateTime>
 
-#if defined(FBSF_FRAMEWORK_LIBRARY)
-#  define FBSF_FRAMEWORKSHARED_EXPORT Q_DECL_EXPORT
+#if defined(FBSF_TIMEMANAGER_LIBRARY)
+#  define FBSF_TIMEMANAGER_INTERFACE Q_DECL_EXPORT
 #else
-#  define FBSF_FRAMEWORKSHARED_EXPORT Q_DECL_IMPORT
+#  define FBSF_TIMEMANAGER_INTERFACE Q_DECL_IMPORT
 #endif
 
 class FbsfDataExchange;
-class FBSF_FRAMEWORKSHARED_EXPORT FbsfTimeManager:public QObject
+class FBSF_TIMEMANAGER_INTERFACE FbsfTimeManager:public QObject
 {
     Q_OBJECT
 public:
+    FbsfTimeManager(QObject *parent = nullptr){Q_UNUSED(parent)}
+    ~FbsfTimeManager() override{}
     enum eTimeMode {eDateTime, eElapsedTime,eCumulTime};
     enum eCumulUnit {eCumulHours, eCumulMinutes,eCumulSeconds};
     enum eCumulFormat {eCumulSingle,eCumulHMS, eCumulHM, eCumulMS};

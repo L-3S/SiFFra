@@ -5,6 +5,7 @@ SUBDIRS = \
           FbsfFramework/FbsfPublicData\
           FbsfFramework/FbsfUtilities\
           FbsfFramework/FbsfNetwork\
+          FbsfFramework/FbsfTimeManager\
           FbsfBaseModel\
           FbsfFramework\
           FbsfFramework/ModuleLogic\

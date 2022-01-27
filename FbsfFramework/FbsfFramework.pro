@@ -14,7 +14,7 @@ else {# Configuration gui code
 
     TARGET = FbsfFramework
     QT      += gui qml quick xml widgets network
-    LIBS        += -L$$FBSF_HOME/Depends/ -lFbsfEditorLibrary
+    LIBS    += -L$$FBSF_HOME/Depends/ -lFbsfEditorLibrary
 }
 
 linux{
@@ -23,8 +23,9 @@ linux{
 win32-g++{
     QMAKE_LFLAGS += -Wl,--out-implib=$$FBSF_LIB_DIR/FbsfFramework.a
 }
-INCLUDEPATH += src FbsfPublicData FbsfNetwork
+INCLUDEPATH += src FbsfPublicData FbsfNetwork FbsfTimeManager
 LIBS    += -L$$FBSF_LIB_DIR -lFbsfNetwork
+LIBS    += -L$$FBSF_LIB_DIR -lFbsfTimeManager
 
 LIBS    += -L$$FBSF_PLUGINS_DIR -lFbsfPublicData
 

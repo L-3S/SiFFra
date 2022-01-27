@@ -14,7 +14,7 @@ rem set COMPONENTS_PATH=%APP_HOME%
 set PATH=%~dp0lib;%PATH%
 
 IF "%1" == "" (
-    start qtcreator.exe TEST-FBSF-TRUNK
+    start qtcreator.exe
 ) ELSE (
     start FbsfFramework.exe %1
 )

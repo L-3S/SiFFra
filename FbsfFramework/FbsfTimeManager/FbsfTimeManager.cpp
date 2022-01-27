@@ -45,9 +45,9 @@ void FbsfTimeManager::setDateTime(QString aDateStart, QString aTimeStart,
                                   QString aDateFormat, QString aTimeFormat)
 {
     // Check if cumulated time format is defined
-    QRegExp rxh("^([h]{3})(:mm)?(:ss)?$");
+    QRegExp rxh("^([h]{3})(:mm)?(:ss)?([.z][zz]?)?$");
     if(rxh.exactMatch(aTimeFormat))
-    {
+    {qDebug() << "match eCumulHours";
         mTimeMode=eCumulTime;
         mCumulUnit=eCumulHours;
         if(rxh.matchedLength()==6)
@@ -57,7 +57,7 @@ void FbsfTimeManager::setDateTime(QString aDateStart, QString aTimeStart,
     }
     QRegExp rxm("^([m]{3})(:ss)?$");
     if(rxm.exactMatch(aTimeFormat))
-    {
+    {qDebug() << "match eCumulMinutes";
         mTimeMode=eCumulTime;
         mCumulUnit=eCumulMinutes;
         if(rxm.matchedLength()==6)
@@ -65,7 +65,7 @@ void FbsfTimeManager::setDateTime(QString aDateStart, QString aTimeStart,
     }
     QRegExp rxs("^[s]{3}(.zzz)?$");
     if(rxs.exactMatch(aTimeFormat))
-    {
+    {qDebug() << "match eCumulSeconds";
         mTimeMode=eCumulTime;
         mCumulUnit=eCumulSeconds;
     }
@@ -90,6 +90,7 @@ void FbsfTimeManager::setDateTime(QString aDateStart, QString aTimeStart,
             // Check if ms set for time format, if not set it to .zzz
             QRegExp rx("^(.*)([.z][zz]?)$");
             if(!rx.exactMatch(aTimeFormat)) aTimeFormat+=".zzz";
+            qDebug() << "format" << aTimeFormat;
         }
         mResolution=eResolution::eMilliSeconds;
     }
