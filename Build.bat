@@ -4,7 +4,7 @@ rem Target to build is release,debug or batch
 rem Could be an argument of this batch file or input from kewbord
 rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 if "%1" == "" (
-	echo A build mode is required. Please enter release, debug  or batch
+	echo A build mode is required. Please enter all, release, debug  or batch
 	set /p fbsfMode=?:
 ) else (
 	set  fbsfMode=%1
