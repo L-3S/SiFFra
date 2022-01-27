@@ -10,6 +10,8 @@ if "%1" == "" (
 	set  fbsfMode=%1
 )
 
+
+set FBSF_HOME=%~dp0
 rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 rem Path for QT toolkit
 rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -45,6 +47,11 @@ if /i %fbsfMode% == all (
 
 	echo build fbsf release mode
 	call qmake -recursive FBSF.pro
+	call jom
+	
+	echo build FBSFConfig only release mode
+	cd Tools\FBSFConfig
+	call qmake FBSFConfig.pro
 	call jom
 
 	call jom clean
