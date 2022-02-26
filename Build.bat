@@ -4,12 +4,14 @@ rem Target to build is release,debug or batch
 rem Could be an argument of this batch file or input from kewbord
 rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 if "%1" == "" (
-	echo A build mode is required. Please enter release, debug  or batch
+	echo A build mode is required. Please enter all, release, debug  or batch
 	set /p fbsfMode=?:
 ) else (
 	set  fbsfMode=%1
 )
 
+
+set FBSF_HOME=%~dp0
 rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 rem Path for QT toolkit
 rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -45,6 +47,11 @@ if /i %fbsfMode% == all (
 
 	echo build fbsf release mode
 	call qmake -recursive FBSF.pro
+	call jom
+	
+	echo build FBSFConfig only release mode
+	cd Tools\FBSFConfig
+	call qmake FBSFConfig.pro
 	call jom
 
 	call jom clean

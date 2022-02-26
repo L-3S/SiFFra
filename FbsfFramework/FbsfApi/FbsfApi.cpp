@@ -69,7 +69,7 @@ void FbsfApi::mainLoop(FbsfFmi2Component *comp) {
         comp->mu.unlock();
     }
     // Launch the qt app loop
-    comp->app->start();
+    comp->app->start(comp->app->timeStep * 1000, comp->app->speedFactor, comp->app->recorderSize);
     comp->threadRunning = false;
 }
 fmi2Status FbsfApi::fmi2ExitInitialisationMode(fmi2Component ptr){
