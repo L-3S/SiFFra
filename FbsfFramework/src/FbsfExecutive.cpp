@@ -122,6 +122,8 @@ void  FbsfExecutive::ReplayMode(bool aFlag, QString aFile)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void  FbsfExecutive::BatchMode(bool aFlag)
 {
+    // we force recoder size to 0 (issue#22)
+    mRecorderSize=0;
     mExeMode=eBatch;
 #ifndef BUILD_API
     workflowState=eRun;
