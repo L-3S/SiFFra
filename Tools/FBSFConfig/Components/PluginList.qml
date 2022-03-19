@@ -85,7 +85,7 @@ Element {
                 }
                 else
                 {
-                    if(menuEnabled)
+                    if(menuEnabled && selected)
                     {
                         pluginsMenu.popup()
                     }

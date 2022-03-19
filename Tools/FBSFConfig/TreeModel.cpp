@@ -57,6 +57,8 @@ QUrl TreeModel::newModelData(QString aName)
     rootItem->appendChild(config);
     configItem=config;
 
+    mHasPluginList=false; // reset plugin list
+
     //insert an initial fork (main sequence)
     TreeItem* fork = new TreeItem(typeRootFork,
                                   typeFork,typeRootFork);

@@ -83,7 +83,7 @@ Element {
                 }
                 else
                 {
-                    if(menuEnabled)
+                    if(menuEnabled && selected)
                     {
                         sequenceMenu.downEnabled=index<parentListview.count-1
                         sequenceMenu.upEnabled=index>0

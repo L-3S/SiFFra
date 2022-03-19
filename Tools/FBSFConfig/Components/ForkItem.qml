@@ -33,9 +33,11 @@ Element {
                 }
                 else // diplay popup menu
                 {
-                    if(menuEnabled)
+                    if(menuEnabled && selected)
+                    {
                         forkBeginMenu.removeGroupEnabled=(category!=="rootFork")
-                    forkBeginMenu.popup()
+                        forkBeginMenu.popup()
+                    }
                 }
             }
         }
@@ -60,7 +62,7 @@ Element {
                     }
                     else
                     {
-                        if(menuEnabled && category!=="rootFork")
+                        if(menuEnabled && selected && category!=="rootFork")
                             forkEndMenu.popup()
                     }
                 }

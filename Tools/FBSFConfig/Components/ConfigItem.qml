@@ -61,7 +61,7 @@ Element {
                 }
                 else
                 {
-                    if(menuEnabled && !controller.config.hasPluginList)
+                    if(menuEnabled && selected && !controller.config.hasPluginList)
                         configMenu.popup()
                 }
             }

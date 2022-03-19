@@ -65,7 +65,7 @@ Element {
                 }
                 else
                 {
-                    if(menuEnabled)
+                    if(menuEnabled && selected)
                     {
                         if(category!="plugin")
                         {
