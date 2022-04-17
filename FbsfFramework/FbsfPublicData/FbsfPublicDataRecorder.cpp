@@ -115,7 +115,7 @@ void FbsfPublicDataRecorder::record(int aStep)
     case cVector :
         if(mTimeShift>0)
         {   //~~~~~~~~~~~~~~~ time dependant vector ~~~~~~~~~~~~~~~~~~~~~~~
-#if INITIAL_CASE
+#ifdef INITIAL_CASE
             if (mInitial)// recorder size is assumed greater than vector size
             {
                 mInitial=false;
