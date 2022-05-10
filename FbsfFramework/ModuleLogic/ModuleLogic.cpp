@@ -51,7 +51,7 @@ int ModuleLogic::doInit()
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// Computation step
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-int ModuleLogic::doStep()
+int ModuleLogic::doStep(int timeOut)
 {
     // check if changes in public data pool
     if (bPublishParam)  checkParameterChange();

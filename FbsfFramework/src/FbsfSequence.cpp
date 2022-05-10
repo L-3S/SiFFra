@@ -267,7 +267,7 @@ void FbsfSequence::consumeData()
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// Step computation procedure : signal virtual method call
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void FbsfSequence::computeStep()
+void FbsfSequence::computeStep(int timeOut)
 {
     // perf meter
     QElapsedTimer timer;
@@ -286,7 +286,7 @@ void FbsfSequence::computeStep()
                 #ifndef SYNCHRONE_INPUT
                 mModelList[i]->consumeData();
                 #endif
-                mModelList[i]->computeStep();
+                mModelList[i]->computeStep(timeOut);
                 if (mStatus == FBSF_OK) {
                     mStatus=(fbsfStatus)mModelList[i]->status();
                 }
@@ -304,7 +304,7 @@ void FbsfSequence::computeStep()
             #ifndef SYNCHRONE_INPUT
             mModelList[i]->consumeData();
             #endif
-            mModelList[i]->computeStep();
+            mModelList[i]->computeStep(timeOut);
             if (mStatus == FBSF_OK) {
                 mStatus=(fbsfStatus)mModelList[i]->status();
             }

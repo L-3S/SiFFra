@@ -234,7 +234,7 @@ int FmuWrapper::initialConditions()
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// Manage public data and computation step
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-int FmuWrapper::doStep()
+int FmuWrapper::doStep(int timeOut)
 {
     if (time <= tEnd)
     {

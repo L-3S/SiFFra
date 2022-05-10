@@ -25,7 +25,8 @@ typedef enum {
     FBSF_ERROR  = -1,
     FBSF_OK     = 1,
     FBSF_WARNING= 2,
-    FBSF_FATAL  = 3
+    FBSF_FATAL  = 3,
+    FBSF_TIMEOUT = 4
 } fbsfStatus;
 
 // As defined in the WinBase.h on Windows platform

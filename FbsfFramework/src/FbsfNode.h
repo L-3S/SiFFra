@@ -18,8 +18,8 @@ public:
     FbsfNode();
     virtual int  doInit() override {return FBSF_OK;};
     virtual int doTerminate() override {return FBSF_OK;};
-    virtual int doStep() override {
-        run();
+    virtual int doStep(int timeOut) override {
+        run(timeOut);
         return FBSF_OK;
         };
     virtual int     doSaveState() override {return 1;};                      // Save states to memory
@@ -32,14 +32,14 @@ public:
                                QList<FbsfConfigNode>& aNodes,
                                QList<QMap<QString, QString> > &aModels,
                                FbsfApplication *app);
-    void            doCycle();                    // execute one cycle
+    void            doCycle(int timeOut);                    // execute one cycle
 
     // for perfMeter
     QList<FbsfSequence*>& sequences(){return mSequenceList;}
     virtual bool    isNode() override {return true;}
 
 public slots:
-    void            run();                      // run the executive workflow (thread)
+    void            run(int timeOut);                      // run the executive workflow (thread)
     // void            control(QString command, QString param1=QString(),QString param2=QString());   // control of the simulation workflow
     void            errorString(QString err) {
         qDebug() << "[Error] : " <<  err;
@@ -48,7 +48,7 @@ public slots:
 signals:
     void            cycleStart();               // signal start of major cycle
     void            consume();                  // signal data consumption
-    void            compute();                  // signal step computation
+    void            compute(int timeOut);                  // signal step computation
     void            statusChanged(QVariant  mode,QVariant  state);// signal status change to UI
     void            exit();
 

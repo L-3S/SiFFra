@@ -144,11 +144,13 @@ void FBSFBaseModel::consumeData()
 /// \brief FBSFBaseModel::computeStep
 ///        Step computation procedure : signal virtual method call
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void FBSFBaseModel::computeStep()
+void FBSFBaseModel::computeStep(int timeOut)
 {
     QElapsedTimer timer;
     timer.start();
-    mStatus = doStep();
+    qDebug() << "Antoine pres step stat" <<mStatus ;
+    mStatus = doStep(timeOut);
+    qDebug() << "Antoine post step stat" <<mStatus ;
     if(mCpuStepTime!=nullptr)
         mCpuStepTime->setIntValue(timer.elapsed());
     postStep();

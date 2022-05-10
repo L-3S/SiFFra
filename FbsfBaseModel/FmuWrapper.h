@@ -72,7 +72,7 @@ public:
 
     int                    doInit();
     int                    doTerminate();
-    int                    doStep();
+    int                    doStep(int timeOut) override;
     int                    doTransition(FBSFBaseModel::Transition aEvent);
     int                    doSaveState();
     int                    doRestoreState();

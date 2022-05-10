@@ -150,7 +150,7 @@ int FbsfExecutive::addSequence(QString aName, float aPeriod,
     connect(this  , SIGNAL(cancelStep()) , pSequence, SLOT(cancelSeqStep()));
     // connect signal to sequence slots : pre/step computation and finalization
     connect(this  , SIGNAL(consume()) , pSequence, SLOT(consumeData()));
-    connect(this  , SIGNAL(compute()) , pSequence, SLOT(computeStep()));
+    connect(this  , SIGNAL(compute(int)) , pSequence, SLOT(computeStep(int)));
     // release
     connect(pSequence, SIGNAL(finished()), thread, SLOT(quit()));
     connect(thread   , SIGNAL(finished()), thread, SLOT(terminate()));
@@ -229,7 +229,7 @@ void FbsfExecutive::run()
         stepTime.restart();
         // run major cycle
         emit statusChanged(ExecutionMode(),"computing");
-        doCycle();
+        doCycle(mTimeOut);
         // check state change command
         if (workflowState==eStep)
         {
@@ -295,7 +295,7 @@ void FbsfExecutive::run()
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// SLOT : Control of the executive workflow
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void FbsfExecutive::doCycle()
+void FbsfExecutive::doCycle(int timeOut)
 {
     QElapsedTimer stepDuration;
     stepDuration.start();
@@ -307,7 +307,7 @@ void FbsfExecutive::doCycle()
     {
         emit consume();// Synchronous consumption of inputs
         waitCompletion(mSequenceList.size());
-        emit compute();// compute models
+        emit compute(timeOut);// compute models
         waitCompletion(mSequenceList.size());
         for (auto seq: mSequenceList) {
             if (mStatus == FBSF_OK) {
@@ -385,6 +385,7 @@ void FbsfExecutive::control(QString command, QString param1, QString param2)
     //~~~~~~~~~~~~~ Execute one step simulation ~~~~~~~~~~~~~~~
     else if (command == "step")
     {   // step and pause
+        mTimeOut = param1 != "" ? param1.toInt(): -1;
         if (isSuspended()) wakeup();
         else mPauseCond.release();
         workflowState = eStep;
