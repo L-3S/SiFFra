@@ -148,9 +148,7 @@ void FBSFBaseModel::computeStep(int timeOut)
 {
     QElapsedTimer timer;
     timer.start();
-    qDebug() << "Antoine pres step stat" <<mStatus ;
     mStatus = doStep(timeOut);
-    qDebug() << "Antoine post step stat" <<mStatus ;
     if(mCpuStepTime!=nullptr)
         mCpuStepTime->setIntValue(timer.elapsed());
     postStep();
