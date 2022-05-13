@@ -29,6 +29,7 @@ private:
 
     int                 counter1;
     float               param1;
+    float               pa;
     float               FmuOutput;
     float               random_pos;
     float               random_neg;

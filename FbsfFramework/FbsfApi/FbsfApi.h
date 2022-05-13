@@ -162,7 +162,7 @@ public:
     it is the users responsability to copy the content of the 'value' buffer for further use,
     the pointed memory space is an internal allocated buffer that could be reused in any further fmi call and is not safe to use */
     FbsfSuccess FbsfGetStringStatus(FbsfComponent ptr, const FbsfStatusKind s, FbsfString *value);
-    FbsfSuccess FbsfGetRealData(QString name, double *val);
+    FbsfSuccess FbsfGetRealData(FbsfComponent ptr, QString name, double *val);
 private:
     /** @brief used to get an fbsfApplication instance */
     static FbsfComponent mainApi(int argc, char **argv);

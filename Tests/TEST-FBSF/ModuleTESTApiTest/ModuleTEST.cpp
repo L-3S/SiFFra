@@ -83,7 +83,9 @@ int ModuleTEST::doInit()
         // Get the output value from fmu
         subscribe("TuningFMU.OutPutFMU",&FmuOutput,"","Output from FMU");
     }
-
+    publish(QString("Pump.Speed"),
+            &pa,"n/a",
+            QString("Output to FMU from %1").arg(name()));
 
     return FBSF_OK;
 }
@@ -93,17 +95,18 @@ int ModuleTEST::doInit()
 int ModuleTEST::doStep(int timeOut)
 {
     QTimer t;
-    QTimer mt;
-    std::cout << "Antoine timout" << timeOut<< std::endl;
+//    QTimer mt;
+//    std::cout << "Antoine timout" << timeOut<< std::endl;
     t.start(timeOut);
-    mt.start(2000);
-    while (1 && (t.remainingTime() >= 1) && (timeOut != -1)) {
-        std::cout << "Antoine c timout" << timeOut << std::endl;
-    }
-    if (t.remainingTime()<= 1 && mt.remainingTime() >= 1) {
-        return FBSF_TIMEOUT;
-    }
-    std::cout << "Antoine cend timout" << timeOut<< std::endl;
+//    mt.start(2000);
+//    while (1 && (t.remainingTime() >= 1) && (timeOut != -1)) {
+//        std::cout << "Antoine c timout" << timeOut << std::endl;
+//    }
+//    if (t.remainingTime()<= 1 && mt.remainingTime() >= 1) {
+//        return FBSF_TIMEOUT;
+//    }
+//    std::cout << "Antoine cend timout" << timeOut<< std::endl;
+    pa = 15;
     if (name() == "Producer" || name() == "ModuleBatch")
     {
         param1  = counter1%10;
@@ -128,7 +131,7 @@ int ModuleTEST::doStep(int timeOut)
         }
     }
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    return FBSF_OK;
+    return (t.remainingTime() < 1 ? FBSF_TIMEOUT : FBSF_OK);
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Finalization step

@@ -4,7 +4,7 @@
 
 	</PluginsList>
 	<simulation>
-		<timestep>0.5</timestep>
+		<timestep>10.</timestep>
         <perfMeter>true</perfMeter>
 	</simulation>
 		<sequences>
