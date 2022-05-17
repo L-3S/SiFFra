@@ -6,14 +6,11 @@ int Test1a(FbsfApi &api, int ac, char **av) {
     FbsfStatus st = FbsfUninitialized;
     do{
         cout << "Starting Test1a"<<endl;
-        void *pComp = api.FbsfInstantiate(ac, av);
+        void *pComp = api.FbsfInstantiate("simul.xml");
         failure += !pComp ? 1 : 0;
         if(failure) break;
 
-        api.FbsfSetString(pComp, "simul.xml");
-        api.FbsfEnterInitialisationMode(pComp);
-        api.FbsfExitInitialisationMode(pComp);
-        su = api.FbsfGetStatus(pComp, FbsfApiStatus, &st);
+        su = api.FbsfGetStatus(pComp, &st);
 
         failure += (su==StepFailure || st!=FbsfReady) ? 2 : 0;
         if(failure) break;
@@ -21,7 +18,7 @@ int Test1a(FbsfApi &api, int ac, char **av) {
         su = api.FbsfTerminate(pComp) ;
         failure += (su==StepFailure) ? 4 : 0;
         if(failure) break;
-        su = api.FbsfGetStatus(pComp, FbsfApiStatus, &st);
+        su = api.FbsfGetStatus(pComp, &st);
         failure += (su==StepFailure || st!=FbsfTerminated) ? 8 : 0;
         if(failure) break;
 
@@ -43,16 +40,20 @@ int Test1b(FbsfApi &api, int ac, char **av) {
     do{
 
         cout << "Starting Test1b"<<endl;
-        void *pComp = api.FbsfInstantiate(ac, av);
-        api.FbsfSetString(pComp, "simul.xml");
+        void *pComp = api.FbsfInstantiate("simulLALA.xml");
+        cout << "Starting Test1b2"<<endl;
 
         failure += !pComp ? 1 : 0;
         if(failure) break;
+        cout << "Starting Test1b3"<<endl;
 
-        su = api.FbsfGetStatus(pComp, FbsfApiStatus, &st);
+        su = api.FbsfGetStatus(pComp, &st);
+        cout << "Starting Test1b4"<<endl;
         failure += (su==StepFailure || st!=FbsfUninitialized) ? 2 : 0;
+        cout << "Starting Test1b5"<<endl;
         if(failure) break;
-
+        cout << "Starting Test1b6"<<endl;
+        api.FbsfTerminate(pComp);
         su = api.FbsfFreeInstance(&pComp) ;
         failure += (su==StepFailure || pComp) ? 4 : 0;
         if(failure) break;
@@ -75,15 +76,12 @@ int Test2(FbsfApi &api, int ac, char **av){
 
         cout << "Starting Test2"<<endl;
 
-        void *pComp = api.FbsfInstantiate(ac, av);
+        void *pComp = api.FbsfInstantiate("simul.xml");
         failure += !pComp ? 1 : 0;
         if(failure) break;
 
 
-        api.FbsfSetString(pComp, "simul.xml");
-        api.FbsfEnterInitialisationMode(pComp);
-        api.FbsfExitInitialisationMode(pComp);
-        su = api.FbsfGetStatus(pComp, FbsfApiStatus, &st);
+        su = api.FbsfGetStatus(pComp, &st);
         failure += (su==StepFailure || st!=FbsfReady) ? 2 : 0;
         if(failure) break;
 
@@ -102,7 +100,7 @@ int Test2(FbsfApi &api, int ac, char **av){
         failure += su == StepFailure ? 16 : 0;
         if(failure) break;
 
-        su = api.FbsfGetStatus(pComp, FbsfDoStepStatus, &st);
+        su = api.FbsfGetStatus(pComp, &st);
         api.FbsfGetRealData(pComp, simuTimeString.c_str(), &pZEValTime);
         std::cout << "Antoine Res " << su <<" " << st <<" " << abs(pZEValTime - timestep) << std::endl;
         failure += (su==StepFailure || st!=FbsfReady || abs(pZEValTime - timestep) > 1.e-9) ? 32 : 0;
@@ -115,14 +113,14 @@ int Test2(FbsfApi &api, int ac, char **av){
         failure += su == StepFailure ? 64 : 0;
         if(failure) break;
 
-        su = api.FbsfGetStatus(pComp, FbsfDoStepStatus, &st);
+        su = api.FbsfGetStatus(pComp, &st);
         api.FbsfGetRealData(pComp, simuTimeString.c_str(), &pZEValTime);
         failure += (su==StepFailure || st!=FbsfReady || abs(pZEValTime - 11. * timestep) > 1.e-9) ? 128 : 0;
         if(failure) break;
 
         // Terminate + Unload
         su = api.FbsfTerminate(pComp) ;
-        su = api.FbsfGetStatus(pComp, FbsfApiStatus, &st);
+        su = api.FbsfGetStatus(pComp, &st);
         failure += (su==StepFailure || st!=FbsfTerminated) ? 256 : 0;
         if(failure) break;
 
@@ -141,26 +139,22 @@ int Test3(FbsfApi &api, int ac, char **av){
     const double timeOutCPUs = 0.000001;
     do{
         cout << "Starting Test3"<<endl;
-        void *pComp = api.FbsfInstantiate(ac, av);
+        void *pComp = api.FbsfInstantiate("simul.xml");
 
-        // One step increment
-        api.FbsfSetString(pComp, "simul.xml");
-        api.FbsfEnterInitialisationMode(pComp);
-        api.FbsfExitInitialisationMode(pComp);
-        su = api.FbsfGetStatus(pComp, FbsfApiStatus, &st);
+        su = api.FbsfGetStatus(pComp, &st);
         if (su != StepFailure && st == FbsfReady)
         {
             su = api.FbsfDoStep(pComp, timeOutCPUs);
             failure += (su == StepFailure) ? 2 : 0;
             if(failure) break;
 
-            su = api.FbsfGetStatus(pComp, FbsfDoStepStatus, &st);
+            su = api.FbsfGetStatus(pComp, &st);
             failure += (su == StepFailure || st != FbsfTimeOut) ? 4 : 0;
             if(failure) break;
 
             // Terminate + Unload
             su = api.FbsfTerminate(pComp) ;
-            su = api.FbsfGetStatus(pComp, FbsfApiStatus, &st);
+            su = api.FbsfGetStatus(pComp, &st);
             failure += (su==StepFailure || st!=FbsfTerminated) ? 8 : 0;
             if(failure) break;
 
@@ -188,16 +182,13 @@ int Test4(FbsfApi &api, int ac, char **av){
     do{
         cout << "Starting Test4"<<endl;
 
-        void *pComp = api.FbsfInstantiate(ac, av);
+        void *pComp = api.FbsfInstantiate("simul.xml");
 
         // One step increment
-        api.FbsfSetString(pComp, "simul.xml");
-        api.FbsfEnterInitialisationMode(pComp);
-        api.FbsfExitInitialisationMode(pComp);
         failure += !pComp ? 1 : 0;
         if(failure) break;
 
-        su = api.FbsfGetStatus(pComp, FbsfApiStatus, &st);
+        su = api.FbsfGetStatus(pComp, &st);
         failure += (su==StepFailure || st!=FbsfReady) ? 2 : 0;
         if(failure) break;
 
@@ -213,13 +204,13 @@ int Test4(FbsfApi &api, int ac, char **av){
         if(failure) break;
         api.FbsfGetRealData(pComp, simuZEValString.c_str(), &pZEValRef);
 
-        su = api.FbsfGetStatus(pComp, FbsfDoStepStatus, &st);
+        su = api.FbsfGetStatus(pComp, &st);
         failure += (su==StepFailure || st!=FbsfReady || abs(pZEValRef - expectedVal) > 1.e-5) ? 32 : 0;
         if(failure) break;
 
         // Terminate + Unload
         su = api.FbsfTerminate(pComp) ;
-        su = api.FbsfGetStatus(pComp, FbsfApiStatus,&st);
+        su = api.FbsfGetStatus(pComp,&st);
         failure += (su==StepFailure || st!=FbsfTerminated) ? 64 : 0;
         if(failure) break;
 
@@ -236,7 +227,7 @@ int main(int ac, char **av) {
     cout << "instanciate"<<endl;
     FbsfApi api;
 
-    void *comp = api.FbsfInstantiate(ac, av);
+    void *comp = nullptr;
     std::string cmd;
     cout << "command:";
     while (getline(cin, cmd)){
@@ -251,6 +242,7 @@ int main(int ac, char **av) {
         }
         if (cmd == "t1b") {
             int err = Test1b(api, ac, av);
+
             if (err) {
                 std::cout << "Test1b err" << err <<std::endl;
                 return err;
@@ -302,12 +294,7 @@ int main(int ac, char **av) {
                 cmd = "simul.xml";
             }
             cout << "loading " << cmd << endl;
-            api.FbsfSetString(comp, QString::fromStdString(cmd));
-        } else if (cmd == "init" || cmd == "i") {
-            cout << "Init"<<endl;
-            api.FbsfEnterInitialisationMode(comp);
-        } else if (cmd == "run") {
-            api.FbsfExitInitialisationMode(comp);
+            comp = api.FbsfInstantiate(QString::fromStdString(cmd));
         } else if (cmd == "s") {
             cout << "set a timout ? default:1000 :";
             getline(cin, cmd);
@@ -337,7 +324,7 @@ int main(int ac, char **av) {
         } else if (cmd == "st") {
             FbsfStatus s;
 //            FbsfString *str = (FbsfString*)calloc(1, sizeof(FbsfString));
-            api.FbsfGetStatus(comp, FbsfDoStepStatus, &s);
+            api.FbsfGetStatus(comp, &s);
             std::cout << "status :" << s <<std::endl;
         } else if (cmd == "stl") {
             FbsfReal r = 0;

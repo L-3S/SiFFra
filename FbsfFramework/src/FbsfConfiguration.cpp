@@ -36,6 +36,7 @@ int FbsfConfiguration::parseXML(QString aFileName)
         QMessageBox::critical(nullptr, "[Fatal]", msg.toStdString().c_str());
 #endif
         qFatal(msg.toStdString().c_str());
+        return -1;
     }
     // store the config name without extension
     //mConfigName=aFileName.left(aFileName.lastIndexOf("."));

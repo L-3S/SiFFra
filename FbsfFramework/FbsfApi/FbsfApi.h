@@ -98,7 +98,7 @@ public:
     ~FbsfApi() {};
 
     /** @brief create a fmiComponent instance which is needed for all other api function */
-    FbsfComponent FbsfInstantiate(int argc, char **argv);
+    FbsfComponent FbsfInstantiate(QString str);
 
     /** @brief set the name of the configuration file for the simulation */
     FbsfSuccess FbsfSetString(FbsfComponent ptr, QString str);
@@ -138,7 +138,7 @@ public:
     /** @brief Get status as a FbsfStatus
 
     Only work for FbsfStatusKind::FbsfDoStepStatus */
-    FbsfSuccess FbsfGetStatus(FbsfComponent ptr, const FbsfStatusKind s, FbsfStatus *value);
+    FbsfSuccess FbsfGetStatus(FbsfComponent ptr, FbsfStatus *value);
 
     /** @brief Get status as a FbsfReal
     *

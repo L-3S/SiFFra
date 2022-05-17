@@ -13,8 +13,12 @@ FbsfApi::FbsfApi()
 
 }
 
-FbsfComponent FbsfApi::FbsfInstantiate(int argc, char **argv) {
-    return new FbsfControllerComponent(argc, argv);
+FbsfComponent FbsfApi::FbsfInstantiate(QString str) {
+    FbsfComponent comp = new FbsfControllerComponent(0, nullptr);
+    FbsfSetString(comp, str);
+    FbsfEnterInitialisationMode(comp);
+    FbsfExitInitialisationMode(comp);
+    return comp;
 };
 
 FbsfSuccess FbsfApi::FbsfEnterInitialisationMode(FbsfComponent ptr) {
@@ -56,7 +60,11 @@ void FbsfApi::mainLoop(FbsfControllerComponent *comp) {
         qWarning("Error: no configuration provided, use FbsfSetString first.");
     } else {
         // Open and parse XML config
-        if(comp->app->config().parseXML(comp->app->configName())==-1) qWarning("Error: can't parse xml configuration file provided: ", comp->app->configName().toStdString().c_str());
+        if(comp->app->config().parseXML(comp->app->configName())==-1) {
+            qWarning("Error: can't parse xml configuration file provided: ", comp->app->configName().toStdString().c_str());
+            comp->threadRunning = false;
+            return;
+        }
         // Generate sequences from XML infos
         comp->app->generateSequences();
     }
@@ -70,8 +78,16 @@ void FbsfApi::mainLoop(FbsfControllerComponent *comp) {
 }
 FbsfSuccess FbsfApi::FbsfExitInitialisationMode(FbsfComponent ptr){
     FbsfControllerComponent *comp = static_cast<FbsfControllerComponent*>(ptr);
+    if (!comp) {
+        qInfo("Error: no instance");
+        return StepFailure;
+    }
     while (1) {
         comp->mu.lock();
+        if (!comp->threadRunning) {
+            qInfo("Error: Initialisation mode is not  on");
+            return StepFailure;
+        }
         if (comp->run == true) {
             comp->mu.unlock();
             break;
@@ -112,9 +128,9 @@ FbsfSuccess FbsfApi::FbsfDoStep(FbsfComponent ptr, int timeOut) {
         return (StepFailure);
     }
     comp->app->executive()->control("step", QString::number(timeOut));
-    FbsfGetStatus(ptr, FbsfDoStepStatus,  &st);
+    FbsfGetStatus(ptr, &st);
     while (st == FbsfProcessing) {
-        FbsfGetStatus(ptr, FbsfDoStepStatus,  &st);
+        FbsfGetStatus(ptr,  &st);
     }
     return StepSuccess;
 };
@@ -137,7 +153,7 @@ FbsfSuccess FbsfApi::FbsfTerminate(FbsfComponent ptr) {
         qInfo("Error: no instance");
         return StepFailure;
     }
-    if (!comp->threadRunning || !comp->run) {
+    if (!comp->threadRunning) {
         qInfo("Error: The app is not running");
         return StepFailure;
     }
@@ -158,73 +174,55 @@ FbsfSuccess FbsfApi::FbsfFreeInstance(FbsfComponent *ptr) {
     }
     if (*ptr) {
         FbsfControllerComponent *comp = static_cast<FbsfControllerComponent*>(*ptr);
-
-        delete comp;
+        if (comp)
+            delete comp;
         *ptr = nullptr;
     }
     return StepSuccess;
 };
-FbsfSuccess FbsfApi::FbsfGetStatus(FbsfComponent ptr, const FbsfStatusKind s, FbsfStatus *value)  {
+FbsfSuccess FbsfApi::FbsfGetStatus(FbsfComponent ptr, FbsfStatus *value)  {
     FbsfControllerComponent *comp = static_cast<FbsfControllerComponent*>(ptr);
-    switch (int(s)) {
-    case FbsfDoStepStatus: {
-        if (!comp || !comp->app) {
-            qInfo("Error: no instance");
-            *value = FbsfUninitialized;
-            return StepFailure;
-        }
-        QString status = comp->app->executive()->State();
-        if (status == "stepping" || status == "runnning" || status == "waiting") {
-            *value = FbsfProcessing;
-        } else {
-            int exSt = comp->app->executive()->getStatus();
-            switch (exSt) {
-            case FBSF_OK:       *value = FbsfReady;break;
-            case FBSF_WARNING:  *value = FbsfFailedStep;break;
-            case FBSF_FATAL:    *value = FbsfFailedStep;break;
-            case FBSF_ERROR:    *value = FbsfFailedStep;break;
-            case FBSF_TIMEOUT:  *value = FbsfTimeOut;break;
-            default:            *value = FbsfFailedStep;
-            }
-        }
-        break;
+    if (!comp || !comp->app) {
+        qInfo("Error: no instance");
+        *value = FbsfUninitialized;
+        return StepSuccess;
     }
-    case FbsfPendingStatus: {break;}
-    case FbsfLastSuccessfulTime: {break;}
-    case FbsfIsTerminated: {break;}
-    case FbsfApiStatus: {
-        if (!comp || !comp->app) {
-            qInfo("Error: no instance");
-            *value = FbsfUninitialized;
-            return StepSuccess;
-        }
-        if (comp->configFileName == "") {
-            *value = FbsfUninitialized;
-            return StepSuccess;
-        }
-        if (comp->isTerminated) {
-            *value = FbsfTerminated;
-            return StepSuccess;
-        }
-        if (!comp->run) {
-            qInfo("Error: App in not running, please exit initialisation mode");
-            *value = FbsfUninitialized;
-            return StepSuccess;
-        }
-        if (!comp->threadRunning) {
-            qInfo("Error: QT thread is not running, please enter initialisation mode");
-            *value = FbsfUninitialized;
-            return StepSuccess;
-        }
-        QString s = comp->app->executive()->State();
-        if (s == "runnin" || s == "stepping") {
-            qInfo("Error: A step is already running");
-            *value = FbsfProcessing;
-            return (StepSuccess);
-        }
-        *value = FbsfReady;
+    if (comp->configFileName == "") {
+        *value = FbsfUninitialized;
+        return StepSuccess;
     }
+    if (comp->isTerminated) {
+        *value = FbsfTerminated;
+        return StepSuccess;
     }
+    if (!comp->run) {
+        qInfo("Error: App in not running, please exit initialisation mode");
+        *value = FbsfUninitialized;
+        return StepSuccess;
+    }
+    if (!comp->threadRunning) {
+        qInfo("Error: QT thread is not running, please enter initialisation mode");
+        *value = FbsfUninitialized;
+        return StepSuccess;
+    }
+
+    QString status = comp->app->executive()->State();
+    if (status == "stepping" || status == "runnning" || status == "waiting") {
+        *value = FbsfProcessing;
+        return StepSuccess;
+    } else {
+        int exSt = comp->app->executive()->getStatus();
+        switch (exSt) {
+        case FBSF_OK:       *value = FbsfReady;break;
+        case FBSF_WARNING:  *value = FbsfFailedStep;break;
+        case FBSF_FATAL:    *value = FbsfFailedStep;break;
+        case FBSF_ERROR:    *value = FbsfFailedStep;break;
+        case FBSF_TIMEOUT:  *value = FbsfTimeOut;break;
+        default:            *value = FbsfFailedStep;
+        }
+        return StepSuccess;
+    }
+    *value = FbsfReady;
     return StepSuccess;
 };
 FbsfSuccess FbsfApi::FbsfGetRealStatus(FbsfComponent ptr, const FbsfStatusKind s, FbsfReal *value) {
@@ -259,7 +257,6 @@ FbsfSuccess FbsfApi::FbsfGetBooleanStatus(FbsfComponent ptr, const FbsfStatusKin
                 *value = FbsfFalse;
             } else {
                 int exSt = comp->app->executive()->getStatus();
-                cout << "exts" << exSt<< endl;
                 switch (exSt) {
                 case FBSF_OK:       *value = FbsfFalse;break;
                 case FBSF_WARNING:  *value = FbsfFalse;break;
