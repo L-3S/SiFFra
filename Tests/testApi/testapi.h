@@ -10,7 +10,7 @@ class TestAPI: public QObject{
 public:
     explicit TestAPI(QObject* parent = 0) : QObject(parent) {}
     void *comp;
-    FbsfApi api;
+//    FbsfApi api;
 };
 
 #endif // TESTAPI_H

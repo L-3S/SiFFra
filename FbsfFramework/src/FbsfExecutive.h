@@ -138,6 +138,7 @@ private:
     FbsfDataExchange*       mCpuStepTime=nullptr;
     // set the perfmeter
     FbsfPerfMeter*          perfmeter=nullptr;
+    QDataStream             mout;
 };
 
 #endif // FBSFEXECUTIVE_H

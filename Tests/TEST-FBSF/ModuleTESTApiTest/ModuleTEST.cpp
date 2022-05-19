@@ -86,7 +86,10 @@ int ModuleTEST::doInit()
     publish(QString("Pump.Speed"),
             &pa,"n/a",
             QString("Output to FMU from %1").arg(name()));
-
+    mStateDataValueMap["app"] = 0;
+    publish(QString("resetTet"),
+            (int*)mStateDataValueMap["app"].data(),"n/a",
+            QString("Output to FMU from %1").arg(name()));
     return FBSF_OK;
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -94,10 +97,11 @@ int ModuleTEST::doInit()
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 int ModuleTEST::doStep(int timeOut)
 {
-    QTimer t;
+    clock_t start, end;
+    start = clock();
 //    QTimer mt;
 //    std::cout << "Antoine timout" << timeOut<< std::endl;
-    t.start(timeOut);
+//    t.start(timeOut);
 //    mt.start(2000);
 //    while (1 && (t.remainingTime() >= 1) && (timeOut != -1)) {
 //        std::cout << "Antoine c timout" << timeOut << std::endl;
@@ -107,6 +111,7 @@ int ModuleTEST::doStep(int timeOut)
 //    }
 //    std::cout << "Antoine cend timout" << timeOut<< std::endl;
     pa = 15;
+    *((int*)mStateDataValueMap["app"].data()) += 1;
     if (name() == "Producer" || name() == "ModuleBatch")
     {
         param1  = counter1%10;
@@ -131,7 +136,8 @@ int ModuleTEST::doStep(int timeOut)
         }
     }
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    return (t.remainingTime() < 1 ? FBSF_TIMEOUT : FBSF_OK);
+    end = clock();
+    return ((((float) end - start)/CLOCKS_PER_SEC) > (((float)timeOut) / 1000) ? FBSF_TIMEOUT : FBSF_OK);
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Finalization step

@@ -355,6 +355,32 @@ int FbsfSequence::doRestoreState(QDataStream& in)
     return 1;
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/// Model state serialization
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int FbsfSequence::doSaveState()
+{
+    // for each model do doSaveState();
+    for (int i = 0; i < mModelList.size(); ++i)
+    {
+        mModelList[i]->doSaveState();
+        mStatus=(fbsfStatus)mModelList[i]->status();
+    }
+    return 1;
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/// Model state deserialization
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int FbsfSequence::doRestoreState()
+{
+    // for each model do doRestoreState();
+    for (int i = 0; i < mModelList.size(); ++i)
+    {
+        mModelList[i]->doRestoreState();
+        mStatus=(fbsfStatus)mModelList[i]->status();
+    }
+    return 1;
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// static Method for executive controler synchronization
 /// on task completion
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

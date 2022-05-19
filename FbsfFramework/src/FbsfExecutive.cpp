@@ -36,7 +36,7 @@ bool           FbsfExecutive::sOptPerfMeter=false;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 FbsfExecutive::FbsfExecutive(eApplicationMode aMode)
     : bSuspended(false)
-    , workflowState( ePause )
+    , workflowState( eInitialize )
     , mAppMode(aMode)
     , mExeMode(eCompute)
     , mReplayMode(false)
@@ -195,6 +195,7 @@ void FbsfExecutive::run()
 
     // Compute Simulation Time only if Server,
     // Standalone modes and not already produced
+    qDebug() << "Antoine mode " << mAppMode << FbsfDataExchange::isPublished("Simulation.Time");
     if (mAppMode == client || FbsfDataExchange::isPublished("Simulation.Time"))
     {
         bComputeTime=false;
@@ -216,6 +217,7 @@ void FbsfExecutive::run()
     // start simulation loop
     stepTime.start();
     if (BatchMode()) batchTime.start();
+    workflowState = ePause;
     while (workflowState!=eStop)
     {
         // check state change command
@@ -449,6 +451,35 @@ void FbsfExecutive::control(QString command, QString param1, QString param2)
             mSequenceList[iSeq]->doSaveState(out);
         }
         snapFile.close();
+    }
+    else if (command == "saveLocal" && mAppMode != client)
+    {
+        for (int iSeq=0;iSeq < mSequenceList.size();iSeq++)
+        {
+            mSequenceList[iSeq]->doSaveState();
+        }
+    }
+    //~~~~~~~~~~~~~~~~~~~~ Restore states ~~~~~~~~~~~~~~~~~~~~~~~~
+    else if (command == "restoreLocal" && mAppMode != client)
+    {
+        // For each modules restore the states data
+        for (int iSeq=0;iSeq < mSequenceList.size();iSeq++)
+        {
+            mSequenceList[iSeq]->doRestoreState();
+        }
+        if (bComputeTime)
+        {
+            // Publish simulation time
+            if (mAppMode != client && mPublicSimulationTime)
+                mPublicSimulationTime->setRealValue(mSimulationTime/(1000));
+        }
+        //FbsfDataExchange::resetHistory(mSimulationTime);
+        QString strTime;
+        control("resettime",strTime.setNum(mSimulationTime));
+#ifndef MODE_BATCH
+        mDataControler.updateMonitor();// update only data values
+#endif
+        //mDataControler.process(mStepNumber);// broadcast values to clients
     }
     //~~~~~~~~~~~~~~~~~~~~ Restore states ~~~~~~~~~~~~~~~~~~~~~~~~
     else if (command == "restore" && mAppMode != client)
