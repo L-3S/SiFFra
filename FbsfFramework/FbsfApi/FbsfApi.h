@@ -59,6 +59,14 @@ typedef enum{
         FbsfTerminated,  // The ‘terminate’ function was called
 } FbsfStatus;
 
+typedef enum {
+    FbsfInt,
+    FbsfReal,
+    FbsfVectorInt,
+    FbsfVectorReal,
+
+} FbsfDataType;
+
 #define FbsfTrue 1
 #define FbsfFalse 0
 
@@ -66,7 +74,6 @@ typedef void*           FbsfComponent;
 typedef void*           FbsfComponentEnvironment;
 typedef void*           FbsfFMUstate;
 typedef void*           FbsfValueReference;
-typedef double          FbsfReal;
 typedef int             FbsfInteger;
 typedef int             FbsfBoolean;
 typedef char            FbsfChar;
@@ -76,7 +83,7 @@ typedef char            FbsfByte;
 FbsfSuccess API_EXPORT FbsfDoStep(FbsfComponent ptr, int timeOut);
 
 /** @brief create a fmiComponent instance which is needed for all other api function */
-FbsfComponent API_EXPORT FbsfInstantiate(QString str);
+FbsfComponent API_EXPORT FbsfInstantiate(QString str, int ac, char **av);
 
 /** @brief Not Implemented */
 FbsfSuccess API_EXPORT FbsfCancelStep(FbsfComponent ptr);
@@ -99,7 +106,16 @@ Only work for FbsfStatusKind::FbsfDoStepStatus */
 FbsfSuccess API_EXPORT FbsfGetStatus(FbsfComponent ptr, FbsfStatus *value);
 
 FbsfSuccess API_EXPORT FbsfGetRealData(FbsfComponent ptr, QString name, double *val);
-FbsfSuccess API_EXPORT FbsfResetData(FbsfComponent ptr);
+FbsfSuccess API_EXPORT FbsfGetIntegerData(FbsfComponent ptr, QString name, int *val);
+FbsfSuccess API_EXPORT FbsfGetVectorRealData(FbsfComponent ptr, QString name, QVector<double> *val);
+FbsfSuccess API_EXPORT FbsfGetVectorIntegerData(FbsfComponent ptr, QString name, QVector<int> *val);
+
+FbsfSuccess API_EXPORT FbsfGetDataNames(FbsfComponent ptr, QStringList *list);
+FbsfSuccess API_EXPORT FbsfGetDataType(FbsfComponent ptr, QString name, FbsfDataType *type);
+FbsfSuccess API_EXPORT FbsfGetDataSize(FbsfComponent ptr, QString name, int *type);
+
+FbsfSuccess API_EXPORT FbsfSaveState(FbsfComponent ptr);
+FbsfSuccess API_EXPORT FbsfRestoreState(FbsfComponent ptr);
 /** @brief used to get an fbsfApplication instance */
 FbsfComponent API_EXPORT mainApi(int argc, char **argv);
 

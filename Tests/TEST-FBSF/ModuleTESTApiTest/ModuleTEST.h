@@ -36,6 +36,7 @@ private:
     float               random_neg;
 
     QVector<int>        VectorInt;
+    QVector<int>        *VectorIntPt;
     QVector<float>      VectorReal;
 
     int                 vectornumber;

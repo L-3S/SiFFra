@@ -34,7 +34,7 @@ int FbsfConfiguration::parseXML(QString aFileName)
                     + aFileName + " : " + file.errorString());
 #ifndef MODE_BATCH
         QMessageBox::critical(nullptr, "[Fatal]", msg.toStdString().c_str());
-        qFatal(msg.toStdString().c_str());
+//        qFatal(msg.toStdString().c_str());
 #endif
         return -1;
     }

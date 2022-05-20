@@ -21,6 +21,14 @@ ModuleTEST::ModuleTEST()
     , VectorReal(10)
     , vectornumber(1)
 {
+    VectorInt = QVector<int>(10);
+    for (int o = 0; o < VectorInt.size(); o++) {
+        VectorInt[o] = 0;
+    }
+    VectorIntPt = new QVector<int>(10);
+    for (int o = 0; o < VectorIntPt->size(); o++) {
+        (*VectorIntPt)[o] = 0;
+    }
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Initialization step
@@ -83,10 +91,18 @@ int ModuleTEST::doInit()
         // Get the output value from fmu
         subscribe("TuningFMU.OutPutFMU",&FmuOutput,"","Output from FMU");
     }
+
+    // publish a int vector
+    publish(QString("ModuleBatch.VectorInt").arg(name()),
+            &VectorInt,"Km/h",
+            QString("Output VectorInt from %1").arg(name()));
+    publish(QString("%1.VectorIntPT").arg(name()),
+            VectorIntPt,"Km/h",
+            QString("Output VectorInt from %1").arg(name()));
     publish(QString("Pump.Speed"),
             &pa,"n/a",
             QString("Output to FMU from %1").arg(name()));
-    mStateDataValueMap["app"] = 0;
+    mStateDataValueMap["app"] = 110;
     publish(QString("resetTet"),
             (int*)mStateDataValueMap["app"].data(),"n/a",
             QString("Output to FMU from %1").arg(name()));
@@ -116,6 +132,14 @@ int ModuleTEST::doStep(int timeOut)
     {
         param1  = counter1%10;
         counter1 +=1 ;
+        qDebug() << "Antoine in dostep" << VectorInt  << &VectorInt<< VectorIntPt;
+        for (int o = 0; o < VectorInt.size(); o++) {
+            VectorInt[o] = VectorInt[o] + 1;
+        }
+        for (int o = 0; o < VectorIntPt->size(); o++) {
+            (*VectorIntPt)[o] += o;
+        }
+        qDebug() << "Antoine aftin dostep" << VectorInt  << &VectorInt<< VectorIntPt;
 
         random_pos =250+QRandomGenerator::global()->generate()%100;
         random_neg =250-QRandomGenerator::global()->generate()%100;

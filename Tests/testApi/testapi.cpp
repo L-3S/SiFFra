@@ -6,7 +6,7 @@ int Test1a(int ac, char **av) {
     FbsfStatus st = FbsfUninitialized;
     do{
         cout << "Starting Test1a"<<endl;
-        void *pComp = FbsfInstantiate("simul.xml");
+        void *pComp = FbsfInstantiate("simul.xml", ac, av);
         failure += !pComp ? 1 : 0;
         if(failure) break;
 
@@ -40,7 +40,7 @@ int Test1b(int ac, char **av) {
     do{
 
         cout << "Starting Test1b"<<endl;
-        void *pComp = FbsfInstantiate("simulLALA.xml");
+        void *pComp = FbsfInstantiate("simulLALA.xml", ac, av);
         qDebug() << "Starting Test1b2";
 
         failure += !pComp ? 1 : 0;
@@ -78,7 +78,7 @@ int Test2(int ac, char **av){
 
         cout << "Starting Test2"<<endl;
 
-        void *pComp = FbsfInstantiate("simul.xml");
+        void *pComp = FbsfInstantiate("simul.xml", ac, av);
         failure += !pComp ? 1 : 0;
         if(failure) break;
 
@@ -111,9 +111,7 @@ int Test2(int ac, char **av){
         if(failure) break;
 
         // Ten step increment
-        for (int y = 0; y < 10; y++) {
-            su = FbsfDoStep(pComp, timeOutCPUs);
-        }
+        for (int y = 0; y < 10; y++) su = FbsfDoStep(pComp, timeOutCPUs);
         failure += su == StepFailure ? 64 : 0;
         if(failure) break;
 
@@ -148,7 +146,7 @@ int Test2b(int ac, char **av){
 
         cout << "Starting Test2"<<endl;
 
-        void *pComp = FbsfInstantiate("simul.xml");
+        void *pComp = FbsfInstantiate("simul.xml", ac, av);
         failure += !pComp ? 1 : 0;
         if(failure) break;
 
@@ -162,10 +160,10 @@ int Test2b(int ac, char **av){
 //        failure += (timeRef == -1) ? 4: 0;
 //        if(failure) break;
 
-        double pZEValTime = -1;
+        int pZEValTime = -1;
         qDebug() << "Antoine prerecup";
 //        this_thread::sleep_for(chrono::milliseconds(2000) );
-        FbsfGetRealData(pComp, simuTimeString.c_str(), &pZEValTime);
+        FbsfGetIntegerData(pComp, simuTimeString.c_str(), &pZEValTime);
         failure += pZEValTime == -1 ? 8 : 0;
         if(failure) break;
 
@@ -173,20 +171,20 @@ int Test2b(int ac, char **av){
         su = FbsfDoStep(pComp, timeOutCPUs);
         failure += su == StepFailure ? 16 : 0;
         if(failure) break;
-
+        FbsfSaveState(pComp);
 
         // Ten step increment
         for (int y = 0; y < 10; y++) {
             su = FbsfDoStep(pComp, timeOutCPUs);
-            FbsfResetData(pComp);
-            FbsfGetRealData(pComp, simuTimeString.c_str(), &pZEValTime);
+            FbsfRestoreState(pComp);
+            FbsfGetIntegerData(pComp, simuTimeString.c_str(), &pZEValTime);
             qDebug() << "Antoine data " << pZEValTime;
         }
         failure += su == StepFailure ? 64 : 0;
         if(failure) break;
 
         su = FbsfGetStatus(pComp, &st);
-        FbsfGetRealData(pComp, simuTimeString.c_str(), &pZEValTime);
+        FbsfGetIntegerData(pComp, simuTimeString.c_str(), &pZEValTime);
         failure += (su==StepFailure || st!=FbsfReady || pZEValTime > 2) ? 128 : 0;
         if(failure) break;
 
@@ -212,7 +210,7 @@ int Test3(int ac, char **av){
     const double timeOutCPUs = 0.000001;
     do{
         cout << "Starting Test3"<<endl;
-        void *pComp = FbsfInstantiate("simul.xml");
+        void *pComp = FbsfInstantiate("simul.xml", ac, av);
 
         su = FbsfGetStatus(pComp, &st);
         if (su != StepFailure && st == FbsfReady)
@@ -255,7 +253,7 @@ int Test4(int ac, char **av){
     do{
         cout << "Starting Test4"<<endl;
 
-        void *pComp = FbsfInstantiate("simul.xml");
+        void *pComp = FbsfInstantiate("simul.xml", ac, av);
 
         // One step increment
         failure += !pComp ? 1 : 0;
@@ -360,13 +358,45 @@ int main(int ac, char **av) {
             return 0;
         }
         if (cmd == "data") {
-            double value = 0;
+
+            bool scalar = true;
+            bool integ = true;
+            cout << "vector or scalar? default: scalar:";
+            getline(cin, cmd);
+            if (cmd == "vector") {
+                scalar = false;
+            }
+            cout << "int or float? default: int:";
+            getline(cin, cmd);
+            if (cmd == "float") {
+                integ = false;
+            }
             cout << "What data? default: Executive:CpuStepTime :";
             getline(cin, cmd);
             if (cmd == "") {
                 cmd = "Executive:CpuStepTime";
             }
-            std::cout << FbsfGetRealData(comp, cmd.c_str(), &value) << " " << value << std::endl;
+            if (scalar && integ) {
+                int value = 0;
+                std::cout << FbsfGetIntegerData(comp, cmd.c_str(), &value) << " " << value << std::endl;
+            }
+            if (scalar && !integ) {
+                double value = 0;
+                std::cout << FbsfGetRealData(comp, cmd.c_str(), &value) << " " << value << std::endl;
+            }
+            if (!scalar && integ) {
+                int size = 0;
+                FbsfGetDataSize(comp, cmd.c_str(), &size);
+                qDebug() << "Antoine vInt Si" << size;
+                QVector<int> value = QVector<int>(size);
+                qDebug() << FbsfGetVectorIntegerData(comp, cmd.c_str(), &value) << " " << value;
+            }
+            if (!scalar && !integ) {
+                int size = 0;
+                FbsfGetDataSize(comp, cmd.c_str(), &size);
+                QVector<double> value = QVector<double>(size);
+                qDebug() << FbsfGetVectorRealData(comp, cmd.c_str(), &value) << " " << value;
+            }
 
         }
         if (cmd == "load" || cmd == "l") {
@@ -376,7 +406,7 @@ int main(int ac, char **av) {
                 cmd = "simul.xml";
             }
             cout << "loading " << cmd << endl;
-            comp = FbsfInstantiate(QString::fromStdString(cmd));
+            comp = FbsfInstantiate(QString::fromStdString(cmd), ac, av);
         } else if (cmd == "s") {
             cout << "set a timout ? default:1000 :";
             getline(cin, cmd);
@@ -386,6 +416,10 @@ int main(int ac, char **av) {
             std::cout << "Start step" << std::endl;
             FbsfDoStep(comp, QString::fromStdString(cmd).toInt());
             std::cout << "Step over" << std::endl;
+        } else if (cmd == "restore") {
+            FbsfRestoreState(comp);
+        } else if (cmd == "save") {
+            FbsfSaveState(comp);
         } else if (cmd == "term") {
             FbsfTerminate(comp);
         } else if (cmd == "cancel" || cmd == "c") {

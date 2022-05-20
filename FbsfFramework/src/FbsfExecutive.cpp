@@ -195,7 +195,6 @@ void FbsfExecutive::run()
 
     // Compute Simulation Time only if Server,
     // Standalone modes and not already produced
-    qDebug() << "Antoine mode " << mAppMode << FbsfDataExchange::isPublished("Simulation.Time");
     if (mAppMode == client || FbsfDataExchange::isPublished("Simulation.Time"))
     {
         bComputeTime=false;
