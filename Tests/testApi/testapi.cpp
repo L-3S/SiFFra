@@ -1,5 +1,6 @@
 #include "testapi.h"
 #include <string>
+QString const defaultSimuFile = "TestFMU_Crash2.xml"; //"simul.xml"
 int Test1a(int ac, char **av) {
     int failure = 0;
     FbsfSuccess su = StepSuccess;
@@ -293,6 +294,132 @@ int Test4(int ac, char **av){
     return failure;
 }
 
+int fmutest1(int ac, char **av){
+    int failure = 0;
+    FbsfSuccess su = StepSuccess;
+    FbsfStatus st = FbsfUninitialized;
+    const double timeOutCPUs = 0.000001;
+    double pZEValTime = -1;
+    double pZEFMUTimeInt = -1;
+    QString TimeInt = QString::fromStdString("OutPutTimeIntegrator");
+    const string simuTimeString = "Simulation.Time";
+    do{
+        cout << "Starting Test3, seeking crash"<<endl;
+        void *pComp = FbsfInstantiate("TestFMU_Crash2.xml", ac, av);
+
+        su = FbsfGetStatus(pComp, &st);
+        if (su != StepFailure && st == FbsfReady)
+        {
+            QStringList ZEVarList;
+            QString element;
+            su = FbsfGetDataNames(pComp, &ZEVarList);
+            for (int i = 0; i < ZEVarList.size(); ++i){
+                      element = ZEVarList.at(i);
+                      std::cout << "ZE includes key" << element.toStdString().c_str() <<std::endl;}
+            assert(su != StepFailure);
+            for (int y = 0; y < 60; y++) {
+                if (y == 1){
+                FbsfSaveState(pComp);
+                }
+                    // save at 2s
+                su = FbsfDoStep(pComp, timeOutCPUs);
+                failure += (su == StepFailure) ? 2 : 0;
+                if(failure) break;
+                FbsfGetRealData(pComp, simuTimeString.c_str(), &pZEValTime);
+                FbsfGetRealData(pComp, TimeInt, &pZEFMUTimeInt);
+                su = FbsfGetStatus(pComp, &st);
+                failure += (su == StepFailure || st == FbsfFailedStep) ? 4 : 0;
+                if(failure) break;
+            }
+            if(failure){
+                FbsfRestoreState(pComp);
+                // See where we are
+                FbsfGetRealData(pComp, simuTimeString.c_str(), &pZEValTime);
+                FbsfGetRealData(pComp, TimeInt, &pZEFMUTimeInt);
+
+                // Do one more step for verifying everything is ok
+                su = FbsfDoStep(pComp, timeOutCPUs);
+                failure += (su == StepFailure) ? 2 : 0;
+                FbsfGetRealData(pComp, simuTimeString.c_str(), &pZEValTime);
+                FbsfGetRealData(pComp, TimeInt, &pZEFMUTimeInt);
+
+                // Here make a test for verifying that the restore+subsequent dostep were successful
+                su = FbsfGetStatus(pComp, &st);
+                failure += (su == StepFailure || st == FbsfFailedStep) ? 4 : 0;
+                if(failure) break;
+            }
+            // Terminate + Unload
+            su = FbsfTerminate(pComp) ;
+            su = FbsfGetStatus(pComp, &st);
+            failure += (su==StepFailure || st!=FbsfTerminated) ? 8 : 0;
+            if(failure) break;
+
+            su = FbsfFreeInstance(&pComp) ;
+            failure += (su==StepFailure || pComp) ? 16 : 0;
+            if(failure) break;
+        }
+        else
+        {
+            failure = 1;
+        }
+    }while(0);
+    return failure;
+}
+
+int fmutest2(int ac, char **av){
+    int failure = 0;
+    FbsfSuccess su = StepSuccess;
+    FbsfStatus st = FbsfUninitialized;
+    const double timeOutCPUs = 10;
+    const double expectedVal = 15; // arbitrary here
+
+    const string simuZEValString = "Time";
+
+    do{
+        cout << "Starting Test4"<<endl;
+
+        void *pComp = FbsfInstantiate("TestFMU_Crash2.xml", ac, av);
+
+        // One step increment
+        failure += !pComp ? 1 : 0;
+        if(failure) break;
+
+        su = FbsfGetStatus(pComp, &st);
+        failure += (su==StepFailure || st!=FbsfReady) ? 2 : 0;
+        if(failure) break;
+
+
+        double pZEValRef = -1;
+        FbsfGetRealData(pComp, simuZEValString.c_str(), &pZEValRef);
+        failure += pZEValRef == -1 ? 8 : 0;
+        if(failure) break;
+
+        // Ten step increment
+        for (int y = 0; y < 10; y++) {
+            su = FbsfDoStep(pComp, timeOutCPUs);
+            failure += su == StepFailure ? 16 : 0;
+            if(failure) break;
+            FbsfGetRealData(pComp, simuZEValString.c_str(), &pZEValRef);
+        }
+        su = FbsfGetStatus(pComp, &st);
+        failure += (su==StepFailure || st!=FbsfReady || abs(pZEValRef - expectedVal) > 1.e-5) ? 32 : 0;
+        if(failure) break;
+
+        // Terminate + Unload
+        su = FbsfTerminate(pComp) ;
+        su = FbsfGetStatus(pComp,&st);
+        failure += (su==StepFailure || st!=FbsfTerminated) ? 64 : 0;
+        if(failure) break;
+
+        su = FbsfFreeInstance(&pComp) ;
+        failure += (su==StepFailure || pComp) ? 128 : 0;
+        if(failure) break;
+
+    } while(0);
+    return failure;
+}
+
+
 
 int main(int ac, char **av) {
     cout << "instanciate"<<endl;
@@ -302,6 +429,24 @@ int main(int ac, char **av) {
     std::string cmd;
     cout << "command:";
     while (getline(cin, cmd)){
+        if (cmd == "fmu2") {
+            int err = fmutest2(ac, av);
+            if (err) {
+                std::cout << "fmu2 err" << err <<std::endl;
+                return err;
+            }
+            std::cout << "Test fmu2 sucess" << std::endl;
+            return 0;
+        }
+        if (cmd == "fmu1") {
+            int err = fmutest1(ac, av);
+            if (err) {
+                std::cout << "fmu1 err" << err <<std::endl;
+                return err;
+            }
+            std::cout << "Test fmu1 sucess" << std::endl;
+            return 0;
+        }
         if (cmd == "t1") {
             int err = Test1a(ac, av);
             if (err) {
@@ -387,7 +532,6 @@ int main(int ac, char **av) {
             if (!scalar && integ) {
                 int size = 0;
                 FbsfGetDataSize(comp, cmd.c_str(), &size);
-                qDebug() << "Antoine vInt Si" << size;
                 QVector<int> value = QVector<int>(size);
                 qDebug() << FbsfGetVectorIntegerData(comp, cmd.c_str(), &value) << " " << value;
             }
@@ -400,10 +544,10 @@ int main(int ac, char **av) {
 
         }
         if (cmd == "load" || cmd == "l") {
-            cout << "What file? default:simul.xml :";
+            cout << "What file? default:"+ defaultSimuFile.toStdString() + ":";
             getline(cin, cmd);
             if (cmd == "") {
-                cmd = "simul.xml";
+                cmd =defaultSimuFile.toStdString();
             }
             cout << "loading " << cmd << endl;
             comp = FbsfInstantiate(QString::fromStdString(cmd), ac, av);

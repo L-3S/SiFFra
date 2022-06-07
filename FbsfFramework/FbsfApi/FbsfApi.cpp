@@ -22,6 +22,11 @@ FbsfComponent FbsfInstantiate(QString str, int ac, char **av) {
         qWarning("Error: no configuration provided");
         return comp;
     }
+    QFile file(str);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text) || !file.size()) {
+        qWarning("Error: configuration provided is invalid", file.size());
+        return comp;
+    }
     comp->threadRunning = true;
     comp->qtThread = std::thread(mainLoop, comp);
     while (1) {
