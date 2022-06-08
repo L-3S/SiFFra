@@ -55,7 +55,7 @@ Popup {id:popup
                 delegate: Button {
                     width: 35
                     height: 35
-                    highlighted: hourIndex==index
+                    highlighted: hourIndex===index
                     text: modelData
                     onClicked: {
                         timeHour=modelData
@@ -87,7 +87,7 @@ Popup {id:popup
                 delegate: Button {
                     width: 35
                     height: 35
-                    highlighted: minutesIndex==index
+                    highlighted: minutesIndex===index
                     text: modelData
                     onClicked: {
                         timeMinutes=modelData

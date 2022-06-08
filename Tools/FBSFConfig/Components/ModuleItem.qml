@@ -53,9 +53,9 @@ Element {
                 if (mouse.button == Qt.LeftButton)
                 {
                     var footerText=""
-                    if (type=="module")
+                    if (type==="module")
                     {
-                        if(category=="plugin")
+                        if(category==="plugin")
                              footerText=category + " : " + name
                         else
                             footerText=type + " : " + name
@@ -67,11 +67,11 @@ Element {
                 {
                     if(menuEnabled && selected)
                     {
-                        if(category!="plugin")
+                        if(category!=="plugin")
                         {
                             moduleMenu.rightEnabled=index < parentListview.count-1
                             moduleMenu.leftEnabled=(index > (parentListview.objectName==="rootList"?1:0))
-                            moduleMenu.removeEnabled=parentListview.count > 1
+                            moduleMenu.removeEnabled=parentListview.count >= 1
                             moduleMenu.popup()
                         }
                         else

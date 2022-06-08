@@ -62,6 +62,10 @@ public:
     Q_PROPERTY(bool loaded READ loaded NOTIFY loadedChanged)
     Q_PROPERTY(bool hasPluginList READ hasPluginList NOTIFY hasPluginListChanged)
     Q_PROPERTY(bool hasError READ hasError NOTIFY hasErrorChanged)
+    Q_PROPERTY(int  canCutOrCopy READ canCutOrCopy NOTIFY canCutOrCopyChanged)
+    Q_PROPERTY(bool canPaste READ canPaste NOTIFY canPasteChanged)
+    Q_PROPERTY(bool canUndo READ canUndo NOTIFY canUndoChanged)
+    Q_PROPERTY(bool canRedo READ canRedo NOTIFY canRedoChanged)
     Q_PROPERTY(QString configName READ configName NOTIFY configNameChanged)
     Q_PROPERTY(QUrl configUrl READ configUrl NOTIFY configUrlChanged)
 
@@ -77,6 +81,8 @@ public:
                        const QVariant& aCategory,
                        const QVariant &aModuleType);
 
+    bool canCutOrCopy();
+    bool canPaste();
     void removeSelection();
     void cutSelection();
     void copySelection();
@@ -88,6 +94,8 @@ public:
     void redo();
     void beginMacro();
     void endMacro() ;
+    bool canUndo();
+    bool canRedo();
 
     //~~~~~~~~~~~~~~~~~~ QAbstractItemModel interface ~~~~~~~~~~~~~~
     QVariant data(const QModelIndex &index, int role) const Q_DECL_OVERRIDE;
@@ -161,6 +169,10 @@ private:
 
 signals :
     void modifiedChanged(bool aModified);
+    void canCutOrCopyChanged();
+    void canPasteChanged();
+    void canUndoChanged();
+    void canRedoChanged();
     void loadedChanged(bool aLoaded);
     void hasPluginListChanged(bool aStatus);
     void hasErrorChanged(bool aStatus);

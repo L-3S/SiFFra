@@ -117,9 +117,68 @@ ToolBar {
         {
             id:editButtons
             spacing: 10
-
+        }
+        ToolButton {id:btCut
+            icon.name   : "Cut"
+            icon.source : "qrc:/icons/cut.png"
+            ToolTip.visible: hovered
+            ToolTip.text: qsTr("Cut selection")
+            enabled     : controller.config.loaded && controller.config.canCutOrCopy
+            opacity     : enabled ? 1 : 0.3
+            onClicked   : {
+                keyboard.focus=true
+                currentConfigEditor.cutSelection()
+            }
+        }
+        ToolButton {id:btCopy
+            icon.name   : "Copy"
+            icon.source : "qrc:/icons/copy.png"
+            ToolTip.visible: hovered
+            ToolTip.text: qsTr("Copy selection")
+            enabled     : controller.config.loaded && controller.config.canCutOrCopy
+            opacity     : enabled ? 1 : 0.3
+            onClicked   : {
+                keyboard.focus=true
+                currentConfigEditor.copySelection()
+            }
+        }
+        ToolButton {id:btPaste
+            icon.name   : "Paste"
+            icon.source : "qrc:/icons/paste.png"
+            ToolTip.visible: hovered
+            ToolTip.text: qsTr("Paste selection")
+            enabled     : controller.config.loaded && controller.config.canPaste
+            opacity     : enabled ? 1 : 0.3
+            onClicked   : {
+                keyboard.focus=true
+                currentConfigEditor.pasteSelection()
+            }
         }
         ToolSeparator{}
+        ToolButton {id:btUndo
+            icon.name   : "Undo"
+            icon.source : "qrc:/icons/undo.png"
+            ToolTip.visible: hovered
+            ToolTip.text: qsTr("Undo command")
+            enabled     : controller.config.loaded && controller.config.canUndo
+            opacity     : enabled ? 1 : 0.3
+            onClicked   : {
+                keyboard.focus=true
+                currentConfigEditor.undo()
+            }
+        }
+        ToolButton {id:btRedo
+            icon.name   : "Redo"
+            icon.source : "qrc:/icons/redo.png"
+            ToolTip.visible: hovered
+            ToolTip.text: qsTr("Redo command")
+            enabled     : controller.config.loaded && controller.config.canRedo
+            opacity     : enabled ? 1 : 0.3
+            onClicked   : {
+                keyboard.focus=true
+                currentConfigEditor.redo()
+            }
+        }
         Rectangle{
             height: 48
             Layout.fillWidth: true

@@ -24,8 +24,6 @@ Item{
     property int sequenceHeight : 20
 
     //~~~~~~~~~~~~~~~~~~~~ internal ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    //signal          itemSelected(var modelIndex)
-    property var    lastSelected : null
 
     width                        : (rootList.width+4*hSpacing)*zoomFactor
     height                       : (rootList.height+4*vSpacing)*zoomFactor
@@ -35,7 +33,7 @@ Item{
     //~~~~~~~~~~ Insert new child item at current selected index ~~~~~~~~~~~~~~~
     function insertChildItem()
     {
-        if(currentSubTree===null) return
+        if(currentSubTree==null) return
         controller.insertModule(currentModelIndex)
         currentSubTree.model=treeModel
     }
@@ -55,7 +53,7 @@ Item{
     //~~~~~~~~~~ fork at current selected index ~~~~~~~~~~~~~~~~~~~~~~~~~
     function forkItem()
     {
-        if(currentSubTree===null) return
+        if(currentSubTree==null) return
         if(currentModelIndex===null) return
         controller.forkItem(currentModelIndex)
         currentSubTree.model=treeModel
@@ -81,12 +79,12 @@ Item{
         if(currentModelIndex===null) return
         controller.pasteSelection(currentModelIndex)
     }
-    //~~~~~~~~~~ reset the cuurent selection ~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~~~~~~~~~~ reset the current selection ~~~~~~~~~~~~~~~~~~~~~~~~~
     function resetSelection()
     {
         ism.clear()
     }
-    //~~~~~~~~~~ Pundo last command ~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~~~~~~~~~~ undo last command ~~~~~~~~~~~~~~~~~~~~~~~~~
     function undo()
     {
         resetSelection()
@@ -174,7 +172,7 @@ Item{
         property bool removeGroupEnabled
 
         MenuItem{text: "add sequence";  onTriggered: forkItem()}
-        MenuItem{text: "remove group"; enabled: forkBeginMenu.removeGroupEnabled; onTriggered: removeSelection()}
+        MenuItem{text: "remove fork"; enabled: forkBeginMenu.removeGroupEnabled; onTriggered: removeSelection()}
     }
     Menu{
         id : forkEndMenu
@@ -185,7 +183,7 @@ Item{
         property bool downEnabled
         property bool upEnabled
         MenuItem{text: "add module";    onTriggered: insertChildItem()}
-        MenuItem{text: "add group";     onTriggered: forkItem()}
+        MenuItem{text: "fork sequence";     onTriggered: forkItem()}
         MenuItem{text: "remove sequence";onTriggered: removeSelection()}
         MenuItem{text: "move down";enabled :sequenceMenu.downEnabled;onTriggered: moveCurrentItem(1)}
         MenuItem{text: "move up";  enabled :sequenceMenu.upEnabled  ;onTriggered: moveCurrentItem(-1)}
@@ -202,9 +200,14 @@ Item{
         property bool removeEnabled
         MenuItem{text: "add module";onTriggered: insertChildItem()}
         MenuItem{text: "remove module" ;enabled :moduleMenu.removeEnabled;onTriggered: removeSelection()}
-        MenuItem{text: "add group";onTriggered: forkItem()}
+        MenuItem{text: "fork sequence";onTriggered: forkItem()}
         MenuItem{text: "move right";enabled :moduleMenu.rightEnabled;onTriggered: moveCurrentItem(1)}
-        MenuItem{text: "move left"; enabled :moduleMenu.leftEnabled ;onTriggered: moveCurrentItem(-1)}
+        MenuItem{text: "move left"; onTriggered: moveCurrentItem(-1)}
+//        MenuItem{text: "cut"; onTriggered: controller.cutSelection()}
+//        MenuItem{text: "copy"; onTriggered: controller.copySelection()}
+//        MenuItem{text: "paste"; onTriggered: controller.pasteSelection()}
+
+
     }
     Menu{
         id : pluginMenu
