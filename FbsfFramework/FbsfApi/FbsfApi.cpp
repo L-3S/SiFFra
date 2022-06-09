@@ -24,7 +24,7 @@ FbsfComponent FbsfInstantiate(QString str, int ac, char **av) {
     }
     QFile file(str);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text) || !file.size()) {
-        qWarning("Error: configuration provided is invalid", file.size());
+        qWarning("Error: configuration provided is invalid");
         return comp;
     }
     comp->threadRunning = true;
@@ -173,10 +173,12 @@ FbsfSuccess FbsfGetStatus(FbsfComponent ptr, FbsfStatus *value)  {
     }
     if (comp->configFileName == "") {
         *value = FbsfUninitialized;
+        qInfo("Error: No config");
         return StepSuccess;
     }
     if (comp->isTerminated) {
         *value = FbsfTerminated;
+        qInfo("Error: App in terminated");
         return StepSuccess;
     }
     if (!comp->run) {
@@ -196,6 +198,7 @@ FbsfSuccess FbsfGetStatus(FbsfComponent ptr, FbsfStatus *value)  {
         return StepSuccess;
     } else {
         int exSt = comp->app->executive()->getStatus();
+        qDebug() << "Antoine "<<exSt;
         switch (exSt) {
         case FBSF_OK:       *value = FbsfReady;break;
         case FBSF_WARNING:  *value = FbsfFailedStep;break;
