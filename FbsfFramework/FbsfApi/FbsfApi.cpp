@@ -240,7 +240,7 @@ FbsfSuccess FbsfGetIntegerData(FbsfComponent ptr, QString name, int *val) {
         // Register FbsfDataExchange for remote client
         if (data->name() == name) {
             if (data->Class() == cScalar && data->Type() == cInteger) {
-                *val = data->value().toDouble();
+                *val = data->value().toInt();
                 return StepSuccess;
             } else if (data->Class() == cVector) {
                 qInfo() << __FUNCTION__ << " Error while retreiving data, data is Vector Type";
@@ -299,10 +299,125 @@ FbsfSuccess FbsfGetVectorIntegerData(FbsfComponent ptr, QString name, QVector<in
     return StepFailure;
 }
 
+FbsfSuccess FbsfSetRealData(FbsfComponent ptr, QString name, double val) {
+    QList<FbsfDataExchange*> dataList = FbsfDataExchange::sPublicDataMap.values();
+    foreach (FbsfDataExchange* data, dataList)
+    {
+        // Register FbsfDataExchange for remote client
+        if (data->name() == name) {
+            if (!data->isUnresolved()) {
+                qInfo() << __FUNCTION__ << " Error while setting data, data is Vector Type";
+                return StepFailure;
+            }
+            qDebug() << "Antoine" <<data->Class() << data->Type() <<data->value();
+            if (data->Class() == cScalar && data->Type() == cReal) {
+                data->value((float)val);
+                return StepSuccess;
+            } else if (data->Class() == cVector) {
+                qInfo() << __FUNCTION__ << " Error while setting data, data is Vector Type";
+            } else if (data->Type() == cInteger) {
+                qInfo() << __FUNCTION__ << " Error while setting data, data is Integer Type";
+            }
+            return StepFailure;
+        }
+    }
+    qInfo() << __FUNCTION__ << " Error while setting data, no data dound for that name "<< name;
+    return StepFailure;
+}
+
+FbsfSuccess FbsfSetIntegerData(FbsfComponent ptr, QString name, int val) {
+    QList<FbsfDataExchange*> dataList = FbsfDataExchange::sPublicDataMap.values();
+    foreach (FbsfDataExchange* data, dataList)
+    {
+        // Register FbsfDataExchange for remote client
+        if (data->name() == name) {
+            if (!data->isUnresolved()) {
+                qInfo() << __FUNCTION__ << " Error while setting data, data is Vector Type";
+                return StepFailure;
+            }
+            if (data->Class() == cScalar && data->Type() == cInteger) {
+                data->value(val);
+                return StepSuccess;
+            } else if (data->Class() == cVector) {
+                qInfo() << __FUNCTION__ << " Error while setting data, data is Vector Type";
+            } else if (data->Type() == cReal) {
+                qInfo() << __FUNCTION__ << " Error while setting data, data is Real Type";
+            }
+            return StepFailure;
+        }
+    }
+    qInfo() << __FUNCTION__ << " Error while setting data, no data dound for that name "<< name;
+    return StepFailure;
+}
+FbsfSuccess FbsfSetVectorRealData(FbsfComponent ptr, QString name, QVector<double> val) {
+    QList<FbsfDataExchange*> dataList = FbsfDataExchange::sPublicDataMap.values();
+    foreach (FbsfDataExchange* data, dataList)
+    {
+        // Register FbsfDataExchange for remote client
+        if (data->name() == name) {
+            if (!data->isUnresolved()) {
+                qInfo() << __FUNCTION__ << " Error while setting data, data is Vector Type";
+                return StepFailure;
+            }
+            if (data->Class() == cVector && data->Type() == cReal) {
+                for (int i = 0; i < data->size(); i++) {
+                    data->vectorValue(i, (val)[i]);
+                }
+                return StepSuccess;
+            } else if (data->Class() == cScalar) {
+                qInfo() << __FUNCTION__ << " Error while setting data, data is Scalar Type";
+            } else if (data->Type() == cInteger) {
+                qInfo() << __FUNCTION__ << " Error while setting data, data is Integer Type";
+            }
+            return StepFailure;
+        }
+    }
+    qInfo() << __FUNCTION__ << " Error while setting data, no data dound for that name "<< name;
+    return StepFailure;
+}
+
+FbsfSuccess FbsfSetVectorIntegerData(FbsfComponent ptr, QString name, QVector<int> val) {
+    QList<FbsfDataExchange*> dataList = FbsfDataExchange::sPublicDataMap.values();
+    foreach (FbsfDataExchange* data, dataList)
+    {
+        // Register FbsfDataExchange for remote client
+        if (data->name() == name) {
+            if (!data->isUnresolved()) {
+                qInfo() << __FUNCTION__ << " Error while setting data, data is Vector Type";
+                return StepFailure;
+            }
+            if (data->Class() == cVector && data->Type() == cInteger) {
+                for (int i = 0; i < data->size(); i++) {
+                    data->vectorValue(i, (val)[i]);
+                }
+                return StepSuccess;
+            } else if (data->Class() == cScalar) {
+                qInfo() << __FUNCTION__ << " Error while setting data, data is Scalar Type";
+            } else if (data->Type() == cReal) {
+                qInfo() << __FUNCTION__ << " Error while setting data, data is Real Type";
+            }
+            return StepFailure;
+        }
+    }
+    qInfo() << __FUNCTION__ << " Error while setting data, no data dound for that name "<< name;
+    return StepFailure;
+}
+
 FbsfSuccess API_EXPORT FbsfGetDataNames(FbsfComponent ptr, QStringList *list) {
     QList<FbsfDataExchange*> dataList = FbsfDataExchange::sPublicDataMap.values();
+    list->clear();
     foreach (FbsfDataExchange* data, dataList) {
         list->append(data->name());
+    }
+    return StepSuccess;
+}
+
+FbsfSuccess API_EXPORT FbsfGetUnresorvedDataNames(FbsfComponent ptr, QStringList *list) {
+    QList<FbsfDataExchange*> dataList = FbsfDataExchange::sPublicDataMap.values();
+    list->clear();
+    foreach (FbsfDataExchange* data, dataList) {
+        if (data->isUnresolved())
+            list->append(data->name());
     }
     return StepSuccess;
 }

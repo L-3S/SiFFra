@@ -110,9 +110,16 @@ FbsfSuccess API_EXPORT FbsfGetIntegerData(FbsfComponent ptr, QString name, int *
 FbsfSuccess API_EXPORT FbsfGetVectorRealData(FbsfComponent ptr, QString name, QVector<double> *val);
 FbsfSuccess API_EXPORT FbsfGetVectorIntegerData(FbsfComponent ptr, QString name, QVector<int> *val);
 
+FbsfSuccess API_EXPORT FbsfSetRealData(FbsfComponent ptr, QString name, double val);
+FbsfSuccess API_EXPORT FbsfSetIntegerData(FbsfComponent ptr, QString name, int val);
+FbsfSuccess API_EXPORT FbsfSetVectorRealData(FbsfComponent ptr, QString name, QVector<double> val);
+FbsfSuccess API_EXPORT FbsfSetVectorIntegerData(FbsfComponent ptr, QString name, QVector<int> val);
+
 FbsfSuccess API_EXPORT FbsfGetDataNames(FbsfComponent ptr, QStringList *list);
 FbsfSuccess API_EXPORT FbsfGetDataType(FbsfComponent ptr, QString name, FbsfDataType *type);
 FbsfSuccess API_EXPORT FbsfGetDataSize(FbsfComponent ptr, QString name, int *type);
+
+FbsfSuccess API_EXPORT FbsfGetUnresorvedDataNames(FbsfComponent ptr, QStringList *list);
 
 FbsfSuccess API_EXPORT FbsfSaveState(FbsfComponent ptr);
 FbsfSuccess API_EXPORT FbsfRestoreState(FbsfComponent ptr);
