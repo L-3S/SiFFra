@@ -453,6 +453,7 @@ void FbsfExecutive::control(QString command, QString param1, QString param2)
     }
     else if (command == "saveLocal" && mAppMode != client)
     {
+        mSavedSimulationTime = mSimulationTime;
         for (int iSeq=0;iSeq < mSequenceList.size();iSeq++)
         {
             mSequenceList[iSeq]->doSaveState();
@@ -461,6 +462,7 @@ void FbsfExecutive::control(QString command, QString param1, QString param2)
     //~~~~~~~~~~~~~~~~~~~~ Restore states ~~~~~~~~~~~~~~~~~~~~~~~~
     else if (command == "restoreLocal" && mAppMode != client)
     {
+        mSimulationTime = mSavedSimulationTime;
         // For each modules restore the states data
         for (int iSeq=0;iSeq < mSequenceList.size();iSeq++)
         {

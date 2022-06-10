@@ -114,6 +114,7 @@ private:
     float                   mCycleTime;          // period*speed factor (ms) for computation loop
     uint                    mPeriod;             // period (ms) for computation loop
     float                   mSimulationTime;     // Simulation time
+    float                   mSavedSimulationTime;// Saved simulation time for future retore command
     bool                    bComputeTime;        // Compute or not Simulation time
     uint                    mStepNumber;         // step number for a run
     float                   mSpeedFactor;        // Simulation speed (slow or accelerate)
