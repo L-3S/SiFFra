@@ -109,11 +109,11 @@ static QMap<QString, ParamProperties> sSequenceProperties=
                     "Name of the sequence", "", "sequence1",
                     QVector<QVariant>(),
                     "default-name"}},
-     {"period", ParamProperties{Param_quality::cOptional, Param_type::cInt,
+     {"period", ParamProperties{Param_quality::cOptional, Param_type::cDbl,
                      "iteration count during step\n(High frequency < 1 , Low frequency > 1)",
                      "", "default = 1",
                      QVector<QVariant>(),
-                     1,0,INFINITY}}
+                     1.,0.,DBL_MAX}}
     };
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~~~~~~~~~~~~~~~~~~~~ Plugins properties ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

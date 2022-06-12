@@ -112,7 +112,7 @@ Item {
             implicitWidth : contentItem.childrenRect.width
             implicitHeight: contentItem.childrenRect.height
             model       : subTree
-            orientation : type==="fork"?ListView.Vertical:ListView.Horizontal
+            orientation : type==="fork"||type==="config"?ListView.Vertical:ListView.Horizontal
             highlightFollowsCurrentItem :false
             interactive : false
         }

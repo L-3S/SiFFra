@@ -36,6 +36,8 @@ Element {
                     if(menuEnabled && selected)
                     {
                         forkBeginMenu.removeGroupEnabled=(category!=="rootFork")
+                        forkBeginMenu.rightEnabled=index < parentListview.count-1
+                        forkBeginMenu.leftEnabled=(index > 0)
                         forkBeginMenu.popup()
                     }
                 }
@@ -63,7 +65,11 @@ Element {
                     else
                     {
                         if(menuEnabled && selected && category!=="rootFork")
+                        {
+                            forkEndMenu.rightEnabled=index < parentListview.count-1
+                            forkEndMenu.leftEnabled=(index > 0)
                             forkEndMenu.popup()
+                        }
                     }
                 }
             }

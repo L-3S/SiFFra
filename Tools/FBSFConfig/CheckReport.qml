@@ -8,14 +8,19 @@ Window {
     title : "Check report"
     width: 600; height: 250
     property alias report : report.text
-    Rectangle{
+    ScrollView{
         anchors.fill : parent
-        color : "#5a5a5a"
-        Text{id : report
-            font.pixelSize: 16
-            width: parent.width - 2
-            wrapMode: Text.WordWrap
-            color:"white"
+        contentHeight :panel.height
+        Rectangle {id:panel
+            width: root.width;
+            height : report.height<root.height?root.height:report.height
+            color : "#5a5a5a"
+            Text{id : report
+                font.pixelSize: 16
+                width: parent.width - 2
+                wrapMode: Text.WordWrap
+                color:"white"
+            }
         }
     }
 

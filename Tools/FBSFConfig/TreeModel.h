@@ -13,7 +13,7 @@ class TreeItem;
 class FbsfConfiguration;
 class FbsfConfigSequence;
 class FbsfConfigNode;
-//! [0]
+
 class TreeModel : public QAbstractItemModel
 {
     Q_OBJECT
@@ -48,7 +48,8 @@ public:
                      QList<FbsfConfigNode> &aNodes);
     // get the tree model as xml formatted string
     void getXmlConfig(QString &aXmlConfig);
-    void getXmlSubtree(QString& aXmlConfig,TreeItem* item,int level=0);    TreeItem *      getItem(const QModelIndex &index) const;
+    void getXmlSubtree(QString& aXmlConfig,TreeItem* item,int level=0);
+    TreeItem* getItem(const QModelIndex &index) const;
 
     // Cpp interface
 
@@ -72,7 +73,7 @@ public:
     void removeItem(const QModelIndex &index);
     void insertModule(const QModelIndex &index);
     void forkItem(const QModelIndex &index);
-    void addPluginList();
+    void addPluginList(const QModelIndex &index);
     void removePluginList();
     void moveItem(const QModelIndex &index, int dir);
 
@@ -83,7 +84,7 @@ public:
 
     bool canCutOrCopy();
     bool canPaste();
-    void removeSelection();
+    void removeSelection(bool aKeepClipboard=false);
     void cutSelection();
     void copySelection();
     void pasteSelection(const QModelIndex &index);
@@ -98,27 +99,27 @@ public:
     bool canRedo();
 
     //~~~~~~~~~~~~~~~~~~ QAbstractItemModel interface ~~~~~~~~~~~~~~
-    QVariant data(const QModelIndex &index, int role) const Q_DECL_OVERRIDE;
-    bool     setData(const QModelIndex &index, const QVariant &value,
-                     int role = Qt::EditRole) Q_DECL_OVERRIDE;
+    QVariant        data(const QModelIndex &index, int role) const Q_DECL_OVERRIDE;
+    bool            setData(const QModelIndex &index, const QVariant &value,
+                            int role = Qt::EditRole) Q_DECL_OVERRIDE;
 
-    QVariant headerData(int section, Qt::Orientation orientation,
-                        int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
-    bool     setHeaderData(int section, Qt::Orientation orientation,
-                           const QVariant &value, int role = Qt::EditRole) Q_DECL_OVERRIDE;
+    QVariant        headerData(int section, Qt::Orientation orientation,
+                               int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
+    bool            setHeaderData(int section, Qt::Orientation orientation,
+                                  const QVariant &value, int role = Qt::EditRole) Q_DECL_OVERRIDE;
 
-    Qt::ItemFlags flags(const QModelIndex &index) const Q_DECL_OVERRIDE;
-    QModelIndex index(int row, int column,
-                      const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
-    QModelIndex parent(const QModelIndex &index) const Q_DECL_OVERRIDE;
-    int rowCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
-    int columnCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
+    Qt::ItemFlags   flags(const QModelIndex &index) const Q_DECL_OVERRIDE;
+    QModelIndex     index(int row, int column,
+                          const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
+    QModelIndex     parent(const QModelIndex &index) const Q_DECL_OVERRIDE;
+    int             rowCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
+    int             columnCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
     QHash<int, QByteArray> roleNames() const Q_DECL_OVERRIDE;
 
-    bool insertRows(int position, int rows,
-                    const QModelIndex &parent = QModelIndex()) Q_DECL_OVERRIDE;
-    bool removeRows(int position, int rows,
-                    const QModelIndex &parent = QModelIndex()) Q_DECL_OVERRIDE;
+    bool            insertRows(int position, int rows,
+                               const QModelIndex &parent = QModelIndex()) Q_DECL_OVERRIDE;
+    bool            removeRows(int position, int rows,
+                               const QModelIndex &parent = QModelIndex()) Q_DECL_OVERRIDE;
 
     //~~~~~~~~~~~~~~~~~~~ helper functions ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -143,7 +144,7 @@ public:
     // store the file name
     void            setConfigUrl(const QUrl& aFileUrl);
     QUrl            configUrl(){return mConfigUrl;}
-
+    // helpers
     void            print(TreeItem* item, int level=0);
 
 private:
@@ -159,14 +160,16 @@ private:
 
     static QList<TreeItem *>       sClipBoard; // shared btw tree models
 
-    QModelIndexList         mSelectedIndices;
+    QList<QPersistentModelIndex> mSelectedIndices;
     bool                    isClipBoardCopy=false;
     UndoManager             mUndoManager;
     bool                    mModified=false;
     bool                    mLoaded=false;
     bool                    mHasPluginList=false;
     bool                    mHasError=false;
-
+public slots:
+    void undoChanged(bool canUndo) {Q_UNUSED(canUndo) emit canUndoChanged();}
+    void redoChanged(bool canRedo) {Q_UNUSED(canRedo) emit canRedoChanged();}
 signals :
     void modifiedChanged(bool aModified);
     void canCutOrCopyChanged();
@@ -179,6 +182,5 @@ signals :
     void configNameChanged();
     void configUrlChanged();
 };
-//! [0]
 
 #endif // TREEMODEL_H

@@ -61,7 +61,7 @@ Item{
     //~~~~~~~~~~ fork at current selected index ~~~~~~~~~~~~~~~~~~~~~~~~~
     function addPluginList()
     {
-        controller.addPluginList()
+        controller.addPluginList(currentModelIndex)
     }
     //~~~~~~~~~~ Cut the current selected index ~~~~~~~~~~~~~~~~~~~~~~~~~
     function cutSelection()
@@ -99,8 +99,8 @@ Item{
     //~~~~~~~~~~~~~~~~~~~~ GUI layout ~~~~~~~~~~~~~~~~~~~~
 
     Row {
-        id          : rootSequence
-        objectName  : "rootSequence"
+        id          : rootConfig
+        objectName  : "rootConfig"
         x           : hSpacing
         anchors.top : grapher.top
         anchors.topMargin : vSpacing
@@ -127,7 +127,7 @@ Item{
                     Component {
                     Loader {
                         property var parentListview : rootList
-                        property var parentRow      : rootSequence
+                        property var parentRow      : rootConfig
                         property var parentModel    : rootModel
                         source: switch(type) {
                                 case "config"   : return "qrc:/Components/ConfigItem.qml"
@@ -170,21 +170,29 @@ Item{
     Menu{
         id : forkBeginMenu
         property bool removeGroupEnabled
-
+        property bool rightEnabled
+        property bool leftEnabled
         MenuItem{text: "add sequence";  onTriggered: forkItem()}
         MenuItem{text: "remove fork"; enabled: forkBeginMenu.removeGroupEnabled; onTriggered: removeSelection()}
+        MenuItem{text: "move right";enabled :forkBeginMenu.rightEnabled;onTriggered: moveCurrentItem(1)}
+        MenuItem{text: "move left";enabled :forkBeginMenu.leftEnabled; onTriggered: moveCurrentItem(-1)}
     }
     Menu{
         id : forkEndMenu
+        property bool rightEnabled
+        property bool leftEnabled
         MenuItem{text: "add module";    onTriggered: insertChildItem()}
+        MenuItem{text: "move right";enabled :forkEndMenu.rightEnabled;onTriggered: moveCurrentItem(1)}
+        MenuItem{text: "move left";enabled :forkEndMenu.leftEnabled; onTriggered: moveCurrentItem(-1)}
     }
     Menu{
         id : sequenceMenu
+        property bool removeEnabled
         property bool downEnabled
         property bool upEnabled
-        MenuItem{text: "add module";    onTriggered: insertChildItem()}
+        MenuItem{text: "add module";        onTriggered: insertChildItem()}
         MenuItem{text: "fork sequence";     onTriggered: forkItem()}
-        MenuItem{text: "remove sequence";onTriggered: removeSelection()}
+        MenuItem{text: "remove sequence";enabled :sequenceMenu.removeEnabled;onTriggered: removeSelection()}
         MenuItem{text: "move down";enabled :sequenceMenu.downEnabled;onTriggered: moveCurrentItem(1)}
         MenuItem{text: "move up";  enabled :sequenceMenu.upEnabled  ;onTriggered: moveCurrentItem(-1)}
     }
@@ -203,11 +211,6 @@ Item{
         MenuItem{text: "fork sequence";onTriggered: forkItem()}
         MenuItem{text: "move right";enabled :moduleMenu.rightEnabled;onTriggered: moveCurrentItem(1)}
         MenuItem{text: "move left"; onTriggered: moveCurrentItem(-1)}
-//        MenuItem{text: "cut"; onTriggered: controller.cutSelection()}
-//        MenuItem{text: "copy"; onTriggered: controller.copySelection()}
-//        MenuItem{text: "paste"; onTriggered: controller.pasteSelection()}
-
-
     }
     Menu{
         id : pluginMenu

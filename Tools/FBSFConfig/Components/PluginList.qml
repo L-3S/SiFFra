@@ -6,7 +6,7 @@ Element {
     // Graphic shape for plugin list
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     id      : base
-    y       : rootSequence.height+hSpacing  // set y below root sequence
+    //y       : rootConfig.height+hSpacing  // set y below root sequence
     width   : 0 // stick ConfigItem to left
     height  : itemRow.height + 15
     Component.onCompleted: {

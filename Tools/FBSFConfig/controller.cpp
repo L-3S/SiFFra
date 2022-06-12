@@ -257,9 +257,9 @@ void Controller::forkItem(const QModelIndex &index)
     getConfig().forkItem(index);
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void Controller::addPluginList()
+void Controller::addPluginList(const QModelIndex &index)
 {
-    getConfig().addPluginList();
+    getConfig().addPluginList(index);
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void Controller::moveItem(const QModelIndex &index, int dir)

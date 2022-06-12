@@ -11,6 +11,7 @@ class UndoManager
 {
 public:
     UndoManager();
+    void clear() {mUndoStack.clear();}
     void record(QUndoCommand* aCmd);
     void undo();
     void redo();
@@ -19,6 +20,7 @@ public:
     void endMacro()   {mUndoStack.endMacro();}
     bool canUndo() {return mUndoStack.canUndo();}
     bool canRedo() {return mUndoStack.canRedo();}
+    QUndoStack* undoStack() {return &mUndoStack;}
 private:
     QUndoStack mUndoStack;
 };
@@ -31,9 +33,9 @@ public:
     void redo() override;
 private:
     TreeModel&      mModel;
+    QString         mParentName;
     TreeItem*       mItem;
-    QModelIndex     mIndex;
-    QModelIndex     mParentIndex;
+    int             mPosition;
 };
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 class moveItemCommand : public QUndoCommand
@@ -44,8 +46,9 @@ public:
     void redo() override;
 private:
     TreeModel&      mModel;
+    QString         mParentName;
     TreeItem*       mItem;
-    QModelIndex     mIndex;
+    int             mPosition;
     int             mDestination;
 };
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -58,7 +61,6 @@ public:
     void redo() override;
 private:
     TreeModel&      mModel;
-    QModelIndex     mParentIndex;
     QString         mParentName;
     TreeItem*       mItem;
     int             mPosition;
