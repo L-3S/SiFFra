@@ -239,7 +239,6 @@ bool ParamValue::isInvalid()
             if (value().toInt()<minStrict().toInt()
                     || value().toInt()>maxStrict().toInt())
             {
-                qDebug() << __FUNCTION__<<value().toInt() << maxStrict().toInt();
                 error("value out of range for " + key());
                 mHasError=true;
             }
@@ -248,7 +247,6 @@ bool ParamValue::isInvalid()
             if (value().toDouble()<minStrict().toDouble()
                     || value().toDouble()>maxStrict().toDouble())
             {
-                qDebug() << __FUNCTION__<<value().toDouble() << maxStrict().toDouble();
                 error("value out of range for " + key());
                 mHasError=true;
             }
