@@ -43,20 +43,21 @@ public:
 
 /** @brief flag for success or failure of last operation performed */
 typedef enum{
-    StepSuccess,
-    StepFailure
+    Success,
+    Failure
 } FbsfSuccess;
 
 /** @brief retrieving the simulator status at call time */
 typedef enum{
-        FbsfUninitialized, // Initialization failed, system is not ready
-        FbsfReady, // Simulator is ready to compute
-        FbsfProcessing,   // Simulator is computing a step, interaction
-     // is unsafe and should be prevented
-        FbsfTimeOut,     // The last run step is finished and
-                       // resulted in a timeout
-        FbsfFailedStep,  // The last computation step is finished and failed
-        FbsfTerminated,  // The ‘terminate’ function was called
+        FbsfUninitialized,  // Initialization failed, system is not ready
+        FbsfReady,          // Simulator is ready to compute
+                            // No error encountered during the last computation step
+        FbsfProcessing,     // Simulator is computing a step, interaction
+                            // is unsafe and should be prevented
+        FbsfTimeOut,        // The last run step is finished and
+                            // resulted in a timeout
+        FbsfFailedStep,     // The last computation step is finished and failed
+        FbsfTerminated,     // The ‘terminate’ function was called
 } FbsfStatus;
 
 typedef enum {
@@ -82,51 +83,71 @@ typedef char            FbsfByte;
 
 FbsfSuccess API_EXPORT FbsfDoStep(FbsfComponent ptr, int timeOut);
 
-/** @brief create a fmiComponent instance which is needed for all other api function */
-FbsfComponent API_EXPORT FbsfInstantiate(QString str, int ac, char **av);
+/*!
+ *  @brief create a FbsfComponent instance which is needed for all other api function
+*/
+FbsfComponent API_EXPORT FbsfInstantiate(QString fileName, int ac, char **av);
 
-/** @brief Not Implemented */
-FbsfSuccess API_EXPORT FbsfCancelStep(FbsfComponent ptr);
-
-/** @brief Informs the app that the simulation run is terminated
-*
-This function will make the Qt application quit. */
+/*!
+ * @brief Informs the app that the simulation run is terminated
+ * This function will make the Qt application quit.
+*/
 FbsfSuccess API_EXPORT FbsfTerminate(FbsfComponent ptr);
 
-/** @brief Free all used memory
-*
-Disposes the given instance, unloads the loaded model, and frees all the allocated memory and
-other resources that have been allocated by the functions of the FMU interface.
-If a null pointer is provided for “c”, the function call is ignored (does not have an effect). */
+/*!
+ *  @brief Free all used memory
+ *  Disposes the given instance, unloads the loaded model, and frees all the allocated memory and
+ *  other resources that have been allocated by the functions of the FMU interface.
+ *  If a null pointer is provided for “c”, the function call is ignored (does not have an effect).
+*/
 FbsfSuccess API_EXPORT FbsfFreeInstance(FbsfComponent *ptr);
 
-/** @brief Get status as a FbsfStatus
-
-Only work for FbsfStatusKind::FbsfDoStepStatus */
+/**
+ * @brief Get Application status as a FbsfStatus
+*/
 FbsfSuccess API_EXPORT FbsfGetStatus(FbsfComponent ptr, FbsfStatus *value);
 
-FbsfSuccess API_EXPORT FbsfGetRealData(FbsfComponent ptr, QString name, double *val);
-FbsfSuccess API_EXPORT FbsfGetIntegerData(FbsfComponent ptr, QString name, int *val);
-FbsfSuccess API_EXPORT FbsfGetVectorRealData(FbsfComponent ptr, QString name, QVector<double> *val);
-FbsfSuccess API_EXPORT FbsfGetVectorIntegerData(FbsfComponent ptr, QString name, QVector<int> *val);
-
-FbsfSuccess API_EXPORT FbsfSetRealData(FbsfComponent ptr, QString name, double val);
-FbsfSuccess API_EXPORT FbsfSetIntegerData(FbsfComponent ptr, QString name, int val);
-FbsfSuccess API_EXPORT FbsfSetVectorRealData(FbsfComponent ptr, QString name, QVector<double> val);
-FbsfSuccess API_EXPORT FbsfSetVectorIntegerData(FbsfComponent ptr, QString name, QVector<int> val);
-
+/**
+ * @brief Retreives the names of the public datas in Exchange Zone
+*/
 FbsfSuccess API_EXPORT FbsfGetDataNames(FbsfComponent ptr, QStringList *list);
+/**
+ * @brief Retreives the data type of a specific public data
+*/
 FbsfSuccess API_EXPORT FbsfGetDataType(FbsfComponent ptr, QString name, FbsfDataType *type);
+/**
+ * @brief Retreives the length of a specific public data
+*/
 FbsfSuccess API_EXPORT FbsfGetDataSize(FbsfComponent ptr, QString name, int *type);
 
+/** @brief Retreives the value of a specific public data */
+FbsfSuccess API_EXPORT FbsfGetRealData(FbsfComponent ptr, QString name, double *val);
+/** @brief Retreives the value of a specific public data */
+FbsfSuccess API_EXPORT FbsfGetIntegerData(FbsfComponent ptr, QString name, int *val);
+/** @brief Retreives the value of a specific public data */
+FbsfSuccess API_EXPORT FbsfGetVectorRealData(FbsfComponent ptr, QString name, QVector<double> *val);
+/** @brief Retreives the value of a specific public data */
+FbsfSuccess API_EXPORT FbsfGetVectorIntegerData(FbsfComponent ptr, QString name, QVector<int> *val);
+
+/** @brief Retreives the names of the unresolved public datas in Exchange Zone */
 FbsfSuccess API_EXPORT FbsfGetUnresorvedDataNames(FbsfComponent ptr, QStringList *list);
 
+/** @brief Set the value of a specific unresolved public data */
+FbsfSuccess API_EXPORT FbsfSetRealData(FbsfComponent ptr, QString name, double val);
+/** @brief Set the value of a specific unresolved public data */
+FbsfSuccess API_EXPORT FbsfSetIntegerData(FbsfComponent ptr, QString name, int val);
+/** @brief Set the value of a specific unresolved public data */
+FbsfSuccess API_EXPORT FbsfSetVectorRealData(FbsfComponent ptr, QString name, QVector<double> val);
+/** @brief Set the value of a specific unresolved public data */
+FbsfSuccess API_EXPORT FbsfSetVectorIntegerData(FbsfComponent ptr, QString name, QVector<int> val);
+
+/** @brief Invoke the doSaveState methods of each simulations model */
 FbsfSuccess API_EXPORT FbsfSaveState(FbsfComponent ptr);
+/** @brief Invoke the doRestoreState methods of each simulations model */
 FbsfSuccess API_EXPORT FbsfRestoreState(FbsfComponent ptr);
+
 /** @brief used to get an fbsfApplication instance */
 FbsfComponent API_EXPORT mainApi(int argc, char **argv);
-
-
 /** @brief the Main loop of the fbsfApp in the api */
 void API_EXPORT mainLoop(FbsfControllerComponent *);
 

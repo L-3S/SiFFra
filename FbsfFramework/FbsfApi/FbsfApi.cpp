@@ -8,21 +8,21 @@
 
 FbsfControllerComponent::FbsfControllerComponent(int aac, char **aav): ac(aac), av(aav), app(nullptr), run(false), threadRunning(false) {};
 
-FbsfComponent FbsfInstantiate(QString str, int ac, char **av) {
+FbsfComponent FbsfInstantiate(QString fileName, int ac, char **av) {
     FbsfControllerComponent *comp = new FbsfControllerComponent(ac, av);
     if (!comp) {
         qInfo("Error: no instance");
         return comp;
     } else {
         comp->mu.lock();
-        comp->configFileName = str;
+        comp->configFileName = fileName;
         comp->mu.unlock();
     }
     if (comp->configFileName == "") {
         qWarning("Error: no configuration provided");
         return comp;
     }
-    QFile file(str);
+    QFile file(fileName);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text) || !file.size()) {
         qWarning("Error: configuration provided is invalid");
         return comp;
@@ -83,66 +83,54 @@ FbsfSuccess FbsfDoStep(FbsfComponent ptr, int timeOut) {
 
     if (!comp || !comp->app) {
         qInfo("Error: no instance");
-        return StepFailure;
+        return Failure;
     }
     if (!comp->run) {
         qInfo("Error: App in not running, please exit initialisation mode");
-        return StepFailure;
+        return Failure;
     }
     if (!comp->threadRunning) {
         qInfo("Error: QT thread is not running, please enter initialisation mode");
-        return StepFailure;
+        return Failure;
     }
     QString s = comp->app->executive()->State();
     if (s == "runnin" || s == "stepping") {
         qInfo("Error: A step is already running");
-        return (StepFailure);
+        return (Failure);
     }
     comp->app->executive()->control("step", QString::number(timeOut));
     FbsfGetStatus(ptr, &st);
     while (st == FbsfProcessing) {
         FbsfGetStatus(ptr,  &st);
     }
-    return StepSuccess;
+    return Success;
 };
 
 FbsfSuccess FbsfSaveState(FbsfComponent ptr) {
     FbsfControllerComponent *comp = static_cast<FbsfControllerComponent*>(ptr);
     comp->app->executive()->control("saveLocal");
-    return StepSuccess;
+    return Success;
 }
 
 FbsfSuccess FbsfRestoreState(FbsfComponent ptr) {
     FbsfControllerComponent *comp = static_cast<FbsfControllerComponent*>(ptr);
     comp->app->executive()->control("restoreLocal");
-    return StepSuccess;
+    return Success;
 }
-
-
-FbsfSuccess FbsfCancelStep(FbsfComponent ptr) {
-      qInfo("Error: not implemented");
-//    FbsfControllerComponent *comp = static_cast<FbsfControllerComponent*>(ptr);
-//    if (!comp || !comp->app) {
-//        return stepFailure;
-//    } else {
-//        comp->app->executive()->control("cancel");
-//    }
-    return StepSuccess;
-};
 
 FbsfSuccess FbsfTerminate(FbsfComponent ptr) {
     FbsfControllerComponent *comp = static_cast<FbsfControllerComponent*>(ptr);
 
     if (!comp || !comp->app) {
         qInfo("Error: no instance");
-        return StepFailure;
+        return Failure;
     }
     if (!comp->threadRunning) {
         qInfo("Error: The app is not running");
         if (comp->qtThread.joinable()) {
             comp->qtThread.join();
         }
-        return StepFailure;
+        return Failure;
     }
 //    QCoreApplication::exit(0);
     comp->app->executive()->control("stop");
@@ -152,7 +140,7 @@ FbsfSuccess FbsfTerminate(FbsfComponent ptr) {
         comp->qtThread.join();
     }
     comp->isTerminated = true;
-    return StepSuccess;
+    return Success;
 };
 
 FbsfSuccess FbsfFreeInstance(FbsfComponent *ptr) {
@@ -162,43 +150,42 @@ FbsfSuccess FbsfFreeInstance(FbsfComponent *ptr) {
             delete comp;
         *ptr = nullptr;
     }
-    return StepSuccess;
+    return Success;
 };
 FbsfSuccess FbsfGetStatus(FbsfComponent ptr, FbsfStatus *value)  {
     FbsfControllerComponent *comp = static_cast<FbsfControllerComponent*>(ptr);
     if (!comp || !comp->app) {
         qInfo("Error: no instance");
         *value = FbsfUninitialized;
-        return StepSuccess;
+        return Success;
     }
     if (comp->configFileName == "") {
         *value = FbsfUninitialized;
         qInfo("Error: No config");
-        return StepSuccess;
+        return Success;
     }
     if (comp->isTerminated) {
         *value = FbsfTerminated;
         qInfo("Error: App in terminated");
-        return StepSuccess;
+        return Success;
     }
     if (!comp->run) {
         qInfo("Error: App in not running, please exit initialisation mode");
         *value = FbsfUninitialized;
-        return StepSuccess;
+        return Success;
     }
     if (!comp->threadRunning) {
         qInfo("Error: QT thread is not running, please enter initialisation mode");
         *value = FbsfUninitialized;
-        return StepSuccess;
+        return Success;
     }
 
     QString status = comp->app->executive()->State();
     if (status == "stepping" || status == "runnning" || status == "waiting") {
         *value = FbsfProcessing;
-        return StepSuccess;
+        return Success;
     } else {
         int exSt = comp->app->executive()->getStatus();
-        qDebug() << "Antoine "<<exSt;
         switch (exSt) {
         case FBSF_OK:       *value = FbsfReady;break;
         case FBSF_WARNING:  *value = FbsfFailedStep;break;
@@ -207,10 +194,10 @@ FbsfSuccess FbsfGetStatus(FbsfComponent ptr, FbsfStatus *value)  {
         case FBSF_TIMEOUT:  *value = FbsfTimeOut;break;
         default:            *value = FbsfFailedStep;
         }
-        return StepSuccess;
+        return Success;
     }
     *value = FbsfReady;
-    return StepSuccess;
+    return Success;
 };
 FbsfSuccess FbsfGetRealData(FbsfComponent ptr, QString name, double *val) {
     QList<FbsfDataExchange*> dataList = FbsfDataExchange::sPublicDataMap.values();
@@ -220,17 +207,17 @@ FbsfSuccess FbsfGetRealData(FbsfComponent ptr, QString name, double *val) {
         if (data->name() == name) {
             if (data->Class() == cScalar && data->Type() == cReal) {
                 *val = data->value().toDouble();
-                return StepSuccess;
+                return Success;
             } else if (data->Class() == cVector) {
                 qInfo() << __FUNCTION__ << " Error while retreiving data, data is Vector Type";
             } else if (data->Type() == cInteger) {
                 qInfo() << __FUNCTION__ << " Error while retreiving data, data is Integer Type";
             }
-            return StepFailure;
+            return Failure;
         }
     }
     qInfo() << __FUNCTION__ << " Error while retreiving data, no data dound for that name "<< name;
-    return StepFailure;
+    return Failure;
 }
 
 FbsfSuccess FbsfGetIntegerData(FbsfComponent ptr, QString name, int *val) {
@@ -241,17 +228,17 @@ FbsfSuccess FbsfGetIntegerData(FbsfComponent ptr, QString name, int *val) {
         if (data->name() == name) {
             if (data->Class() == cScalar && data->Type() == cInteger) {
                 *val = data->value().toInt();
-                return StepSuccess;
+                return Success;
             } else if (data->Class() == cVector) {
                 qInfo() << __FUNCTION__ << " Error while retreiving data, data is Vector Type";
             } else if (data->Type() == cReal) {
                 qInfo() << __FUNCTION__ << " Error while retreiving data, data is Real Type";
             }
-            return StepFailure;
+            return Failure;
         }
     }
     qInfo() << __FUNCTION__ << " Error while retreiving data, no data dound for that name "<< name;
-    return StepFailure;
+    return Failure;
 }
 FbsfSuccess FbsfGetVectorRealData(FbsfComponent ptr, QString name, QVector<double> *val) {
     QList<FbsfDataExchange*> dataList = FbsfDataExchange::sPublicDataMap.values();
@@ -263,17 +250,17 @@ FbsfSuccess FbsfGetVectorRealData(FbsfComponent ptr, QString name, QVector<doubl
                 for (int i = 0; i < data->size(); i++) {
                     (*val)[i] = data->vectorValue(i).toDouble();
                 }
-                return StepSuccess;
+                return Success;
             } else if (data->Class() == cScalar) {
                 qInfo() << __FUNCTION__ << " Error while retreiving data, data is Scalar Type";
             } else if (data->Type() == cInteger) {
                 qInfo() << __FUNCTION__ << " Error while retreiving data, data is Integer Type";
             }
-            return StepFailure;
+            return Failure;
         }
     }
     qInfo() << __FUNCTION__ << " Error while retreiving data, no data dound for that name "<< name;
-    return StepFailure;
+    return Failure;
 }
 
 FbsfSuccess FbsfGetVectorIntegerData(FbsfComponent ptr, QString name, QVector<int> *val) {
@@ -286,17 +273,17 @@ FbsfSuccess FbsfGetVectorIntegerData(FbsfComponent ptr, QString name, QVector<in
                 for (int i = 0; i < data->size(); i++) {
                     (*val)[i] = data->vectorValue(i).toInt();
                 }
-                return StepSuccess;
+                return Success;
             } else if (data->Class() == cScalar) {
                 qInfo() << __FUNCTION__ << " Error while retreiving data, data is Scalar Type";
             } else if (data->Type() == cReal) {
                 qInfo() << __FUNCTION__ << " Error while retreiving data, data is Real Type";
             }
-            return StepFailure;
+            return Failure;
         }
     }
     qInfo() << __FUNCTION__ << " Error while retreiving data, no data dound for that name "<< name;
-    return StepFailure;
+    return Failure;
 }
 
 FbsfSuccess FbsfSetRealData(FbsfComponent ptr, QString name, double val) {
@@ -307,22 +294,21 @@ FbsfSuccess FbsfSetRealData(FbsfComponent ptr, QString name, double val) {
         if (data->name() == name) {
             if (!data->isUnresolved()) {
                 qInfo() << __FUNCTION__ << " Error while setting data, data is Vector Type";
-                return StepFailure;
+                return Failure;
             }
-            qDebug() << "Antoine" <<data->Class() << data->Type() <<data->value();
             if (data->Class() == cScalar && data->Type() == cReal) {
                 data->value((float)val);
-                return StepSuccess;
+                return Success;
             } else if (data->Class() == cVector) {
                 qInfo() << __FUNCTION__ << " Error while setting data, data is Vector Type";
             } else if (data->Type() == cInteger) {
                 qInfo() << __FUNCTION__ << " Error while setting data, data is Integer Type";
             }
-            return StepFailure;
+            return Failure;
         }
     }
     qInfo() << __FUNCTION__ << " Error while setting data, no data dound for that name "<< name;
-    return StepFailure;
+    return Failure;
 }
 
 FbsfSuccess FbsfSetIntegerData(FbsfComponent ptr, QString name, int val) {
@@ -333,21 +319,21 @@ FbsfSuccess FbsfSetIntegerData(FbsfComponent ptr, QString name, int val) {
         if (data->name() == name) {
             if (!data->isUnresolved()) {
                 qInfo() << __FUNCTION__ << " Error while setting data, data is Vector Type";
-                return StepFailure;
+                return Failure;
             }
             if (data->Class() == cScalar && data->Type() == cInteger) {
                 data->value(val);
-                return StepSuccess;
+                return Success;
             } else if (data->Class() == cVector) {
                 qInfo() << __FUNCTION__ << " Error while setting data, data is Vector Type";
             } else if (data->Type() == cReal) {
                 qInfo() << __FUNCTION__ << " Error while setting data, data is Real Type";
             }
-            return StepFailure;
+            return Failure;
         }
     }
     qInfo() << __FUNCTION__ << " Error while setting data, no data dound for that name "<< name;
-    return StepFailure;
+    return Failure;
 }
 FbsfSuccess FbsfSetVectorRealData(FbsfComponent ptr, QString name, QVector<double> val) {
     QList<FbsfDataExchange*> dataList = FbsfDataExchange::sPublicDataMap.values();
@@ -357,23 +343,23 @@ FbsfSuccess FbsfSetVectorRealData(FbsfComponent ptr, QString name, QVector<doubl
         if (data->name() == name) {
             if (!data->isUnresolved()) {
                 qInfo() << __FUNCTION__ << " Error while setting data, data is Vector Type";
-                return StepFailure;
+                return Failure;
             }
             if (data->Class() == cVector && data->Type() == cReal) {
                 for (int i = 0; i < data->size(); i++) {
                     data->vectorValue(i, (val)[i]);
                 }
-                return StepSuccess;
+                return Success;
             } else if (data->Class() == cScalar) {
                 qInfo() << __FUNCTION__ << " Error while setting data, data is Scalar Type";
             } else if (data->Type() == cInteger) {
                 qInfo() << __FUNCTION__ << " Error while setting data, data is Integer Type";
             }
-            return StepFailure;
+            return Failure;
         }
     }
     qInfo() << __FUNCTION__ << " Error while setting data, no data dound for that name "<< name;
-    return StepFailure;
+    return Failure;
 }
 
 FbsfSuccess FbsfSetVectorIntegerData(FbsfComponent ptr, QString name, QVector<int> val) {
@@ -384,23 +370,23 @@ FbsfSuccess FbsfSetVectorIntegerData(FbsfComponent ptr, QString name, QVector<in
         if (data->name() == name) {
             if (!data->isUnresolved()) {
                 qInfo() << __FUNCTION__ << " Error while setting data, data is Vector Type";
-                return StepFailure;
+                return Failure;
             }
             if (data->Class() == cVector && data->Type() == cInteger) {
                 for (int i = 0; i < data->size(); i++) {
                     data->vectorValue(i, (val)[i]);
                 }
-                return StepSuccess;
+                return Success;
             } else if (data->Class() == cScalar) {
                 qInfo() << __FUNCTION__ << " Error while setting data, data is Scalar Type";
             } else if (data->Type() == cReal) {
                 qInfo() << __FUNCTION__ << " Error while setting data, data is Real Type";
             }
-            return StepFailure;
+            return Failure;
         }
     }
     qInfo() << __FUNCTION__ << " Error while setting data, no data dound for that name "<< name;
-    return StepFailure;
+    return Failure;
 }
 
 FbsfSuccess API_EXPORT FbsfGetDataNames(FbsfComponent ptr, QStringList *list) {
@@ -409,7 +395,7 @@ FbsfSuccess API_EXPORT FbsfGetDataNames(FbsfComponent ptr, QStringList *list) {
     foreach (FbsfDataExchange* data, dataList) {
         list->append(data->name());
     }
-    return StepSuccess;
+    return Success;
 }
 
 FbsfSuccess API_EXPORT FbsfGetUnresorvedDataNames(FbsfComponent ptr, QStringList *list) {
@@ -419,7 +405,7 @@ FbsfSuccess API_EXPORT FbsfGetUnresorvedDataNames(FbsfComponent ptr, QStringList
         if (data->isUnresolved())
             list->append(data->name());
     }
-    return StepSuccess;
+    return Success;
 }
 
 FbsfSuccess API_EXPORT FbsfGetDataType(FbsfComponent ptr, QString name, FbsfDataType *type) {
@@ -430,11 +416,11 @@ FbsfSuccess API_EXPORT FbsfGetDataType(FbsfComponent ptr, QString name, FbsfData
                 *type = data->Class() == cVector ? FbsfVectorInt : FbsfInt;
             else
                 *type = data->Class() == cVector ? FbsfVectorReal : FbsfReal;
-            return StepSuccess;
+            return Success;
         }
     }
     qInfo() << __FUNCTION__ << " Error while retreiving data, no data dound for that name "<< name;
-    return StepFailure;
+    return Failure;
 }
 
 FbsfSuccess API_EXPORT FbsfGetDataSize(FbsfComponent ptr, QString name, int *size) {
@@ -442,11 +428,11 @@ FbsfSuccess API_EXPORT FbsfGetDataSize(FbsfComponent ptr, QString name, int *siz
     foreach (FbsfDataExchange* data, dataList) {
         if (data->name() == name) {
             *size = data->size();
-            return StepSuccess;
+            return Success;
         }
     }
     qInfo() << __FUNCTION__ << " Error while retreiving data, no data dound for that name "<< name;
-    return StepFailure;
+    return Failure;
 }
 
 //                QStringList description;
