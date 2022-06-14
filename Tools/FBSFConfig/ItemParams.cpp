@@ -28,42 +28,45 @@ void ParamList::setParamsScalar(QMap<QString,QString>& aXmlParamList,
     // skip name as it is displayed as a main info
     if(it.key()=="name") return;
 
+    QString key=realKey(it.key());
+
     if (it->mP_qual==Param_quality::cOptional) {
-        if (aXmlParamList.contains(it.key())){
+        ///~~~~~~~~~~~~~~~~~~~~ optional ~~~~~~~~~~~~~~~~~~~~~~~~
+        if (aXmlParamList.contains(key)){
             /// add value from xml
 #ifdef TRACE
             qDebug() << __FUNCTION__<< "add optional value"
-                     << it.key() << it.value().mDescription << aXmlParamList[it.key()];
+                     << key << it.value().mDescription << aXmlParamList.value(key);
 #endif
-            addData(it.key(),aXmlParamList[it.key()],it.value());
+            addData(key,aXmlParamList.value(key),it.value(),true);
         }
         else {
             /// add default value
 #ifdef TRACE
             qDebug() << __FUNCTION__<< "add optional default"
-                     << it.key() << it.value().mDescription <<it->mDefault;
+                     << key << it.value().mDescription <<it->mDefault;
 #endif
-            addData(it.key(),it->mDefault,it.value());
+            addData(key,it->mDefault,it.value());
         }
     }
     else
-    {  /// mandatory
-        if (aXmlParamList.contains(it.key()))
+    {  ///~~~~~~~~~~~~~~~~~~~~ mandatory ~~~~~~~~~~~~~~~~~~~~~~~~
+        if (aXmlParamList.contains(key))
         {
             /// add value from xml
 #ifdef TRACE
             qDebug() << __FUNCTION__<< "add mandatory value"
-                     << it.key() << it.value().mDescription << aXmlParamList[it.key()];
+                     << key << it.value().mDescription << aXmlParamList.value(key);
 #endif
-            addData(it.key(),aXmlParamList[it.key()],it.value());
+            addData(key,aXmlParamList.value(key),it.value());
         }
         else
         {
             /// add an empty value
-            addData(it.key(),"",it.value());
+            addData(key,"",it.value());
 #ifdef TRACE
             qDebug() << __FUNCTION__<< "add empty value"
-                     << it.key() << it.value().mDescription;
+                     << key << it.value().mDescription;
 #endif
         }
     }
@@ -72,43 +75,29 @@ void ParamList::setParamsScalar(QMap<QString,QString>& aXmlParamList,
 void ParamList::setParamsEnumList(QMap<QString,QString>& aXmlParamList,
                                   const QMap<QString, ParamProperties>::const_iterator it)
 {
+    QString key=realKey(it.key());
+
     if (it->mP_qual==Param_quality::cOptional) {
-        if (aXmlParamList.contains(it.key()) && !aXmlParamList[it.key()].isEmpty())
+        ///~~~~~~~~~~~~~~~~~~~~ optional ~~~~~~~~~~~~~~~~~~~~~~~~
+        if (aXmlParamList.contains(key) && !aXmlParamList.value(key).isEmpty())
         {
             /// add value from Xml
-            addData(it.key(),it->mEnumEntries,it.value(),aXmlParamList[it.key()]);
+            addData(key,it->mEnumEntries,it.value(),aXmlParamList.value(key),true);
         }
         else {
             /// add default value
-            addData(it.key(),it->mEnumEntries,it.value(),it.value().mDefault);
+            addData(key,it->mEnumEntries,it.value(),it.value().mDefault);
         }
     }
     else {
-        /// mandatory
-        if (aXmlParamList.contains(it.key())){
+        ///~~~~~~~~~~~~~~~~~~~~ mandatory ~~~~~~~~~~~~~~~~~~~~~~~~
+        if (aXmlParamList.contains(key)){
             /// add value from Xml
-            addData(it.key(),it->mEnumEntries,it.value(),aXmlParamList[it.key()]);
+            addData(key,it->mEnumEntries,it.value(),aXmlParamList.value(key));
         }
         else {
             /// add empty value
-            addData(it.key(),it->mEnumEntries,it.value(),QString(""));
-        }
-    }
-}
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void ParamList::setParamsChoiceList(QMap<QString,QString>& aXmlParamList,
-                                  const QMap<QString, ParamProperties>::const_iterator it)
-{
-    if (it->mP_qual==Param_quality::cOptional)
-    {
-        if (aXmlParamList.contains(it.key()) && !aXmlParamList[it.key()].isEmpty())
-        {
-            /// add value from Xml
-            addData(it.key(),it->mEnumEntries,it.value(),aXmlParamList[it.key()]);
-        }
-        else {
-            /// add default value
-            addData(it.key(),it->mEnumEntries,it.value(),it.value().mDefault);
+            addData(key,it->mEnumEntries,it.value(),QString(""));
         }
     }
 }
@@ -143,12 +132,15 @@ void ParamList::setItemParams(QMap<QString,QString>& aXmlParamList,
 void ParamList::createParamsScalar(QMap<QString, ParamProperties>::const_iterator it)
 {
     if(it.key()=="name") return; // skip name as it is displayed as main info
+
+    QString key=realKey(it.key());
+
     if (it->mP_qual==Param_quality::cOptional)
     {
-        addData(it.key(),it->mDefault,it.value());
+        addData(key,it->mDefault,it.value());
 #ifdef TRACE
         qDebug() << __FUNCTION__<< "create optional with default"
-                     << it.key() << it.value().mDescription <<it->mDefault;
+                     << key << it.value().mDescription <<it->mDefault;
 #endif
     }
     else
@@ -159,32 +151,34 @@ void ParamList::createParamsScalar(QMap<QString, ParamProperties>::const_iterato
         /// - add here an empty field to force the user to overwrite with a valid choice
         /// - add here the first or last element of the list
         /// we choose the conservative option
-        addData(it.key(),"",it.value());
+        addData(key,"",it.value());
 #ifdef TRACE
         qDebug() << __FUNCTION__<< "create mandatory with empty value"
-                     << it.key() << it.value().mDescription;
+                     << key << it.value().mDescription;
 #endif
     }
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void ParamList::createParamsEnumList(QMap<QString, ParamProperties>::const_iterator it)
 {
+    QString key=realKey(it.key());
+
     if (it->mP_qual==Param_quality::cOptional)
     {
         /// optional : add default value
-        addData(it.key(),it->mEnumEntries,it.value(),it->mDefault);
+        addData(key,it->mEnumEntries,it.value(),it->mDefault);
     }
     else
     {
         /// mandatory : add empty value
-        addData(it.key(),it->mEnumEntries,it.value(),QString(""));
+        addData(key,it->mEnumEntries,it.value(),QString(""));
     }
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void ParamList::createParamsChoiceList(QMap<QString, ParamProperties>::const_iterator it)
-{
-    addData(it.key(),it->mEnumEntries,it.value(),QString(""));
-}
+//void ParamList::createParamsChoiceList(QMap<QString, ParamProperties>::const_iterator it)
+//{
+//    addData(it.key(),it->mEnumEntries,it.value(),QString(""));
+//}
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Compare param property against xml param and set item param
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

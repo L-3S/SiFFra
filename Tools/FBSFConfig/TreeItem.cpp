@@ -329,13 +329,6 @@ void TreeItem::getXmlItemData(QString& aXmlConfig, int level)
             }
             aXmlConfig+="\n";
         }
-        //        else if(data.type()==ParamValue::typeChoiceList)
-        //        {
-        //            qDebug() << data.key();
-        //            for (auto val:data.value().toStringList())
-        //                qDebug() << data.value();
-        //        }
-        //aXmlConfig+="\n";
     }
 }
 
