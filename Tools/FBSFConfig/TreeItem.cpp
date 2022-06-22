@@ -120,8 +120,7 @@ QString  TreeItem::checkParamList()
 
     bool bHasError=false;
 
-    if(type()==typeFork || type()==typePluginList)
-        return report;// nothing to check
+    if(type()==typeFork || type()==typePluginList) return report;// nothing to check
 
     if(type()==typeModule && category()==typePlugin)
     {
@@ -260,7 +259,7 @@ bool TreeItem::removeChildren(int position, int count)
         return false;
 
     for (int row = 0; row < count; ++row)
-        delete mChildItems.takeAt(position);
+        delete mChildItems.takeAt(position+row);
 
     return true;
 }
@@ -330,13 +329,6 @@ void TreeItem::getXmlItemData(QString& aXmlConfig, int level)
             }
             aXmlConfig+="\n";
         }
-        //        else if(data.type()==ParamValue::typeChoiceList)
-        //        {
-        //            qDebug() << data.key();
-        //            for (auto val:data.value().toStringList())
-        //                qDebug() << data.value();
-        //        }
-        //aXmlConfig+="\n";
     }
 }
 

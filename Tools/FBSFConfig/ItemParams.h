@@ -33,17 +33,18 @@ public:
     // Default constructor
     explicit ParamValue(QObject *parent = nullptr)
         : QObject(parent)
-        , mKey(), mType(), mOptional(), mMandatory(), mValue()
+        , mKey(), mType(), mOptional(), mMandatory(),mFromXml(false), mValue()
         , mUnit(), mMinStrict(), mMaxStrict()
         , mMinWarn(), mMaxWarn(),mDescription()
         , mIndex(0)
     {
     }
     /// Constructor for QVariant => Text
-    ParamValue(const QString& aKey,const QVariant& aValue,const ParamProperties& aProps)
+    ParamValue(const QString& aKey,const QVariant& aValue,const ParamProperties& aProps, bool aFromXml)
         : mKey(aKey), mType(),
           mOptional(aProps.mP_qual==Param_quality::cOptional),
           mMandatory(aProps.mP_qual==Param_quality::cMandatory),
+          mFromXml(aFromXml),
           mValue(aValue),mUnit(aProps.mUnit),
           mMinStrict(aProps.mMin_strict), mMaxStrict(aProps.mMax_strict),
           mMinWarn(aProps.mMin_warn), mMaxWarn(aProps.mMax_warn),
@@ -81,17 +82,17 @@ public:
             break;
         case Param_type::cEnumString    : mType=typeStringList;break;
         case Param_type::cEnumInt       : mType=typeStringList;break;
-        //case Param_type::cChoiceList    : mType=typeChoiceList;break;
         }
     }
     /// Constructor for QStringList => Combobox (index is mandatory)
     ParamValue(const QString& aKey,const QVector<QVariant>& aValue,
-               const ParamProperties& aProps,const QVariant& currentText)
+               const ParamProperties& aProps,const QVariant& currentText,bool aFromXml)
         : mKey(aKey),
           //mType(aProps.mP_type==Param_type::cChoiceList?typeChoiceList:typeStringList),
           mType(typeStringList),
           mOptional(aProps.mP_qual==Param_quality::cOptional),
           mMandatory(aProps.mP_qual==Param_quality::cMandatory),
+          mFromXml(aFromXml),
           mValue(aValue.toList()),mUnit(aProps.mUnit),
           mMinStrict(aProps.mMin_strict), mMaxStrict(aProps.mMax_strict),
           mMinWarn(aProps.mMin_warn), mMaxWarn(aProps.mMax_warn),
@@ -126,6 +127,7 @@ public:
         newValue->mType=mType;
         newValue->mOptional=mOptional;
         newValue->mMandatory=mMandatory;
+        newValue->mFromXml=mFromXml;
         newValue->mValue=mValue;
         newValue->mUnit=mUnit;
         newValue->mMinStrict=mMinStrict;
@@ -161,9 +163,11 @@ public:
     const QString&  key()           const {return mKey;}
     void            key(QString& aKey) {mKey=aKey;}
     const QString&  type()          const {return mType;}
-    QVariant::Type  defaultType() const {return mDefaultType;}
+    QVariant::Type  defaultType()   const {return mDefaultType;}
     bool            optional()      const {return mOptional;}
-    bool            mandatory()    const {return mMandatory;}
+    bool            mandatory()     const {return mMandatory;}
+    bool            fromXml()       const {return mFromXml;}
+    void            fromXml(bool aFlag)   {mFromXml=aFlag;}
     const QVariant& value()         const {return mValue;}
     const QString&  unit()          const {return mUnit;}
     const QVariant& minStrict()     const {return mMinStrict;}
@@ -190,9 +194,10 @@ public:
     {
         return (mType==typeStringList?currentText():mValue);
     }
+    // write to xml if : mandatory, value is not default or get from xml
     bool isModified()
     {
-        return(mMandatory || getValue()!=mDefaultValue);
+        return(mMandatory || mFromXml || getValue()!=mDefaultValue);
     }
     bool            isInvalid() ;
     bool            hasError() const {return mHasError; }
@@ -239,6 +244,7 @@ private :
     QString     mType;
     bool        mOptional;
     bool        mMandatory;
+    bool        mFromXml;
     QVariant    mValue;
     QString     mUnit;
     QVariant    mMinStrict;
@@ -282,7 +288,21 @@ public :
         if(aIndex>= size()) aIndex=0; // set to 0 fore safe
         return *( dynamic_cast<ParamValue*>(at(aIndex)));// down cast
     }
-    // get value by key
+    // get real key
+    QString realKey(QString aKey)
+    {
+        // Check if ordering prefix is set
+        QString key=aKey;
+        QRegExp rx("^[A-Za-z]%(.*)$");
+        if(rx.exactMatch(aKey)) key=rx.cap(1);
+        return key;
+    }
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ///
+    /// \brief get value by key
+    /// \param aKey
+    /// \return  value
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     const QVariant getValue(QVariant aKey) const
     {
         for (int i=0;i< size();i++)
@@ -295,14 +315,13 @@ public :
         }
         return QVariant();
     }
-
-    //
-    /*!
-     * \brief setValue: set value (arguments = key ; value)
-     * \param aKey
-     * \param aVal
-     * When the underlying type is enumerated, the setter fixes the underlying index
-     */
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ///
+    /// \brief setValue : set value (arguments = key ; value)
+    /// \param aKey
+    /// \param aVal
+    /// When the underlying type is enumerated, the setter fixes the underlying index
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     void setValue(const QString aKey, const QVariant& aVal) {
         for (int i=0;i< size();i++)
         {
@@ -328,157 +347,35 @@ public :
     int dataCount() const { return size();}
 
     // add value data (mandatory first)
-    void addData(QString aKey,const QVariant& aValue,const ParamProperties& aProps)
+    void addData(QString aKey,const QVariant& aValue,const ParamProperties& aProps,bool aFromXml=false)
     {
-        // Check if ordering prefix is set
-        QRegExp rx("^[A-Za-z]%(.*)$");
-        if(rx.exactMatch(aKey)) aKey=rx.cap(1);
-
         if(aProps.mP_qual==Param_quality::cMandatory)
-            prepend(new ParamValue(aKey,aValue,aProps));
+            prepend(new ParamValue(aKey,aValue,aProps,aFromXml));
         else
-            append(new ParamValue(aKey,aValue,aProps));
+            append(new ParamValue(aKey,aValue,aProps,aFromXml));
     }
     // add list data (mandatory first)
     void addData(QString aKey,const QVector<QVariant>& aValue,
-                 const ParamProperties& aProps,const QVariant& currentText)
+                 const ParamProperties& aProps,const QVariant& currentText,bool aFromXml=false)
     {
-        // Check if ordering prefix is set
-        QRegExp rx("^[A-Za-z]%(.*)$");
-        if(rx.exactMatch(aKey)) aKey=rx.cap(1);
-
         if(aProps.mP_qual==Param_quality::cMandatory)
-            prepend(new ParamValue(aKey,aValue,aProps,currentText));
+            prepend(new ParamValue(aKey,aValue,aProps,currentText,aFromXml));
         else
-            append(new ParamValue(aKey,aValue,aProps,currentText));
+            append(new ParamValue(aKey,aValue,aProps,currentText,aFromXml));
     }
     //~~~~~~~~~~~~~~~~~~~~ param updaters for loaded ~~~~~~~~~~~~~~~~~~~~~~~~
     void setParamsScalar(QMap<QString,QString>& aXmlParamList,
                          const QMap<QString, ParamProperties>::const_iterator it);
     void setParamsEnumList(QMap<QString,QString>& aXmlParamList,
                            const QMap<QString, ParamProperties>::const_iterator it);
-    void setParamsChoiceList(QMap<QString,QString>& aXmlParamList,
-                           const QMap<QString, ParamProperties>::const_iterator it);
     void setItemParams(QMap<QString,QString>& aXmlParamList,
                        const QMap<QString, ParamProperties> &aParamProperties);
     //~~~~~~~~~~~~~~~~~~~~ param creator for new instance~~~~~~~~~~~~~~~~~~~~
     void createParamsScalar(QMap<QString, ParamProperties>::const_iterator it);
     void createParamsEnumList(QMap<QString, ParamProperties>::const_iterator it);
-    void createParamsChoiceList(QMap<QString, ParamProperties>::const_iterator it);
     void createItemParams(const QMap<QString, ParamProperties>& aParamProperties);
 };
-#ifdef false
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-class  MultipleChoices : public QObject
-{
-    Q_OBJECT
-    Q_PROPERTY(QString      key         READ key        CONSTANT)
-    Q_PROPERTY(bool         optional    READ optional   CONSTANT)
-    Q_PROPERTY(QString      description READ description CONSTANT)
-    Q_PROPERTY(QStringList  choiceList  READ choiceList CONSTANT )
 
-public:
-    // Default constructor
-    explicit MultipleChoices(QObject *parent = nullptr)
-        : QObject(parent)       ,
-          mKey                ()  ,
-          mOptional           ()  ,
-          mDescription        ()  ,
-          mChoiceList         ()  ,
-          mSelectedChoices    ()  ,
-          mCheckedList        ()
-    {
-    }
-
-    explicit MultipleChoices(const QString& aKey                        ,
-                             const ParamProperties& aProps              ,
-                             const QStringList & aChoiceList            ,
-                             const QStringList & aSelectedChoices       ,
-                             QObject *parent = nullptr)
-        : QObject(parent),
-          mKey                (aKey),
-          mOptional           (aProps.mP_qual==Param_quality::cOptional),
-          mDescription        (aProps.mDescription),
-          mChoiceList         (aChoiceList),
-          mSelectedChoices    (aSelectedChoices),
-          mCheckedList        (  )  // reduced list
-    {
-        fromSelectedChoices(mChoiceList,mSelectedChoices);
-    }
-
-    // Destructor
-    ~MultipleChoices() override {}
-
-    // Copy constructor and Assignement operator
-    MultipleChoices(const MultipleChoices &other):
-        QObject(other.parent()) {*this=other;}
-
-    MultipleChoices& operator=(const MultipleChoices &other)
-    {return *other.clone(); }
-    /// Clone pointed data (usefull for default value)
-    MultipleChoices* clone() const {
-        MultipleChoices* newValue = new MultipleChoices();
-        newValue->mKey            =mKey            ;
-        newValue->mOptional       =mOptional       ;
-        newValue->mDescription    =mDescription    ;
-        newValue->mChoiceList     =mChoiceList     ;
-        newValue->mSelectedChoices=mSelectedChoices;
-        newValue->mCheckedList    =mCheckedList    ;
-
-        return newValue;
-    }
-
-    Q_INVOKABLE void selectedChoice(int aIndex, bool aStatus) { mCheckedList[aIndex]=aStatus; }
-    Q_INVOKABLE bool isChoiceSelected(int aIndex) { return mCheckedList[aIndex]; }
-
-    // Property accessors QML
-    QString         key       (){return mKey       ;}
-    bool            optional  (){return mOptional  ;}
-    QString         description   (){return mDescription   ;}
-    QStringList     choiceList(){return mChoiceList;}
-
-    QVector<bool> fromSelectedChoices(const QStringList& aChoiceList, const QStringList& aSelectedChoices) {
-        mCheckedList = QVector<bool>(aChoiceList.size(),false);
-
-        for (int i = 0; i < aChoiceList.size(); i++) mCheckedList[i] = aSelectedChoices.contains(aChoiceList.at(i));
-
-        return mCheckedList;
-    }
-
-    // accessors C++
-    /*!
-     * \brief setList (from possible entries and selected entries)
-     * \param aChoiceList   : possible entries
-     * \param aList         : selected entries
-     */
-    void   setList(QStringList aChoiceList,QStringList aList)
-    {
-        mChoiceList=aChoiceList;mCheckedList.fill(false,aChoiceList.size());
-        for(int i=0;i<aList.size();i++)
-        {
-            int index=aChoiceList.indexOf(aList[i]);
-            if(index>=0) mCheckedList[index]=true;
-        }
-        mSelectedChoices = aList;
-    }
-
-    QStringList&    getSelectedChoices()   { mSelectedChoices.clear();
-                                              for(int i=0;i<mCheckedList.size();i++)
-                                                  if(mCheckedList[i]) mSelectedChoices.append(mChoiceList[i]);
-                                              return mSelectedChoices;}
-
-public slots:
-
-private :
-    QString         mKey            ;
-    bool            mOptional       ;
-    QString         mDescription    ;
-    QStringList     mChoiceList     ;
-    QStringList     mSelectedChoices;
-    QVector<bool>   mCheckedList    ;
-};
-#endif
 Q_DECLARE_METATYPE(ParamValue)
 Q_DECLARE_METATYPE(ParamList)
 

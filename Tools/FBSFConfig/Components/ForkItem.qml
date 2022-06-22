@@ -33,9 +33,13 @@ Element {
                 }
                 else // diplay popup menu
                 {
-                    if(menuEnabled)
+                    if(menuEnabled && selected)
+                    {
                         forkBeginMenu.removeGroupEnabled=(category!=="rootFork")
-                    forkBeginMenu.popup()
+                        forkBeginMenu.rightEnabled=index < parentListview.count-1
+                        forkBeginMenu.leftEnabled=(index > 0)
+                        forkBeginMenu.popup()
+                    }
                 }
             }
         }
@@ -60,8 +64,12 @@ Element {
                     }
                     else
                     {
-                        if(menuEnabled && category!=="rootFork")
+                        if(menuEnabled && selected && category!=="rootFork")
+                        {
+                            forkEndMenu.rightEnabled=index < parentListview.count-1
+                            forkEndMenu.leftEnabled=(index > 0)
                             forkEndMenu.popup()
+                        }
                     }
                 }
             }

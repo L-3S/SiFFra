@@ -3,7 +3,7 @@
 int main(int ac, char **av) {
     cout << "instanciate"<<endl;
     FbsfApi api;
-    void *comp = api.fmi2Instanciate(ac, av);
+    void *comp = api.FbsfInstanciate(ac, av);
     std::string cmd;
     cout << "command:";
     while (getline(cin, cmd)){
@@ -14,42 +14,44 @@ int main(int ac, char **av) {
                 cmd = "simul.xml";
             }
             cout << "loading " << cmd << endl;
-            api.fmi2SetString(comp, QString::fromStdString(cmd));
+            api.FbsfSetString(comp, QString::fromStdString(cmd));
         } else if (cmd == "init" || cmd == "i") {
             cout << "Init"<<endl;
-            api.fmi2EnterInitialisationMode(comp);
+            api.FbsfEnterInitialisationMode(comp);
         } else if (cmd == "run") {
-            api.fmi2ExitInitialisationMode(comp);
+            api.FbsfExitInitialisationMode(comp);
         } else if (cmd == "s") {
-            api.fmi2DoStep(comp);
+            std::cout << "Start step" << std::endl;
+            api.FbsfDoStep(comp);
+            std::cout << "Step over" << std::endl;
         } else if (cmd == "term") {
-            api.fmi2Terminate(comp);
+            api.FbsfTerminate(comp);
         } else if (cmd == "cancel" || cmd == "c") {
-            api.fmi2CancelStep(comp);
+            api.FbsfCancelStep(comp);
         } else if (cmd == "sts") {
-            fmi2String str = nullptr;
-//            fmi2String *str = (fmi2String*)calloc(1, sizeof(fmi2String));
-            api.fmi2GetStringStatus(comp, fmi2PendingStatus, &str);
+            FbsfString str = nullptr;
+//            FbsfString *str = (FbsfString*)calloc(1, sizeof(FbsfString));
+            api.FbsfGetStringStatus(comp, FbsfPendingStatus, &str);
             if (str) {
                 std::cout << "string status :" << str<<std::endl;
             }
         } else if (cmd == "stb") {
-            fmi2Boolean b = fmi2False;
-//            fmi2String *str = (fmi2String*)calloc(1, sizeof(fmi2String));
-            api.fmi2GetBooleanStatus(comp, fmi2Terminated, &b);
+            FbsfBoolean b = FbsfFalse;
+//            FbsfString *str = (FbsfString*)calloc(1, sizeof(FbsfString));
+            api.FbsfGetBooleanStatus(comp, FbsfTerminated, &b);
             std::cout << "boolean status :" << b <<std::endl;
         } else if (cmd == "st") {
-            fmi2Status s = fmi2OK;
-//            fmi2String *str = (fmi2String*)calloc(1, sizeof(fmi2String));
-            api.fmi2GetStatus(comp, fmi2DoStepStatus, &s);
+            FbsfStatus s = FbsfOK;
+//            FbsfString *str = (FbsfString*)calloc(1, sizeof(FbsfString));
+            api.FbsfGetStatus(comp, FbsfDoStepStatus, &s);
             std::cout << "status :" << s <<std::endl;
         } else if (cmd == "stl") {
-            fmi2Real r = 0;
-//            fmi2String *str = (fmi2String*)calloc(1, sizeof(fmi2String));
-            api.fmi2GetRealStatus(comp, fmi2LastSuccessfulTime, &r);
+            FbsfReal r = 0;
+//            FbsfString *str = (FbsfString*)calloc(1, sizeof(FbsfString));
+            api.FbsfGetRealStatus(comp, FbsfLastSuccessfulTime, &r);
             std::cout << "last successful step:" << r <<std::endl;
         } else if (cmd == "f") {
-            api.fmi2FreeInstance(comp);
+            api.FbsfFreeInstance(comp);
         } else if (cmd == "quit") {
             return 0;
         }

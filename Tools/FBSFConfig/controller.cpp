@@ -165,6 +165,7 @@ void Controller::findModuleLib(QString aPath)
         QFileInfo file=it.next();
         QString typeCpp=file.baseName();
         QString category=moduleCategoryMap[typeCpp];
+        if(category.isEmpty()) category=typeManual;
         mModuleTypeList.append(new ModuleDescriptor(category,typeCpp,file.fileName()));
     }
 }
@@ -257,9 +258,9 @@ void Controller::forkItem(const QModelIndex &index)
     getConfig().forkItem(index);
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void Controller::addPluginList()
+void Controller::addPluginList(const QModelIndex &index)
 {
-    getConfig().addPluginList();
+    getConfig().addPluginList(index);
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void Controller::moveItem(const QModelIndex &index, int dir)

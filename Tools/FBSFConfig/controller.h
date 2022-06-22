@@ -45,7 +45,7 @@ public:
     Q_INVOKABLE void closeConfig();
     Q_INVOKABLE const QString checkConfig();
 
-    Q_INVOKABLE void addPluginList();
+    Q_INVOKABLE void addPluginList(const QModelIndex &index);
 
     Q_INVOKABLE void insertModule(const QModelIndex &index);
     Q_INVOKABLE void forkItem(const QModelIndex &index);

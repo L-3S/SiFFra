@@ -17,7 +17,7 @@
 #include <string>
 //#define TMP_NAME
 static QString typeRootFork("rootFork");
-static QString typeRootSequence("rootsequence");
+static QString typeRootConfig("rootConfig");
 
 QList<TreeItem *> TreeModel::sClipBoard; // shared btw the 2 editors
 
@@ -25,17 +25,23 @@ QList<TreeItem *> TreeModel::sClipBoard; // shared btw the 2 editors
 TreeModel::TreeModel( QObject *parent)
     : QAbstractItemModel(parent)
 {
-    m_roleNameMapping[RoleName] = "name";
+    m_roleNameMapping[RoleName]         = "name";
     // descriptor part
-    m_roleNameMapping[RoleType] = "type";
-    m_roleNameMapping[RoleCategory] = "category";
-    m_roleNameMapping[RoleModuleType] = "moduleType";
+    m_roleNameMapping[RoleType]         = "type";
+    m_roleNameMapping[RoleCategory]     = "category";
+    m_roleNameMapping[RoleModuleType]   = "moduleType";
     // gui roles
-    m_roleNameMapping[RoleSelected] = "selected";
-    m_roleNameMapping[RoleHasError] = "hasError";
-    m_roleNameMapping[RoleParamList] = "params";
+    m_roleNameMapping[RoleSelected]     = "selected";
+    m_roleNameMapping[RoleHasError]     = "hasError";
+    m_roleNameMapping[RoleParamList]    = "params";
     // root
-    rootItem = new TreeItem("root",typeRootSequence);
+    rootItem = new TreeItem("root",typeRootConfig);
+
+    // connect canUndo/canRedo signal to QML Property
+    connect(mUndoManager.undoStack(),SIGNAL(canUndoChanged(bool)),
+            this,SLOT(undoChanged(bool)) );
+    connect(mUndoManager.undoStack(),SIGNAL(canRedoChanged(bool)),
+            this,SLOT(redoChanged(bool)) );
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TreeModel::~TreeModel()
@@ -56,6 +62,8 @@ QUrl TreeModel::newModelData(QString aName)
     auto config = new TreeItem(aName,typeConfig);
     rootItem->appendChild(config);
     configItem=config;
+
+    mHasPluginList=false; // reset plugin list
 
     //insert an initial fork (main sequence)
     TreeItem* fork = new TreeItem(typeRootFork,
@@ -86,12 +94,12 @@ void TreeModel::setupModelData(QString aFilename)
 
     emit layoutAboutToBeChanged();
 
+    // Insert the config item
+    TreeItem* fork=readSimulation(xmlConfig);
+
     // Insert the plugin list item
     if(xmlConfig.pluginList().Models().count()>0)
         readPlugins(xmlConfig.pluginList());
-
-    // Insert the config item
-    TreeItem* fork=readSimulation(xmlConfig);
 
     // Insert the sequence items
     QList<FbsfConfigSequence>::iterator iSeq;
@@ -118,6 +126,9 @@ void TreeModel::clearModelData()
     endResetModel();
     loaded(false);
     setConfigUrl(QUrl());
+    mUndoManager.clear();
+    mSelectedIndices.clear();
+    sClipBoard.clear();
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Check the model data
@@ -199,7 +210,7 @@ void TreeModel::readPlugins(FbsfConfigSequence& aPluginList)
 {
     // insert a plugin list node
     auto pluginList = new TreeItem("plugin list",typePluginList);
-    rootItem->appendChild(pluginList);
+    configItem->appendChild(pluginList);
     mHasPluginList=true; // only one instance allowed
 
     QList<QMap<QString,QString>>::iterator iMod;
@@ -369,7 +380,7 @@ void TreeModel::print(TreeItem* item, int level)
 {
     QString tab;
     for(int i=0;i<level;i++) tab+="\t";
-    qDebug().noquote() << tab << item->type() << item->name() ;
+    qDebug().noquote() << tab << item->row() << item->type() << item->name() ;
     ++level;
     for (int i=0;i<item->childCount();i++)
     {
@@ -465,8 +476,6 @@ void TreeModel::insertModule(const QModelIndex &idx)
     TreeItem *itemTarget = getItem(idx);
     TreeItem *parent=itemTarget->parentItem();
 
-    //QString vName= QString("abstract%1").arg(moduleAutoIndex);
-
     QString vType=typeModule;
     QString vCategory=(itemTarget->type()==typePluginList||parent->type()==typePluginList?
                            typePlugin:""); // plugin else no category
@@ -500,23 +509,23 @@ void TreeModel::insertModule(const QModelIndex &idx)
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // QML : add the plugins list
-// plugin list item is added as first child of rootItem
+// plugin list item is added as second child of configItem
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void TreeModel::addPluginList()
+void TreeModel::addPluginList(const QModelIndex &index)
 {
     if(mHasPluginList) return;
 
     auto pluginList = new TreeItem("plugin list", typePluginList);
 
+    beginInsertRows(index,1,1);
     // insert a plugin list node
-    beginInsertRows(QModelIndex(),0,0);
-    insertItem(QModelIndex(),pluginList,0);
+    insertItem(index,pluginList,index.row()+1);
     endInsertRows();
 
     mHasPluginList=true; // only one instance allowed
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// QML : remove the plugins list
+// UNUSED QML : remove the plugins list
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void TreeModel::removePluginList()
 {
@@ -551,26 +560,90 @@ void TreeModel::moveItem(const QModelIndex &index,int dir)
 ///////////////////// selection management ///////////////////////////
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// QML : selection management (undoable)
+// QML : check enable
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void TreeModel::removeSelection()
+bool TreeModel::canCutOrCopy()
 {
-    mUndoManager.beginMacro();
-
     for(int i=mSelectedIndices.count()-1;i>=0;i--)
     {
         QModelIndex idx=mSelectedIndices[i];
-        if (!idx.isValid()) return;
+        if (!idx.isValid()) return false;
         TreeItem *item = getItem(idx);
         if(item!=nullptr &&
                 (item->type()==typeConfig
-                 || item->category()==typeRootFork)) continue; // not enabled
-
-        QUndoCommand *removeItemCmd = new removeItemCommand(*this,idx);
+                 || item->category()==typeRootFork)) return false; //Config not enabled
+    }
+    return (mSelectedIndices.count()!=0);
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+bool TreeModel::canPaste()
+{
+    bool flag=false;
+    if (sClipBoard.count()!=0 && mSelectedIndices.count()==1)
+    {
+        flag=true;
+        // Check if at least one item to paste is not allowed
+        TreeItem *itemTarget = getItem(mSelectedIndices[0]);
+        for(auto itemPaste:qAsConst(sClipBoard))
+        {
+            // can't paste Config
+            if (itemPaste->type()==typeConfig) return false;
+            // only pluginList allowed if target is config
+            else if((itemTarget->type()==typeConfig && (itemPaste->type()!=typePluginList || hasPluginList()))) return false;
+            // only sequence allowed if target is fork
+            else if(itemTarget->type()==typeFork && itemPaste->type()!=typeSequence) return false;
+            // only module and subfork allowed if target is sequence
+            else if(itemTarget->type()==typeSequence)
+            {
+                if ( (itemPaste->type()!=typeModule || itemPaste->category()==typePlugin)
+                   &&(itemPaste->type()!=typeFork || itemPaste->name()==typeRootFork) ) return false;// could paste in itself
+            }
+            // only module and subfork allowed if target is module
+            else if(itemTarget->type()==typeModule && itemTarget->category()!=typePlugin)
+            {
+                if((itemPaste->type()!=typeModule || itemPaste->category()==typePlugin)
+                && (itemPaste->type()!=typeFork || itemPaste->name()==typeRootFork)) return false;
+            }
+            // only plugin if target is plugin list
+            else if(itemTarget->type()==typePluginList && itemPaste->category()!=typePlugin) return false;
+            // only plugin if target is plugin
+            else if(itemTarget->category()==typePlugin && itemPaste->category()!=typePlugin) return false;
+        }
+    }
+    return flag;
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+void TreeModel::removeSelection(bool aKeepClipboard)
+{
+    // First we check if selected is candidate for remove
+    for(int i=mSelectedIndices.count()-1;i>=0;i--)
+    {
+        QModelIndex idx=mSelectedIndices[i];
+        if (!idx.isValid()) {mSelectedIndices.removeAt(i);continue;}
+        TreeItem *item = getItem(idx);
+        if (item==nullptr) {mSelectedIndices.removeAt(i);continue;}
+        // Check if item is config or root fork
+        if(item->type()==typeConfig || item->category()==typeRootFork)
+        {mSelectedIndices.removeAt(i);continue;}
+        // Check if item is last sequence of fork
+        if(item->parentItem()->type()==typeFork
+                && item->type()==typeSequence
+                && item->parentItem()->childCount()==1)
+        {mSelectedIndices.removeAt(i);continue;}
+    }
+    // now record macro with selected
+    mUndoManager.beginMacro();
+    for(int i=mSelectedIndices.count()-1;i>=0;i--)
+    {
+        QUndoCommand *removeItemCmd = new removeItemCommand(*this,mSelectedIndices[i]);
         mUndoManager.record(removeItemCmd);
     }
-
     mUndoManager.endMacro();
+
+    mSelectedIndices.clear();// empty selection
+    if(!aKeepClipboard) sClipBoard.clear();
+
+    emit canCutOrCopyChanged();
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // QML : selection management (undoable)
@@ -585,7 +658,8 @@ void TreeModel::cutSelection()
         QPersistentModelIndex idx=mSelectedIndices[i];
         if(idx.isValid()) sClipBoard.append(cloneItem(getItem(idx))); // store a copy
     }
-    removeSelection();
+    removeSelection(true);
+    emit canPasteChanged();
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void TreeModel::copySelection()
@@ -595,54 +669,58 @@ void TreeModel::copySelection()
     for(int i=mSelectedIndices.count()-1;i>=0;i--)
     {
         QPersistentModelIndex idx=mSelectedIndices[i];
-        if(idx.isValid()) sClipBoard.append(getItem(idx)); // store item
+        sClipBoard.append(getItem(idx)); // store item
     }
+    emit canPasteChanged();
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void TreeModel::pasteSelection(const QModelIndex &index)
 {
+    if(!canPaste()) return;
     beginMacro();
     if (!index.isValid()) return;
     TreeItem *itemTarget = getItem(index);
     for(auto item:qAsConst(sClipBoard))
     {
         TreeItem* itemPaste=cloneItem(item);
-        if(itemPaste==nullptr) continue;// case Config
+        if(itemPaste==nullptr) {endMacro();continue;}
+
         if(itemTarget->type()==typeConfig)
         {// only PluginList allowed if target is config
-            if(itemPaste->type()==typePluginList)
-                insertItem(index.parent(),itemPaste,0);
+            if(itemPaste->type()==typePluginList && !hasPluginList()){
+                insertItem(index,itemPaste,index.row()+1);
+            }
         }
         else
-        if(itemTarget->type()==typeFork)
-        {// only sequence allowed if target is fork
-            if(itemPaste->type()==typeSequence)
-                insertItem(index,itemPaste,itemTarget->childCount());
-        }
-        else if(itemTarget->type()==typeSequence)
-        {// only module and subfork allowed if target is sequence
-            if(itemPaste->type()==typeModule && itemPaste->category()!=typePlugin)
-                insertItem(index,itemPaste,0);
-            else if(itemPaste->type()==typeFork
-                 && itemPaste->name()!=typeRootFork)// could paste in itself
-                insertItem(index,cloneItem(itemPaste),0);
-        }
-        else if(itemTarget->type()==typeModule && itemTarget->category()!=typePlugin)
-        {// only module and subfork allowed if target is module
-            if((itemPaste->type()==typeModule && itemPaste->category()!=typePlugin)
-             ||(itemPaste->type()==typeFork && itemPaste->name()!=typeRootFork))
-                insertItem(index.parent(),itemPaste,itemTarget->row()+1);
-        }
-        else if(itemTarget->type()==typePluginList)
-        {// only plugin if target is plugin list
-            if(itemPaste->category()==typePlugin)
-                insertItem(index,itemPaste,0);
-        }
-        else if(itemTarget->category()==typePlugin)
-        {// only plugin if target is plugin
-            if(itemPaste->category()==typePlugin)
-                insertItem(index.parent(),itemPaste,itemTarget->row()+1);
-        }
+            if(itemTarget->type()==typeFork)
+            {// only sequence allowed if target is fork
+                if(itemPaste->type()==typeSequence)
+                    insertItem(index,itemPaste,itemTarget->childCount());
+            }
+            else if(itemTarget->type()==typeSequence)
+            {// only module and subfork allowed if target is sequence
+                if(itemPaste->type()==typeModule && itemPaste->category()!=typePlugin)
+                    insertItem(index,itemPaste,0);
+                else if(itemPaste->type()==typeFork
+                        && itemPaste->name()!=typeRootFork)// could paste in itself
+                    insertItem(index,cloneItem(itemPaste),0);
+            }
+            else if(itemTarget->type()==typeModule && itemTarget->category()!=typePlugin)
+            {// only module and subfork allowed if target is module
+                if((itemPaste->type()==typeModule && itemPaste->category()!=typePlugin)
+                        ||(itemPaste->type()==typeFork && itemPaste->name()!=typeRootFork))
+                    insertItem(index.parent(),itemPaste,itemTarget->row()+1);
+            }
+            else if(itemTarget->type()==typePluginList)
+            {// only plugin if target is plugin list
+                if(itemPaste->category()==typePlugin)
+                    insertItem(index,itemPaste,0);
+            }
+            else if(itemTarget->category()==typePlugin)
+            {// only plugin if target is plugin
+                if(itemPaste->category()==typePlugin)
+                    insertItem(index.parent(),itemPaste,itemTarget->row()+1);
+            }
     }
     endMacro();
 }
@@ -669,6 +747,8 @@ void TreeModel::setSelection(QModelIndexList aSelection,QItemSelection  aSelecte
     {
         setData(deselected[i],false,RoleSelected);
     }
+    emit canPasteChanged();
+    emit canCutOrCopyChanged();
 }
 //////////////////////////////////////////////////////////////////////
 //~~~~~~~~~~~~~~~~~~~~~ Helper functions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -699,10 +779,12 @@ QModelIndex TreeModel::getIndexByName(QString aName) const
                 Qt::MatchRecursive); // look *
     if(!Items.isEmpty())
     {
+        if(Items.size()>1) qDebug() << __FUNCTION__<< aName << "Match more than once";
+
         return Items[0];// must be unique
     }
     else{
-        //if(aName !="root") qDebug() << __FUNCTION__<< aName << "Not found";
+        if(aName !="root") qDebug() << __FUNCTION__<< aName << "Not found";
         return QModelIndex();
     }
 }
@@ -765,22 +847,36 @@ void TreeModel::undo()
     }
     modified(mUndoManager.canUndo());
 }
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void TreeModel::redo()
 {
     if(mUndoManager.canRedo())
     {
         emit layoutAboutToBeChanged(); mUndoManager.redo(); emit layoutChanged();
+        modified(true);
     }
 }
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void TreeModel::beginMacro()
 {
     emit layoutAboutToBeChanged();
     mUndoManager.beginMacro();
 }
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void TreeModel::endMacro()
 {
     mUndoManager.endMacro();
     emit layoutChanged();
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+bool TreeModel::canUndo()
+{
+    return (mUndoManager.canUndo());
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+bool TreeModel::canRedo()
+{
+    return (mUndoManager.canRedo());
 }
 #ifdef TMP_NAME
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -807,8 +903,8 @@ std::string generate_hex(const unsigned int len) {
 bool TreeModel::nameExist(QString aName,TreeItem* newItem, TreeItem* aLookupItem)
 {
     if( aLookupItem->type()== newItem->type()
-     && newItem != aLookupItem
-     && aLookupItem->name()== aName) return true;
+            && newItem != aLookupItem
+            && aLookupItem->name()== aName) return true;
 
     //~~~~~~~ recursive check of module and plugin items ~~~~~~~~~~
     for (int i=0;i<aLookupItem->childCount();i++)
@@ -1012,9 +1108,9 @@ bool TreeModel::removeRows(int position, int rows, const QModelIndex &parent)
 {
     TreeItem *parentItem = getItem(parent);
     bool success = true;
+
     beginRemoveRows(parent, position, position + rows - 1);
     success = parentItem->removeChildren(position, rows);
     endRemoveRows();
-
     return success;
 }

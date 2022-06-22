@@ -444,7 +444,7 @@ int FbsfGuiApplication::start(uint aPeriod, float aFactor, uint aRecorder)
     else
         qInfo() << "Exiting GUI application with status : "<< ret;
 
-    if(!Executive->ReplayMode())
+    if(!Executive->ReplayMode()&& Executive->Recorder()>0)
     {
         // write the replay file in the current dir
         QString vFile;
@@ -515,6 +515,7 @@ int FbsfBatchApplication::start(uint aPeriod, float aFactor,uint aRecorder)
     Executive->fastSpeed(aFactor);
     Executive->Recorder(aRecorder);
     Executive->start();
+
     if(mMode==batch)
         qInfo() << "Starting batch application with time step : "<< aPeriod;
     else

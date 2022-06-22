@@ -159,12 +159,13 @@ void FbsfPublicDataRecorder::record(int aStep)
 #endif // REPLAY_TIME_DEPEND
                     {   // Compute mode
                         QList<int>* pVector=static_cast<QList<int>*>(pHistoryVector);
+                        bool limitSize=false;
                         // Record the "timeshift" values from public data (Past)
                         for(int i=mTimeIndex-mTimeShift;i < mTimeIndex;i++)
                         {
                             pVector->append(pPublicData->p_data[i].mInteger);
-                            if(pVector->length()>=FbsfDataExchange::recorderSize())
-                                pVector->removeFirst();
+                            limitSize=(pVector->length()>=FbsfDataExchange::recorderSize());
+                            if(limitSize)pVector->removeFirst();
                         }
 #ifdef REPLAY_TIME_DEPEND
                         // Record the futur part of the vector
@@ -172,6 +173,7 @@ void FbsfPublicDataRecorder::record(int aStep)
                         for(int i=mTimeIndex;i < pPublicData->size();i++)
                         {
                             pFVector->append(pPublicData->p_data[i].mInteger);
+                            if(limitSize) pFVector->removeFirst();
                         }
 #endif // // REPLAY_TIME_DEPEND
                     }// end modes
@@ -200,11 +202,12 @@ void FbsfPublicDataRecorder::record(int aStep)
 #endif
                     {   // Compute mode
                         QList<qreal>* pVector=static_cast<QList<qreal>*>(pHistoryVector);
+                        bool limitSize=false;
                         for(int i=mTimeIndex-mTimeShift;i < mTimeIndex;i++)
                         {
                             pVector->append(pPublicData->p_data[i].mReal);
-                            if(pVector->length()>=FbsfDataExchange::recorderSize())
-                                pVector->removeFirst();
+                            limitSize=(pVector->length()>=FbsfDataExchange::recorderSize());
+                            if(limitSize)pVector->removeFirst();
                         }
 #ifdef REPLAY_TIME_DEPEND
                         // record futur part of the vector
@@ -212,6 +215,7 @@ void FbsfPublicDataRecorder::record(int aStep)
                         for(int i=mTimeIndex;i < pPublicData->size();i++)
                         {
                             pFVector->append(pPublicData->p_data[i].mReal);
+                            if(limitSize) pFVector->removeFirst();
                         }
 #endif
                     }// end modes
