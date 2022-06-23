@@ -7,10 +7,10 @@
         <timeshift>4</timeshift>
         <speedfactor>0.0001</speedfactor>
         <simuMpc>true</simuMpc>
-<!--        <Date.start>24/10/1955</Date.start>-->
-        <Date.format>dd-MMMM-yyyy</Date.format>
-<!--        <Time.start>08:00:00</Time.start>-->
-        <Time.format>HH:mm:ss</Time.format>
+<!--        <startDate>1981-11-24</startDate>
+        <dateFormat>dd-MMMM-yyyy</dateFormat>
+        <startTime>08:00:00</startTime>
+        <timeFormat>HH:mm:ss</timeFormat>-->
 
 <!--        <recorder>100</recorder>-->
 <!--        <perfMeter>true</perfMeter>-->
