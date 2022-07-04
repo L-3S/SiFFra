@@ -5,7 +5,6 @@
 #-------------------------------------------------
 include(../../FbsfTargets.pri)
 
-#QT          -= gui
 QT          += core qml quick xml
 TARGET      = ModuleLogic
 TEMPLATE    = lib
@@ -17,9 +16,11 @@ win32-g++{
 win32-msvc* {
     LIBS    += $$FBSF_LIB_DIR/FbsfBaseModel.lib
 }
+linux-g++ {
+    LIBS    += -L$$FBSF_LIB_DIR -lFbsfBaseModel
+}
 
 INCLUDEPATH += $$FBSF_HOME/FbsfBaseModel
-#INCLUDEPATH += ../../FbsfFramework/src
 INCLUDEPATH += $$FBSF_FRAMEWORK_DIR/FbsfPublicData
 
 DEFINES     += MODULE_LOGIC_LIBRARY
