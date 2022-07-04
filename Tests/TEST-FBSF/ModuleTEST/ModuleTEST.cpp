@@ -112,9 +112,9 @@ int ModuleTEST::doStep()
     }
     qint64 timestampMS=dataTimeStamp()*(timeUnitMS()?1:1000);
     if (name() == "ModuleBatch")
-        qDebug() << timestampMS << (timeUnitMS()?"ms":"s");
+        qDebug() << stepCount()<< timestampMS << (timeUnitMS()?"ms":"s");
     else
-        qDebug() << QDateTime::fromMSecsSinceEpoch(timestampMS).toString("dd/MM/yyyy hh:mm:ss");
+        qDebug() << stepCount() << QDateTime::fromMSecsSinceEpoch(timestampMS).toString("dd/MM/yyyy hh:mm:ss");
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     return FBSF_OK;
 }

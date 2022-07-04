@@ -119,7 +119,7 @@ int ModuleMPC::doStep()
         }
     }
     qint64 timestampMS=dataTimeStamp(pastSize()-1)*(timeUnitMS()?1:1000);
-    qDebug() << QDateTime::fromMSecsSinceEpoch(timestampMS).toString("dd/MM/yyyy hh:mm:ss");
+    qDebug() << stepCount()<< QDateTime::fromMSecsSinceEpoch(timestampMS).toString("dd/MM/yyyy hh:mm:ss");
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     return 1;
 }

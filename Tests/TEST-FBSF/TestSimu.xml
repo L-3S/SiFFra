@@ -6,10 +6,10 @@
 		<publishparam>true</publishparam>
 		<snapshotparam>true</snapshotparam>
 		<speedfactor>0.1</speedfactor>
-        <startDate>1981-11-24</startDate>
+<!--        <startDate>1981-11-24</startDate>
         <dateFormat>dd-MMMM-yyyy</dateFormat>
         <startTime>08:00:00</startTime>
-        <timeFormat>HH:mm:ss</timeFormat>
+        <timeFormat>HH:mm:ss</timeFormat>-->
     </simulation>
     <sequences>
         <sequence>
