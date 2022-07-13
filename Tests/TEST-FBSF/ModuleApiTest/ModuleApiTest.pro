@@ -7,20 +7,20 @@ include($$(FBSF_HOME)/FbsfTargets.pri)
 
 QT          -= gui
 
-TARGET      = ModuleTEST
+TARGET      = ModuleApiTest
 TEMPLATE    = lib
 
 LIBS    += $$FBSF_LIB_DIR/FbsfBaseModel.lib
 INCLUDEPATH += $$(FBSF_HOME)/FbsfBaseModel
 
-DEFINES     += ModuleTEST_LIBRARY
+DEFINES     += ModuleApiTest_LIBRARY
 DESTDIR     = $$PWD/../lib
 
 SOURCES     += \
-    ModuleTEST.cpp
+    ModuleApiTest.cpp
 
-HEADERS     +=\
-    ModuleTEST.h
+HEADERS     += \
+    ModuleApiTest.h
 
 OTHER_FILES += \
     ../testeur.xml \

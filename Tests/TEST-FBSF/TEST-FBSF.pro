@@ -2,7 +2,8 @@ TEMPLATE = subdirs
 CONFIG += ordered
 
 
-SUBDIRS =   ModuleTEST \
-            ModuleFMI \
+SUBDIRS =  ModuleFMI \
+            ModuleApiTest \
             ModuleMPC \
-            ModuleMacroLogic
+            ModuleMacroLogic \
+            FbsfApiTest

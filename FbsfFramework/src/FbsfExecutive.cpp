@@ -291,6 +291,12 @@ void FbsfExecutive::run()
         qDebug() << "Dumped PerfMeter.csv file to" << QDir::currentPath();
         delete perfmeter;
     }
+//    qDebug() << "Antoine Deb EXIT";
+//    for (int i = 0; i < mSequenceList.length(); i++) {
+//        mSequenceList[i]->thread()->terminate();
+//        mSequenceList[i]->thread()->wait();
+//    }
+//    qDebug() << "Antoine EXIT";
     emit exit();// exit from thread
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -453,20 +459,28 @@ void FbsfExecutive::control(QString command, QString param1, QString param2)
     }
     else if (command == "saveLocal" && mAppMode != client)
     {
+        mStatus = FBSF_OK;
         mSavedSimulationTime = mSimulationTime;
         for (int iSeq=0;iSeq < mSequenceList.size();iSeq++)
         {
             mSequenceList[iSeq]->doSaveState();
+            if (mStatus == FBSF_OK) {
+                mStatus = mSequenceList[iSeq]->status();
+            }
         }
     }
     //~~~~~~~~~~~~~~~~~~~~ Restore states ~~~~~~~~~~~~~~~~~~~~~~~~
     else if (command == "restoreLocal" && mAppMode != client)
     {
+        mStatus = FBSF_OK;
         mSimulationTime = mSavedSimulationTime;
         // For each modules restore the states data
         for (int iSeq=0;iSeq < mSequenceList.size();iSeq++)
         {
             mSequenceList[iSeq]->doRestoreState();
+            if (mStatus == FBSF_OK) {
+                mStatus = mSequenceList[iSeq]->status();
+            }
         }
         if (bComputeTime)
         {

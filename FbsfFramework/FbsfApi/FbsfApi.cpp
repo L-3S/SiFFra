@@ -27,6 +27,7 @@ FbsfComponent FbsfInstantiate(QString fileName, int ac, char **av) {
         qWarning("Error: configuration provided is invalid");
         return comp;
     }
+    file.close();
     comp->threadRunning = true;
     comp->qtThread = std::thread(mainLoop, comp);
     while (1) {

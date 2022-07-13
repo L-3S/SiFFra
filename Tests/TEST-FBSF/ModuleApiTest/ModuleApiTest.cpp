@@ -1,4 +1,4 @@
-#include "ModuleTEST.h"
+#include "ModuleApiTest.h"
 
 #include <QDebug>
 #include <QString>
@@ -10,7 +10,7 @@
 
 using namespace std::chrono;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-ModuleTEST::ModuleTEST()
+ModuleApiTest::ModuleApiTest()
     : FBSFBaseModel()
     , unresolvedInt(0)
     , unresolvedFloat(0)
@@ -33,7 +33,7 @@ ModuleTEST::ModuleTEST()
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Initialization step
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-int ModuleTEST::doInit()
+int ModuleApiTest::doInit()
 {
     vectornumber=config()["vectornumber"].toInt();
 
@@ -111,7 +111,7 @@ int ModuleTEST::doInit()
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Computation step
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-int ModuleTEST::doStep(int timeOut)
+int ModuleApiTest::doStep(int timeOut)
 {
     clock_t start, end;
     start = clock();
@@ -166,7 +166,7 @@ int ModuleTEST::doStep(int timeOut)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Finalization step
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-int ModuleTEST::doTerminate()
+int ModuleApiTest::doTerminate()
 {
     return FBSF_OK;
 }

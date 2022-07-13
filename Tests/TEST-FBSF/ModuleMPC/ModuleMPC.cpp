@@ -88,7 +88,7 @@ int ModuleMPC::doInit()
 // Computation step
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #include <QThread>
-int ModuleMPC::doStep()
+int ModuleMPC::doStep(int ms)
 {//QThread::msleep(20);
 
     for (int iStep=0;iStep<timeshift;iStep++)

@@ -19,7 +19,7 @@ int ModuleFMI::doInit()
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Computation step
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-int ModuleFMI::doStep()
+int ModuleFMI::doStep(int ms)
 {
     FmiVariable p1=parameter("Temperature");
     //qDebug() << p1.name() << p1.Int();

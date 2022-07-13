@@ -18,7 +18,7 @@ public:
     ModuleMPC();
     int                             doInit() override;
     int                             doTerminate() override;
-    int                             doStep()override;
+    int                             doStep(int ms) override;
     QMap<QString, ParamProperties>  getParamList() override {return mListParam;}
 
 private:

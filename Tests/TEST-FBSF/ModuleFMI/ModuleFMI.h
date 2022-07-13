@@ -10,9 +10,9 @@ class ModuleFMI_SHARED_EXPORT ModuleFMI
 {
 public:
     ModuleFMI();
-    int                     doInit();
-    int                     doTerminate();
-    int                     doStep();
+    int                     doInit() override;
+    int                     doTerminate() override;
+    int                     doStep(int timeoutMs) override;
 
     QMap<QString, ParamProperties> getParamList() override {return mListParam;}
 

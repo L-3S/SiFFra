@@ -11,7 +11,7 @@ public:
     ModuleMacroLogic();
     int     doInit();
     int     doTerminate();
-    int     doStep();
+    int     doStep(int ms);
     int     doSaveState(QDataStream &out);      // Save states to file
     int     doRestoreState(QDataStream &in);    // Restore states from file
 

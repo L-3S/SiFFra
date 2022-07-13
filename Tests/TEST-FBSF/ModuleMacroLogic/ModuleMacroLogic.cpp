@@ -37,7 +37,7 @@ int ModuleMacroLogic::doInit()
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Computation step
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-int ModuleMacroLogic::doStep()
+int ModuleMacroLogic::doStep(int ms)
 {
 static int stepnum=0;
     // apply loop behavior according time parameters

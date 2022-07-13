@@ -191,6 +191,7 @@ void FbsfSequence::initialize()
     // for each model do mStatus = doInit();
     for (int i = 0; i < mModelList.size(); ++i)
     {
+        qDebug() << "Antoine "<< mModelList[i]->name();
        mModelList[i]->initialize();
        if(mModelList[i]->status()==FBSF_ERROR)
        {
@@ -287,6 +288,7 @@ void FbsfSequence::computeStep(int timeOut)
                 mModelList[i]->consumeData();
                 #endif
                 mModelList[i]->computeStep(timeOut);
+                qDebug() << "Antoine model step2"  << mModelList[i]->name()<<mModelList[i]->status();
                 if (mStatus == FBSF_OK) {
                     mStatus=(fbsfStatus)mModelList[i]->status();
                 }
@@ -305,6 +307,7 @@ void FbsfSequence::computeStep(int timeOut)
             mModelList[i]->consumeData();
             #endif
             mModelList[i]->computeStep(timeOut);
+            qDebug() << "Antoine model step"<< this  << mModelList[i]->name()<<mModelList[i]->status();
             if (mStatus == FBSF_OK) {
                 mStatus=(fbsfStatus)mModelList[i]->status();
             }
@@ -359,11 +362,15 @@ int FbsfSequence::doRestoreState(QDataStream& in)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 int FbsfSequence::doSaveState()
 {
+    int operationStatus = FBSF_OK;
+    mStatus = FBSF_OK;
     // for each model do doSaveState();
     for (int i = 0; i < mModelList.size(); ++i)
     {
-        mModelList[i]->doSaveState();
-        mStatus=(fbsfStatus)mModelList[i]->status();
+        operationStatus = mModelList[i]->doSaveState();
+        if (mStatus == FBSF_OK) {
+            mStatus=(fbsfStatus)operationStatus;
+        }
     }
     return 1;
 }
@@ -372,11 +379,15 @@ int FbsfSequence::doSaveState()
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 int FbsfSequence::doRestoreState()
 {
+    int operationStatus = FBSF_OK;
+    mStatus = FBSF_OK;
     // for each model do doRestoreState();
     for (int i = 0; i < mModelList.size(); ++i)
     {
-        mModelList[i]->doRestoreState();
-        mStatus=(fbsfStatus)mModelList[i]->status();
+        operationStatus = mModelList[i]->doRestoreState();
+        if (mStatus == FBSF_OK) {
+            mStatus=(fbsfStatus)operationStatus;
+        }
     }
     return 1;
 }

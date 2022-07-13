@@ -2,19 +2,19 @@
 #define ModuleTEST_H
 #include <QtCore/qglobal.h>
 
-#if defined(ModuleTEST_LIBRARY)
-#  define ModuleTEST_SHARED_EXPORT Q_DECL_EXPORT
+#if defined(ModuleApiTest_LIBRARY)
+#  define ModuleApiTest_SHARED_EXPORT Q_DECL_EXPORT
 #else
-#  define ModuleTEST_SHARED_EXPORT Q_DECL_IMPORT
+#  define ModuleApiTest_SHARED_EXPORT Q_DECL_IMPORT
 #endif
 #include "FbsfBaseModel.h"
 #include <QVector>
 
-class ModuleTEST_SHARED_EXPORT ModuleTEST
+class ModuleApiTest_SHARED_EXPORT ModuleApiTest
         : public FBSFBaseModel
 {
 public:
-    ModuleTEST();
+    ModuleApiTest();
     int                             doInit() override;
     int                             doTerminate() override;
     int                             doStep(int timeOut)override;
@@ -78,6 +78,6 @@ private:
 
 extern "C" Q_DECL_EXPORT FBSFBaseModel*   factory()
 {
-    return new ModuleTEST();
+    return new ModuleApiTest();
 }
-#endif // ModuleTEST_H
+#endif // ModuleApiTest_H

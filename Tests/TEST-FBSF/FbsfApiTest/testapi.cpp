@@ -1,6 +1,6 @@
 #include "testapi.h"
 #include <string>
-QString const defaultSimuFile = "TestFMU_Crash2.xml"; //"simul.xml"
+QString const defaultSimuFile = "simul.xml"; //"simul.xml"
 int Test1a(int ac, char **av) {
     int failure = 0;
     FbsfSuccess su = Success;
@@ -317,10 +317,11 @@ int fmutest1(int ac, char **av){
                       element = ZEVarList.at(i);
                       std::cout << "ZE includes key" << element.toStdString().c_str() <<std::endl;}
             assert(su != Failure);
-            for (int y = 0; y < 60; y++) {
+            for (int y = 0; y < 50; y++) {
                 if (y == 1){
                 FbsfSaveState(pComp);
                 }
+                qDebug() << "Antoine s "<< y;
                     // save at 2s
                 su = FbsfDoStep(pComp, timeOutCPUs);
                 failure += (su == Failure) ? 2 : 0;
@@ -445,7 +446,7 @@ int main(int ac, char **av) {
                 return err;
             }
             std::cout << "Test fmu1 sucess" << std::endl;
-            return 0;
+//            return 0;
         }
         if (cmd == "t1") {
             int err = Test1a(ac, av);
@@ -454,7 +455,6 @@ int main(int ac, char **av) {
                 return err;
             }
             std::cout << "Test 1a sucess" << std::endl;
-            return 0;
         }
         if (cmd == "t1b") {
             int err = Test1b(ac, av);

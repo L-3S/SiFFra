@@ -201,6 +201,7 @@ int FbsfApplication::generateSequences() {
     // Get the sequences description
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     QList<FbsfConfigSequence>::const_iterator iSeq;
+    qDebug ()<< "Antoine au debut" << executive()->sequences().size();
     for (iSeq = config().Sequences().begin(); iSeq != config().Sequences().end(); ++iSeq)
     {
         FbsfConfigSequence sequence=*iSeq;
