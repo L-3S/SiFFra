@@ -60,14 +60,14 @@ public :
 
     static int              parseCommandLine(QStringList arglist);
     static int              parseArguments();
-    static  QCommandLineParser&     parser(){return mParser;}
+    static  QCommandLineParser&     parser(){return *mParser;}
     int             generateSequences();
     int             generateDataFlowGraph();
 
     FbsfConfiguration&              config(){return mConfig;}
     QString&                        configName() {return config().Name();}
 
-    static QCommandLineParser       mParser;
+    static QCommandLineParser       *mParser;
     static QStringList              arglist;
 
     static FbsfConfiguration        mConfig;

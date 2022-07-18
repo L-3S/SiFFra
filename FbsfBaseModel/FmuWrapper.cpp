@@ -469,7 +469,7 @@ int FmuWrapper::doSaveState()
         }
     }
 #endif
-    return 1;
+    return fmiFlag != fmi2OK ? 0 : 1;
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// restore FMU states, inputs [outputs and states]  (API level)
@@ -532,7 +532,7 @@ int FmuWrapper::doRestoreState()
         }
     }
 #endif
-    return 1;
+    return fmiFlag != fmi2OK ? 0 : 1;
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

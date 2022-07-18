@@ -81,7 +81,7 @@ typedef char            FbsfChar;
 typedef const FbsfChar* FbsfString;
 typedef char            FbsfByte;
 
-FbsfSuccess API_EXPORT FbsfDoStep(FbsfComponent ptr, int timeOut);
+FbsfSuccess API_EXPORT FbsfDoStep(FbsfComponent ptr, int timeOut = 1000000);
 
 /*!
  *  @brief create a FbsfComponent instance which is needed for all other api function
@@ -130,7 +130,7 @@ FbsfSuccess API_EXPORT FbsfGetVectorRealData(FbsfComponent ptr, QString name, QV
 FbsfSuccess API_EXPORT FbsfGetVectorIntegerData(FbsfComponent ptr, QString name, QVector<int> *val);
 
 /** @brief Retreives the names of the unresolved public datas in Exchange Zone */
-FbsfSuccess API_EXPORT FbsfGetUnresorvedDataNames(FbsfComponent ptr, QStringList *list);
+FbsfSuccess API_EXPORT FbsfGetUnresolvedDataNames(FbsfComponent ptr, QStringList *list);
 
 /** @brief Set the value of a specific unresolved public data */
 FbsfSuccess API_EXPORT FbsfSetRealData(FbsfComponent ptr, QString name, double val);

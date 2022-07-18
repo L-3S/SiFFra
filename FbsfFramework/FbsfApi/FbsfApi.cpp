@@ -109,12 +109,46 @@ FbsfSuccess FbsfDoStep(FbsfComponent ptr, int timeOut) {
 
 FbsfSuccess FbsfSaveState(FbsfComponent ptr) {
     FbsfControllerComponent *comp = static_cast<FbsfControllerComponent*>(ptr);
+    if (!comp || !comp->app) {
+        qInfo("Error: no instance");
+        return Failure;
+    }
+    if (!comp->run) {
+        qInfo("Error: App in not running, please exit initialisation mode");
+        return Failure;
+    }
+    if (!comp->threadRunning) {
+        qInfo("Error: QT thread is not running, please enter initialisation mode");
+        return Failure;
+    }
+    QString s = comp->app->executive()->State();
+    if (s == "runnin" || s == "stepping") {
+        qInfo("Error: Simulation is busy");
+        return (Failure);
+    }
     comp->app->executive()->control("saveLocal");
     return Success;
 }
 
 FbsfSuccess FbsfRestoreState(FbsfComponent ptr) {
     FbsfControllerComponent *comp = static_cast<FbsfControllerComponent*>(ptr);
+    if (!comp || !comp->app) {
+        qInfo("Error: no instance");
+        return Failure;
+    }
+    if (!comp->run) {
+        qInfo("Error: App in not running, please exit initialisation mode");
+        return Failure;
+    }
+    if (!comp->threadRunning) {
+        qInfo("Error: QT thread is not running, please enter initialisation mode");
+        return Failure;
+    }
+    QString s = comp->app->executive()->State();
+    if (s == "runnin" || s == "stepping") {
+        qInfo("Error: Simulation is busy");
+        return (Failure);
+    }
     comp->app->executive()->control("restoreLocal");
     return Success;
 }
@@ -156,27 +190,22 @@ FbsfSuccess FbsfFreeInstance(FbsfComponent *ptr) {
 FbsfSuccess FbsfGetStatus(FbsfComponent ptr, FbsfStatus *value)  {
     FbsfControllerComponent *comp = static_cast<FbsfControllerComponent*>(ptr);
     if (!comp || !comp->app) {
-        qInfo("Error: no instance");
         *value = FbsfUninitialized;
         return Success;
     }
     if (comp->configFileName == "") {
         *value = FbsfUninitialized;
-        qInfo("Error: No config");
         return Success;
     }
     if (comp->isTerminated) {
         *value = FbsfTerminated;
-        qInfo("Error: App in terminated");
         return Success;
     }
     if (!comp->run) {
-        qInfo("Error: App in not running, please exit initialisation mode");
         *value = FbsfUninitialized;
         return Success;
     }
     if (!comp->threadRunning) {
-        qInfo("Error: QT thread is not running, please enter initialisation mode");
         *value = FbsfUninitialized;
         return Success;
     }
@@ -399,7 +428,7 @@ FbsfSuccess API_EXPORT FbsfGetDataNames(FbsfComponent ptr, QStringList *list) {
     return Success;
 }
 
-FbsfSuccess API_EXPORT FbsfGetUnresorvedDataNames(FbsfComponent ptr, QStringList *list) {
+FbsfSuccess API_EXPORT FbsfGetUnresolvedDataNames(FbsfComponent ptr, QStringList *list) {
     QList<FbsfDataExchange*> dataList = FbsfDataExchange::sPublicDataMap.values();
     list->clear();
     foreach (FbsfDataExchange* data, dataList) {

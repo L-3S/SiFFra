@@ -19,7 +19,7 @@ public:
     int                             doTerminate() override;
     int                             doStep(int timeOut)override;
     QMap<QString, ParamProperties>  getParamList() override {return mListParam;}
-
+    int doRestoreState() override;
 private:
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // model variables

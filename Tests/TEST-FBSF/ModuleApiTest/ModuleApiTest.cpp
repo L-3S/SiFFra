@@ -170,3 +170,6 @@ int ModuleApiTest::doTerminate()
 {
     return FBSF_OK;
 }
+int ModuleApiTest::doRestoreState() {
+    return FBSF_ERROR;
+}
