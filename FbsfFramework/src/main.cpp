@@ -30,7 +30,6 @@ void* mainApi(int argc, char **argv)
 #endif
 {
     FbsfDataExchange::sPublicDataMap.clear();
-    qDebug() << "Antoine Map == " << FbsfDataExchange::sPublicDataMap.keys();
 #ifndef MODE_BATCH
     //~~~~~~~~~~ init resource from embedded qrc ~~~~~~~~~~~~~~~~~~
     Q_INIT_RESOURCE(GraphicEditor);
