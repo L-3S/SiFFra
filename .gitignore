@@ -9,6 +9,10 @@
 *.so.*
 *.dll
 *.dylib
+*.obj
+*.exp
+*.lib
+*.pdb
 
 # Qt-es
 object_script.*.Release
@@ -31,6 +35,7 @@ Makefile*
 *build-*
 *.qm
 *.prl
+mocinclude.opt
 
 # Qt unit tests
 target_wrapper.*
@@ -52,4 +57,11 @@ compile_commands.json
 *creator.user*
 
 *_qmlcache.qrc
+
+# FBSF specific files and folders
 FbsfFramework.lic
+*.log
+*.dat
+lib/release
+lib/debug
+lib/batch
