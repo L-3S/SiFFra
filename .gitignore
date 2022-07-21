@@ -65,3 +65,6 @@ FbsfFramework.lic
 lib/release
 lib/debug
 lib/batch
+Tests/testFMU_1/fmus/documentation/
+Tests/testFMU_1/fmus/binaries
+Tests/testFMU_1/fmus/modelDescription.xml
