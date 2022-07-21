@@ -34,7 +34,7 @@ void* mainApi(int argc, char **argv)
     //~~~~~~~~~~ init resource from embedded qrc ~~~~~~~~~~~~~~~~~~
     Q_INIT_RESOURCE(GraphicEditor);
 #endif
-//    qInstallMessageHandler(MessageHandler);
+    qInstallMessageHandler(MessageHandler);
     #ifdef QT_DEBUG
         qSetMessagePattern("[%{time} %{type} %{file}:%{line}] %{message}");
     #else
