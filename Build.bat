@@ -1,4 +1,15 @@
 @echo off
+
+rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+rem Optional: Reseting minimal path
+rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+set PATH=C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;
+
+rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+rem Path for QT toolkit
+rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+call %~dp0QtVersion.bat 
+
 rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 rem Target to build is release,debug or batch
 rem Could be an argument of this batch file or input from kewbord
@@ -9,20 +20,16 @@ if "%1" == "" (
 ) else (
 	set  fbsfMode=%1
 )
-
-
 set FBSF_HOME=%~dp0
-rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-rem Path for QT toolkit
-rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-call %~dp0QtVersion.bat 
-
 rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 rem Path for VISUAL compiler
 rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 set CompilerPath="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat"
 if exist %CompilerPath% (
 	call %CompilerPath% x64
+) else if exist "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" (
+	call "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" x64
 ) else (
 	echo CompilerPath Invalid
 	pause
