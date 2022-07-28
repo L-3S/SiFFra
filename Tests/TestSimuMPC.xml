@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Items>
+    <simulation version="1.0">
+        <timestep>1</timestep>
+        <pastsize>20</pastsize>
+        <futursize>10</futursize>
+        <timeshift>4</timeshift>
+        <speedfactor>0.0001</speedfactor>
+        <simuMpc>true</simuMpc>
+<!--        <Date.start>24/10/1955</Date.start>-->
+        <Date.format>dd-MMMM-yyyy</Date.format>
+<!--        <Time.start>08:00:00</Time.start>-->
+        <Time.format>HH:mm:ss</Time.format>
+
+<!--        <recorder>100</recorder>-->
+<!--        <perfMeter>true</perfMeter>-->
+    </simulation>
+     <sequences>
+         <sequence>
+             <name>Testeur</name>
+             <iter>1</iter>
+             <models>
+                 <model version="1.0">
+                     <module>ModuleMPC</module>
+                     <name>Producer</name>
+                     <type>manual</type>
+                     <vectornumber>2</vectornumber>
+                 </model>
+                 <model version="1.0">
+                     <module>ModuleMPC</module>
+                     <name>Consumer</name>
+                     <type>manual</type>
+                     <vectorNumber>1</vectorNumber>
+                 </model>
+                 <model version="1.0">
+                     <module>ModuleMacroLogic</module>
+                     <name>TimeVectorLogic</name>
+                     <type>visual</type>
+                     <document>DocLogic/TimeVectorLogic.qml</document>
+                 </model>
+                 <model>
+                     <name>GraphicMPC</name>
+                     <type>visual</type>
+                     <module>ModuleGraphic</module>
+                     <document>DocGraphicMPC/UIGraphic.qml</document>
+                 </model>
+            </models>
+         </sequence>
+    </sequences>
+    <PluginsList>
+        <Plugin>
+            <name>UIManualMPC</name>
+            <path>DocGraphicMPC</path>
+        </Plugin>
+    </PluginsList>
+</Items>

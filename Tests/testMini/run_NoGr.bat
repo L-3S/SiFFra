@@ -15,6 +15,6 @@ set QML_IMPORT_PATH=%FBSF_HOME%/FbsfFramework;%FBSF_HOME%/FbsfEditors\GraphicEdi
 set PATH=%~dp0lib;%PATH%
 
 
-start FbsfFramework.exe simul.xml
+start FbsfFramework.exe simul_NoGr.xml
 
 
