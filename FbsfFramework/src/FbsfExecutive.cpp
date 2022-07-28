@@ -36,7 +36,7 @@ bool           FbsfExecutive::sOptPerfMeter=false;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 FbsfExecutive::FbsfExecutive(eApplicationMode aMode)
     : bSuspended(false)
-    , workflowState( ePause )
+    , workflowState( eInitialize )
     , mAppMode(aMode)
     , mExeMode(eCompute)
     , mReplayMode(false)
@@ -150,7 +150,7 @@ int FbsfExecutive::addSequence(QString aName, float aPeriod,
     connect(this  , SIGNAL(cancelStep()) , pSequence, SLOT(cancelSeqStep()));
     // connect signal to sequence slots : pre/step computation and finalization
     connect(this  , SIGNAL(consume()) , pSequence, SLOT(consumeData()));
-    connect(this  , SIGNAL(compute()) , pSequence, SLOT(computeStep()));
+    connect(this  , SIGNAL(compute(int)) , pSequence, SLOT(computeStep(int)));
     // release
     connect(pSequence, SIGNAL(finished()), thread, SLOT(quit()));
     connect(thread   , SIGNAL(finished()), thread, SLOT(terminate()));
@@ -216,6 +216,7 @@ void FbsfExecutive::run()
     // start simulation loop
     stepTime.start();
     if (BatchMode()) batchTime.start();
+    workflowState = ePause;
     while (workflowState!=eStop)
     {
         // check state change command
@@ -229,7 +230,7 @@ void FbsfExecutive::run()
         stepTime.restart();
         // run major cycle
         emit statusChanged(ExecutionMode(),"computing");
-        doCycle();
+        doCycle(mTimeOut);
         // check state change command
         if (workflowState==eStep)
         {
@@ -290,12 +291,18 @@ void FbsfExecutive::run()
         qDebug() << "Dumped PerfMeter.csv file to" << QDir::currentPath();
         delete perfmeter;
     }
+//    qDebug() << "Antoine Deb EXIT";
+//    for (int i = 0; i < mSequenceList.length(); i++) {
+//        mSequenceList[i]->thread()->terminate();
+//        mSequenceList[i]->thread()->wait();
+//    }
+//    qDebug() << "Antoine EXIT";
     emit exit();// exit from thread
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// SLOT : Control of the executive workflow
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void FbsfExecutive::doCycle()
+void FbsfExecutive::doCycle(int timeOut)
 {
     QElapsedTimer stepDuration;
     stepDuration.start();
@@ -307,7 +314,7 @@ void FbsfExecutive::doCycle()
     {
         emit consume();// Synchronous consumption of inputs
         waitCompletion(mSequenceList.size());
-        emit compute();// compute models
+        emit compute(timeOut);// compute models
         waitCompletion(mSequenceList.size());
         for (auto seq: mSequenceList) {
             if (mStatus == FBSF_OK) {
@@ -385,6 +392,7 @@ void FbsfExecutive::control(QString command, QString param1, QString param2)
     //~~~~~~~~~~~~~ Execute one step simulation ~~~~~~~~~~~~~~~
     else if (command == "step")
     {   // step and pause
+        mTimeOut = param1 != "" ? param1.toInt(): -1;
         if (isSuspended()) wakeup();
         else mPauseCond.release();
         workflowState = eStep;
@@ -448,6 +456,45 @@ void FbsfExecutive::control(QString command, QString param1, QString param2)
             mSequenceList[iSeq]->doSaveState(out);
         }
         snapFile.close();
+    }
+    else if (command == "saveLocal" && mAppMode != client)
+    {
+        mStatus = FBSF_OK;
+        mSavedSimulationTime = mSimulationTime;
+        for (int iSeq=0;iSeq < mSequenceList.size();iSeq++)
+        {
+            mSequenceList[iSeq]->doSaveState();
+            if (mStatus == FBSF_OK) {
+                mStatus = mSequenceList[iSeq]->status();
+            }
+        }
+    }
+    //~~~~~~~~~~~~~~~~~~~~ Restore states ~~~~~~~~~~~~~~~~~~~~~~~~
+    else if (command == "restoreLocal" && mAppMode != client)
+    {
+        mStatus = FBSF_OK;
+        mSimulationTime = mSavedSimulationTime;
+        // For each modules restore the states data
+        for (int iSeq=0;iSeq < mSequenceList.size();iSeq++)
+        {
+            mSequenceList[iSeq]->doRestoreState();
+            if (mStatus == FBSF_OK) {
+                mStatus = mSequenceList[iSeq]->status();
+            }
+        }
+        if (bComputeTime)
+        {
+            // Publish simulation time
+            if (mAppMode != client && mPublicSimulationTime)
+                mPublicSimulationTime->setRealValue(mSimulationTime/(1000));
+        }
+        //FbsfDataExchange::resetHistory(mSimulationTime);
+        QString strTime;
+        control("resettime",strTime.setNum(mSimulationTime));
+#ifndef MODE_BATCH
+        mDataControler.updateMonitor();// update only data values
+#endif
+        //mDataControler.process(mStepNumber);// broadcast values to clients
     }
     //~~~~~~~~~~~~~~~~~~~~ Restore states ~~~~~~~~~~~~~~~~~~~~~~~~
     else if (command == "restore" && mAppMode != client)

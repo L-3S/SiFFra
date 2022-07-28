@@ -1,3 +1,5 @@
+@echo off
+
 rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 rem Path for QT toolkit
 rem ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -23,4 +25,4 @@ if "%QT_COMPILER%"=="" (
 	exit
 )
 
-set PATH=%QTDIR%\%QT_VERSION%\%QT_COMPILER%\bin;%QTDIR%\Tools\QtCreator\bin;%PATH%
+set PATH=%QTDIR%\%QT_VERSION%\%QT_COMPILER%\bin;%QTDIR%\Tools\QtCreator\bin;%QTDIR%\Tools\QtCreator\bin\jom;%PATH%

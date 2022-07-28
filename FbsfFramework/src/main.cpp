@@ -26,14 +26,15 @@ void MessageHandler(QtMsgType type, const QMessageLogContext &context, const QSt
 #ifndef BUILD_API
     int main(int argc, char **argv)
 #else
-void* FbsfApi::mainApi(int argc, char **argv)
+void* mainApi(int argc, char **argv)
 #endif
 {
+    FbsfDataExchange::sPublicDataMap.clear();
 #ifndef MODE_BATCH
     //~~~~~~~~~~ init resource from embedded qrc ~~~~~~~~~~~~~~~~~~
     Q_INIT_RESOURCE(GraphicEditor);
 #endif
-//    qInstallMessageHandler(MessageHandler);
+    qInstallMessageHandler(MessageHandler);
     #ifdef QT_DEBUG
         qSetMessagePattern("[%{time} %{type} %{file}:%{line}] %{message}");
     #else

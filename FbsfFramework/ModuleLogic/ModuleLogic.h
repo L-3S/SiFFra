@@ -13,7 +13,7 @@ public:
     ModuleLogic();
     virtual int     doInit();
     virtual int     doTerminate();
-    virtual int     doStep();
+    virtual int     doStep(int timeOut);
     virtual int     doSaveState();                      // Save states to memory
     virtual int     doRestoreState();                   // Restore states from memory
     virtual int     doSaveState(QDataStream &out);      // dump state to file

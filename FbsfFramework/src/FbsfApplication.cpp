@@ -11,7 +11,7 @@
 #include <QCoreApplication>
 #include <QDir>
 
-QCommandLineParser      FbsfApplication::mParser;
+QCommandLineParser      *FbsfApplication::mParser;
 QStringList             FbsfApplication::arglist;
 QString                 FbsfApplication::sFrameworkHome;
 QString                 FbsfApplication::sApplicationHome;
@@ -26,12 +26,17 @@ FbsfConfiguration       FbsfApplication::mConfig;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 FbsfApplication::~FbsfApplication()
 {
-
+    arglist.clear();
+    mConfig = FbsfConfiguration();
+    sFrameworkHome = "";
+    sApplicationHome = "";
+    sComponentsPath = "";
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 FbsfApplication *FbsfApplication::app(int & argc, char **argv)
 {
+    mParser = new QCommandLineParser();
     eApplicationMode mode=standalone;
     for (int i=0;i < argc ; i++)
     {
@@ -122,35 +127,35 @@ int FbsfApplication::parseCommandLine(QStringList arglist)
     QCoreApplication::setApplicationName("FbsfFramework");
     QCoreApplication::setApplicationVersion(FBSF_VERSION);
 
-    mParser.setApplicationDescription(QCoreApplication::translate("main","Fmu based simulation framework"));
-    mParser.setSingleDashWordOptionMode(QCommandLineParser::ParseAsLongOptions);
-    mParser.addHelpOption();
-    mParser.addVersionOption();
-    mParser.addPositionalArgument("Configuration file",
+    mParser->setApplicationDescription(QCoreApplication::translate("main","Fmu based simulation framework"));
+    mParser->setSingleDashWordOptionMode(QCommandLineParser::ParseAsLongOptions);
+    mParser->addHelpOption();
+    mParser->addVersionOption();
+    mParser->addPositionalArgument("Configuration file",
                                   QCoreApplication::translate("main", " : xml description file"));
 
     QCommandLineOption noLogfileOption(QStringList() << "n" << "no-logfile",
                                        QCoreApplication::translate("main", "Don't log to file."));
-    mParser.addOption(noLogfileOption);// no logfile
+    mParser->addOption(noLogfileOption);// no logfile
 
     QCommandLineOption replayModeOption(QStringList() << "r" << "replay",
                                         QCoreApplication::translate("main", "replay simulation from <file>"),
                                         QCoreApplication::translate("main", "file"));
-    mParser.addOption(replayModeOption);// replay
+    mParser->addOption(replayModeOption);// replay
 
     QCommandLineOption noGuiOption(QStringList() << "ng" << "no-gui",
                                        QCoreApplication::translate("main", "running batch mode"));
-    mParser.addOption(noGuiOption);// noGui
+    mParser->addOption(noGuiOption);// noGui
 
     QCommandLineOption clientOption(QStringList() << "c" << "client",
                                     QCoreApplication::translate("main", "Run as network client"));
-    mParser.addOption(clientOption); // client mode
+    mParser->addOption(clientOption); // client mode
 
     QCommandLineOption serverOption(QStringList() << "s" << "server",
                                     QCoreApplication::translate("main", "Run as network server"));
-    mParser.addOption(serverOption); // server
+    mParser->addOption(serverOption); // server
 
-    mParser.parse(arglist);
+    mParser->parse(arglist);
     return 1;
 }
 int FbsfApplication::generateSequences() {

@@ -212,7 +212,6 @@ QVariant FbsfDataExchange::value() const
 QVariant FbsfDataExchange::vectorValue(int aInd) const
 {
     if (aInd >= m_size) qDebug() << aInd << "Out of bound index for" << name();
-
     if (p_data==nullptr) return QVariant();// case if not resolved
     switch (Type())
     {

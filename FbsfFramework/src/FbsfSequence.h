@@ -24,6 +24,9 @@ public:
 
     void            finalize();
 
+    int             doSaveState();  // Executed when application request dump state
+    int             doRestoreState();   // Executed when application request reload state
+
     int             doSaveState(QDataStream&    out);  // Executed when application request dump state
     int             doRestoreState(QDataStream& in);   // Executed when application request reload state
     // Accessors
@@ -68,7 +71,7 @@ public slots:
     void            cycleStart();
     void            cancelSeqStep();
     void            consumeData();
-    void            computeStep();
+    void            computeStep(int timeOut);
 
 signals:
     void            finished();

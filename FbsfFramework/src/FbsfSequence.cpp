@@ -267,7 +267,7 @@ void FbsfSequence::consumeData()
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// Step computation procedure : signal virtual method call
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void FbsfSequence::computeStep()
+void FbsfSequence::computeStep(int timeOut)
 {
     // perf meter
     QElapsedTimer timer;
@@ -286,7 +286,7 @@ void FbsfSequence::computeStep()
                 #ifndef SYNCHRONE_INPUT
                 mModelList[i]->consumeData();
                 #endif
-                mModelList[i]->computeStep();
+                mModelList[i]->computeStep(timeOut);
                 if (mStatus == FBSF_OK) {
                     mStatus=(fbsfStatus)mModelList[i]->status();
                 }
@@ -304,7 +304,7 @@ void FbsfSequence::computeStep()
             #ifndef SYNCHRONE_INPUT
             mModelList[i]->consumeData();
             #endif
-            mModelList[i]->computeStep();
+            mModelList[i]->computeStep(timeOut);
             if (mStatus == FBSF_OK) {
                 mStatus=(fbsfStatus)mModelList[i]->status();
             }
@@ -351,6 +351,40 @@ int FbsfSequence::doRestoreState(QDataStream& in)
     {
         mModelList[i]->doRestoreState(in);
         mStatus=(fbsfStatus)mModelList[i]->status();
+    }
+    return 1;
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/// Model state serialization
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int FbsfSequence::doSaveState()
+{
+    int operationStatus = FBSF_OK;
+    mStatus = FBSF_OK;
+    // for each model do doSaveState();
+    for (int i = 0; i < mModelList.size(); ++i)
+    {
+        operationStatus = mModelList[i]->doSaveState();
+        if (mStatus == FBSF_OK) {
+            mStatus=(fbsfStatus)operationStatus;
+        }
+    }
+    return 1;
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/// Model state deserialization
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int FbsfSequence::doRestoreState()
+{
+    int operationStatus = FBSF_OK;
+    mStatus = FBSF_OK;
+    // for each model do doRestoreState();
+    for (int i = 0; i < mModelList.size(); ++i)
+    {
+        operationStatus = mModelList[i]->doRestoreState();
+        if (mStatus == FBSF_OK) {
+            mStatus=(fbsfStatus)operationStatus;
+        }
     }
     return 1;
 }

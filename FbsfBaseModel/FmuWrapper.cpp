@@ -234,7 +234,7 @@ int FmuWrapper::initialConditions()
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// Manage public data and computation step
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-int FmuWrapper::doStep()
+int FmuWrapper::doStep(int timeOut)
 {
     if (time <= tEnd)
     {
@@ -469,7 +469,7 @@ int FmuWrapper::doSaveState()
         }
     }
 #endif
-    return 1;
+    return fmiFlag != fmi2OK ? 0 : 1;
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// restore FMU states, inputs [outputs and states]  (API level)
@@ -492,7 +492,7 @@ int FmuWrapper::doRestoreState()
     FBSFBaseModel::doRestoreState(); // restore declared outputs and states
 #endif
 
-    if (fmiFlag > fmi2Warning)
+    if (fmiFlag > fmi2Error)
     {
         QString msg=name() + " : Failed to get FMUstate";
         qCritical (msg.toStdString().c_str());
@@ -516,7 +516,7 @@ int FmuWrapper::doRestoreState()
     QList<FmuVariable*>::iterator iter;
     for (iter = yInputs.begin(); iter != yInputs.end(); ++iter)
     {
-        // push back the value to the exchange area
+        // push back the value to the intermediate variable
         switch ((*iter)->type)
         {
         case elm_Real:
@@ -532,7 +532,7 @@ int FmuWrapper::doRestoreState()
         }
     }
 #endif
-    return 1;
+    return fmiFlag != fmi2OK ? 0 : 1;
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

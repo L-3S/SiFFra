@@ -8,41 +8,47 @@
 
 FbsfControllerComponent::FbsfControllerComponent(int aac, char **aav): ac(aac), av(aav), app(nullptr), run(false), threadRunning(false) {};
 
-FbsfApi::FbsfApi()
-{
-
-}
-
-FbsfComponent FbsfApi::FbsfInstanciate(int argc, char **argv) {
-    return new FbsfControllerComponent(argc, argv);
-};
-
-FbsfStatus FbsfApi::FbsfEnterInitialisationMode(FbsfComponent ptr) {
-    FbsfControllerComponent *comp = static_cast<FbsfControllerComponent*>(ptr);
-
+FbsfComponent FbsfInstantiate(QString fileName, int ac, char **av) {
+    FbsfControllerComponent *comp = new FbsfControllerComponent(ac, av);
     if (!comp) {
         qInfo("Error: no instance");
-        return FbsfError;
-    } else if (comp->configFileName == "") {
-        qWarning("Error: no configuration provided, use FbsfSetString first.");
-        return FbsfError;
+        return comp;
+    } else {
+        comp->mu.lock();
+        comp->configFileName = fileName;
+        comp->mu.unlock();
     }
-    if (comp->run) {
-        qInfo("Error: App is already runnning");
-        return FbsfError;
+    if (comp->configFileName == "") {
+        qWarning("Error: no configuration provided");
+        return comp;
     }
-    if (comp->threadRunning) {
-        qInfo("Error: Initialisation mode already on");
-        return FbsfError;
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text) || !file.size()) {
+        qWarning("Error: configuration provided is invalid");
+        return comp;
     }
+    file.close();
     comp->threadRunning = true;
-//    fct(comp);
     comp->qtThread = std::thread(mainLoop, comp);
-    return FbsfOK;
+    while (1) {
+        comp->mu.lock();
+        if (!comp->threadRunning) {
+            qInfo("Error: Initialisation mode is not  on");
+            comp->mu.unlock();
+            break;
+        }
+        if (comp->run == true && comp->app->executive()->State() != "initialized") {
+            comp->mu.unlock();
+            break;
+        }
+        comp->mu.unlock();
+    }
+    return comp;
 };
 
-void FbsfApi::mainLoop(FbsfControllerComponent *comp) {
+void mainLoop(FbsfControllerComponent *comp) {
     // Create an app instance
+
     QScopedPointer<FbsfApplication> app(static_cast<FbsfApplication*>(mainApi(comp->ac, comp->av)));
     comp->app = app.data();
     // Retreive configuration name
@@ -55,91 +61,111 @@ void FbsfApi::mainLoop(FbsfControllerComponent *comp) {
         qWarning("Error: no configuration provided, use FbsfSetString first.");
     } else {
         // Open and parse XML config
-        if(comp->app->config().parseXML(comp->app->configName())==-1) qWarning("Error: can't parse xml configuration file provided: ", comp->app->configName().toStdString().c_str());
+        if(comp->app->config().parseXML(comp->app->configName())==-1) {
+            qWarning("Error: can't parse xml configuration file provided: ", comp->app->configName().toStdString().c_str());
+            comp->threadRunning = false;
+            return;
+        }
         // Generate sequences from XML infos
         comp->app->generateSequences();
     }
     // Wait for the FbsfExitInitialisationMode function to be called to start app run
-    while (1) {
-        comp->mu.lock();
-        if (comp->run == true) {
-            comp->mu.unlock();
-            break;
-        }
-        comp->mu.unlock();
-    }
+    comp->mu.lock();
+    comp->run = true;
+    comp->mu.unlock();
     // Launch the qt app loop
     comp->app->start(comp->app->timeStep * 1000, comp->app->speedFactor, comp->app->recorderSize);
     comp->threadRunning = false;
 }
-FbsfStatus FbsfApi::FbsfExitInitialisationMode(FbsfComponent ptr){
+
+FbsfSuccess FbsfDoStep(FbsfComponent ptr, int timeOut) {
     FbsfControllerComponent *comp = static_cast<FbsfControllerComponent*>(ptr);
+    FbsfStatus st;
 
     if (!comp || !comp->app) {
         qInfo("Error: no instance");
-        return FbsfError;
-    }
-    if (!comp->threadRunning) {
-        qInfo("Error: Initialisation mode is not  on");
-        return FbsfError;
-    }
-    // Set run variable to unlock FbsfApi::mainLoop and launch the app
-    comp->mu.lock();
-    comp->run = true;
-    comp->mu.unlock();
-    return FbsfOK;
-};
-
-FbsfStatus FbsfApi::FbsfDoStep(FbsfComponent ptr) {
-    FbsfControllerComponent *comp = static_cast<FbsfControllerComponent*>(ptr);
-
-    if (!comp || !comp->app) {
-        qInfo("Error: no instance");
-        return FbsfError;
+        return Failure;
     }
     if (!comp->run) {
         qInfo("Error: App in not running, please exit initialisation mode");
-        return FbsfError;
+        return Failure;
     }
     if (!comp->threadRunning) {
         qInfo("Error: QT thread is not running, please enter initialisation mode");
-        return FbsfError;
+        return Failure;
     }
     QString s = comp->app->executive()->State();
     if (s == "runnin" || s == "stepping") {
         qInfo("Error: A step is already running");
-        return (FbsfError);
+        return (Failure);
     }
-    comp->app->executive()->control("step");
-    FbsfStatus st;
-    FbsfGetStatus(ptr, FbsfDoStepStatus,  &st);
-    while (st == FbsfPending) {
-        FbsfGetStatus(ptr, FbsfDoStepStatus,  &st);
+    comp->app->executive()->control("step", QString::number(timeOut));
+    FbsfGetStatus(ptr, &st);
+    while (st == FbsfProcessing) {
+        FbsfGetStatus(ptr,  &st);
     }
-    return FbsfOK;
+    return Success;
 };
 
-FbsfStatus FbsfApi::FbsfCancelStep(FbsfComponent ptr) {
-      qInfo("Error: not implemented");
-//    FbsfControllerComponent *comp = static_cast<FbsfControllerComponent*>(ptr);
-//    if (!comp || !comp->app) {
-//        return FbsfError;
-//    } else {
-//        comp->app->executive()->control("cancel");
-//    }
-    return FbsfOK;
-};
+FbsfSuccess FbsfSaveState(FbsfComponent ptr) {
+    FbsfControllerComponent *comp = static_cast<FbsfControllerComponent*>(ptr);
+    if (!comp || !comp->app) {
+        qInfo("Error: no instance");
+        return Failure;
+    }
+    if (!comp->run) {
+        qInfo("Error: App in not running, please exit initialisation mode");
+        return Failure;
+    }
+    if (!comp->threadRunning) {
+        qInfo("Error: QT thread is not running, please enter initialisation mode");
+        return Failure;
+    }
+    QString s = comp->app->executive()->State();
+    if (s == "runnin" || s == "stepping") {
+        qInfo("Error: Simulation is busy");
+        return (Failure);
+    }
+    comp->app->executive()->control("saveLocal");
+    return Success;
+}
 
-FbsfStatus FbsfApi::FbsfTerminate(FbsfComponent ptr) {
+FbsfSuccess FbsfRestoreState(FbsfComponent ptr) {
+    FbsfControllerComponent *comp = static_cast<FbsfControllerComponent*>(ptr);
+    if (!comp || !comp->app) {
+        qInfo("Error: no instance");
+        return Failure;
+    }
+    if (!comp->run) {
+        qInfo("Error: App in not running, please exit initialisation mode");
+        return Failure;
+    }
+    if (!comp->threadRunning) {
+        qInfo("Error: QT thread is not running, please enter initialisation mode");
+        return Failure;
+    }
+    QString s = comp->app->executive()->State();
+    if (s == "runnin" || s == "stepping") {
+        qInfo("Error: Simulation is busy");
+        return (Failure);
+    }
+    comp->app->executive()->control("restoreLocal");
+    return Success;
+}
+
+FbsfSuccess FbsfTerminate(FbsfComponent ptr) {
     FbsfControllerComponent *comp = static_cast<FbsfControllerComponent*>(ptr);
 
     if (!comp || !comp->app) {
         qInfo("Error: no instance");
-        return FbsfError;
+        return Failure;
     }
-    if (!comp->threadRunning || !comp->run) {
+    if (!comp->threadRunning) {
         qInfo("Error: The app is not running");
-        return FbsfError;
+        if (comp->qtThread.joinable()) {
+            comp->qtThread.join();
+        }
+        return Failure;
     }
 //    QCoreApplication::exit(0);
     comp->app->executive()->control("stop");
@@ -148,145 +174,303 @@ FbsfStatus FbsfApi::FbsfTerminate(FbsfComponent ptr) {
     if (comp->qtThread.joinable()) {
         comp->qtThread.join();
     }
-    return FbsfOK;
+    comp->isTerminated = true;
+    return Success;
 };
 
-FbsfStatus FbsfApi::FbsfFreeInstance(FbsfComponent ptr) {
-    if (mBuff) {
-        free(mBuff);
+FbsfSuccess FbsfFreeInstance(FbsfComponent *ptr) {
+    if (ptr && *ptr) {
+        FbsfControllerComponent *comp = static_cast<FbsfControllerComponent*>(*ptr);
+        if (comp)
+            delete comp;
+        *ptr = nullptr;
     }
-    if (ptr) {
-        FbsfControllerComponent *comp = static_cast<FbsfControllerComponent*>(ptr);
-
-        delete comp;
-        comp = nullptr;
-    }
-    return FbsfOK;
+    return Success;
 };
-FbsfStatus FbsfApi::FbsfGetStatus(FbsfComponent ptr, const FbsfStatusKind s, FbsfStatus *value)  {
+FbsfSuccess FbsfGetStatus(FbsfComponent ptr, FbsfStatus *value)  {
     FbsfControllerComponent *comp = static_cast<FbsfControllerComponent*>(ptr);
-
     if (!comp || !comp->app) {
-        qInfo("Error: no instance");
-        return FbsfError;
+        *value = FbsfUninitialized;
+        return Success;
     }
-    switch (int(s)) {
-    case FbsfDoStepStatus: {
-        QString status = comp->app->executive()->State();
-        if (status == "stepping" || status == "runnning" || status == "waiting") {
-            *value = FbsfPending;
-        } else {
-            int exSt = comp->app->executive()->getStatus();
-            switch (exSt) {
-            case FBSF_OK:       *value = FbsfOK;
-            case FBSF_WARNING:  *value = FbsfWarning;
-            case FBSF_FATAL:    *value = FbsfFatal;
-            case FBSF_ERROR:    *value = FbsfError;
-            default:            *value = FbsfError;
-            }
-        }
-        break;
+    if (comp->configFileName == "") {
+        *value = FbsfUninitialized;
+        return Success;
     }
-    case FbsfPendingStatus: {break;}
-    case FbsfLastSuccessfulTime: {break;}
-    case FbsfTerminated: {break;}
+    if (comp->isTerminated) {
+        *value = FbsfTerminated;
+        return Success;
     }
-    return FbsfOK;
-};
-FbsfStatus FbsfApi::FbsfGetRealStatus(FbsfComponent ptr, const FbsfStatusKind s, FbsfReal *value) {
-    FbsfControllerComponent *comp = static_cast<FbsfControllerComponent*>(ptr);
-
-    if (!comp || !comp->app) {
-        qInfo("Error: no instance");
-        return FbsfError;
+    if (!comp->run) {
+        *value = FbsfUninitialized;
+        return Success;
     }
-    *value = comp->app->executive()->getLastStepSuccessTime();
-    return FbsfOK;
-};
-FbsfStatus FbsfApi::FbsfGetIntegerStatus(FbsfComponent ptr, const FbsfStatusKind s, FbsfInteger *value) {
-    return FbsfOK;
-};
-FbsfStatus FbsfApi::FbsfGetBooleanStatus(FbsfComponent ptr, const FbsfStatusKind s, FbsfBoolean *value) {
-    FbsfControllerComponent *comp = static_cast<FbsfControllerComponent*>(ptr);
-
-    if (!comp || !comp->app) {
-        qInfo("Error: no instance");
-        return FbsfError;
-    }
-    switch (int(s)) {
-        case FbsfDoStepStatus: {break;}
-        case FbsfPendingStatus: {break;}
-        case FbsfLastSuccessfulTime: {break;}
-        case FbsfTerminated: {
-            QString status = comp->app->executive()->State();
-            if (status == "stepping" || status == "runnning" || status == "waiting") {
-                *value = FbsfFalse;
-            } else {
-                int exSt = comp->app->executive()->getStatus();
-                cout << "exts" << exSt<< endl;
-                switch (exSt) {
-                case FBSF_OK:       *value = FbsfFalse;break;
-                case FBSF_WARNING:  *value = FbsfFalse;break;
-                case FBSF_FATAL:    *value = FbsfTrue;break;
-                case FBSF_ERROR:    *value = FbsfFalse;break;
-                default:            *value = FbsfFalse;break;
-                }
-            }
-            break;
-        }
-        break;
+    if (!comp->threadRunning) {
+        *value = FbsfUninitialized;
+        return Success;
     }
 
-    return FbsfOK;
-};
-FbsfStatus FbsfApi::FbsfGetStringStatus(FbsfComponent ptr, const FbsfStatusKind s, FbsfString *value) {
-    FbsfControllerComponent *comp = static_cast<FbsfControllerComponent*>(ptr);
-
-    if (!comp || !comp->app) {
-        qInfo("Error: no instance");
-        return FbsfError;
-    }
-    if (!value) {
-        qInfo("Error: argument value is not allocated");
-        return FbsfError;
-    }
-    switch (int(s)) {
-    case FbsfDoStepStatus: {
-        break;
-    }
-    case FbsfPendingStatus: {
-        QString status = comp->app->executive()->State();
-        if (status == "stepping" || status == "runnning" || status == "waiting") {
-            copyStringToBuff(status.toStdString(), value);
-        } else {
-            int exSt = comp->app->executive()->getStatus();
-            switch (exSt) {
-            case FBSF_OK:       copyStringToBuff("Step ended without issues", value); break;
-            case FBSF_WARNING:  copyStringToBuff("Step ended with a warning", value); break;
-            case FBSF_FATAL:    copyStringToBuff("Step ended with a fatal error", value); break;
-            case FBSF_ERROR:    copyStringToBuff("Step ended with an error", value); break;
-            default:            copyStringToBuff("Step ended with unrecognized status", value); break;
-            }
-        }
-        break;
-    }
-    case FbsfLastSuccessfulTime: {break;}
-    case FbsfTerminated: {break;}
-    }
-
-    return FbsfOK;
-};
-
-FbsfStatus FbsfApi::FbsfSetString(FbsfComponent ptr, QString str) {
-    FbsfControllerComponent *comp = static_cast<FbsfControllerComponent*>(ptr);
-
-    if (!comp) {
-        qInfo("Error: no instance");
-        return FbsfError;
+    QString status = comp->app->executive()->State();
+    if (status == "stepping" || status == "runnning" || status == "waiting") {
+        *value = FbsfProcessing;
+        return Success;
     } else {
-        comp->mu.lock();
-        comp->configFileName = str;
-        comp->mu.unlock();
+        int exSt = comp->app->executive()->getStatus();
+        switch (exSt) {
+        case FBSF_OK:       *value = FbsfReady;break;
+        case FBSF_WARNING:  *value = FbsfFailedStep;break;
+        case FBSF_FATAL:    *value = FbsfFailedStep;break;
+        case FBSF_ERROR:    *value = FbsfFailedStep;break;
+        case FBSF_TIMEOUT:  *value = FbsfTimeOut;break;
+        default:            *value = FbsfFailedStep;
+        }
+        return Success;
     }
-    return FbsfOK;
+    *value = FbsfReady;
+    return Success;
 };
+FbsfSuccess FbsfGetRealData(FbsfComponent ptr, QString name, double *val) {
+    QList<FbsfDataExchange*> dataList = FbsfDataExchange::sPublicDataMap.values();
+    foreach (FbsfDataExchange* data, dataList)
+    {
+        // Register FbsfDataExchange for remote client
+        if (data->name() == name) {
+            if (data->Class() == cScalar && data->Type() == cReal) {
+                *val = data->value().toDouble();
+                return Success;
+            } else if (data->Class() == cVector) {
+                qInfo() << __FUNCTION__ << " Error while retreiving data, data is Vector Type";
+            } else if (data->Type() == cInteger) {
+                qInfo() << __FUNCTION__ << " Error while retreiving data, data is Integer Type";
+            }
+            return Failure;
+        }
+    }
+    qInfo() << __FUNCTION__ << " Error while retreiving data, no data dound for that name "<< name;
+    return Failure;
+}
+
+FbsfSuccess FbsfGetIntegerData(FbsfComponent ptr, QString name, int *val) {
+    QList<FbsfDataExchange*> dataList = FbsfDataExchange::sPublicDataMap.values();
+    foreach (FbsfDataExchange* data, dataList)
+    {
+        // Register FbsfDataExchange for remote client
+        if (data->name() == name) {
+            if (data->Class() == cScalar && data->Type() == cInteger) {
+                *val = data->value().toInt();
+                return Success;
+            } else if (data->Class() == cVector) {
+                qInfo() << __FUNCTION__ << " Error while retreiving data, data is Vector Type";
+            } else if (data->Type() == cReal) {
+                qInfo() << __FUNCTION__ << " Error while retreiving data, data is Real Type";
+            }
+            return Failure;
+        }
+    }
+    qInfo() << __FUNCTION__ << " Error while retreiving data, no data dound for that name "<< name;
+    return Failure;
+}
+FbsfSuccess FbsfGetVectorRealData(FbsfComponent ptr, QString name, QVector<double> *val) {
+    QList<FbsfDataExchange*> dataList = FbsfDataExchange::sPublicDataMap.values();
+    foreach (FbsfDataExchange* data, dataList)
+    {
+        // Register FbsfDataExchange for remote client
+        if (data->name() == name) {
+            if (data->Class() == cVector && data->Type() == cReal) {
+                for (int i = 0; i < data->size(); i++) {
+                    (*val)[i] = data->vectorValue(i).toDouble();
+                }
+                return Success;
+            } else if (data->Class() == cScalar) {
+                qInfo() << __FUNCTION__ << " Error while retreiving data, data is Scalar Type";
+            } else if (data->Type() == cInteger) {
+                qInfo() << __FUNCTION__ << " Error while retreiving data, data is Integer Type";
+            }
+            return Failure;
+        }
+    }
+    qInfo() << __FUNCTION__ << " Error while retreiving data, no data dound for that name "<< name;
+    return Failure;
+}
+
+FbsfSuccess FbsfGetVectorIntegerData(FbsfComponent ptr, QString name, QVector<int> *val) {
+    QList<FbsfDataExchange*> dataList = FbsfDataExchange::sPublicDataMap.values();
+    foreach (FbsfDataExchange* data, dataList)
+    {
+        // Register FbsfDataExchange for remote client
+        if (data->name() == name) {
+            if (data->Class() == cVector && data->Type() == cInteger) {
+                for (int i = 0; i < data->size(); i++) {
+                    (*val)[i] = data->vectorValue(i).toInt();
+                }
+                return Success;
+            } else if (data->Class() == cScalar) {
+                qInfo() << __FUNCTION__ << " Error while retreiving data, data is Scalar Type";
+            } else if (data->Type() == cReal) {
+                qInfo() << __FUNCTION__ << " Error while retreiving data, data is Real Type";
+            }
+            return Failure;
+        }
+    }
+    qInfo() << __FUNCTION__ << " Error while retreiving data, no data dound for that name "<< name;
+    return Failure;
+}
+
+FbsfSuccess FbsfSetRealData(FbsfComponent ptr, QString name, double val) {
+    QList<FbsfDataExchange*> dataList = FbsfDataExchange::sPublicDataMap.values();
+    foreach (FbsfDataExchange* data, dataList)
+    {
+        // Register FbsfDataExchange for remote client
+        if (data->name() == name) {
+            if (!data->isUnresolved()) {
+                qInfo() << __FUNCTION__ << " Error while setting data, data is Vector Type";
+                return Failure;
+            }
+            if (data->Class() == cScalar && data->Type() == cReal) {
+                data->value((float)val);
+                return Success;
+            } else if (data->Class() == cVector) {
+                qInfo() << __FUNCTION__ << " Error while setting data, data is Vector Type";
+            } else if (data->Type() == cInteger) {
+                qInfo() << __FUNCTION__ << " Error while setting data, data is Integer Type";
+            }
+            return Failure;
+        }
+    }
+    qInfo() << __FUNCTION__ << " Error while setting data, no data dound for that name "<< name;
+    return Failure;
+}
+
+FbsfSuccess FbsfSetIntegerData(FbsfComponent ptr, QString name, int val) {
+    QList<FbsfDataExchange*> dataList = FbsfDataExchange::sPublicDataMap.values();
+    foreach (FbsfDataExchange* data, dataList)
+    {
+        // Register FbsfDataExchange for remote client
+        if (data->name() == name) {
+            if (!data->isUnresolved()) {
+                qInfo() << __FUNCTION__ << " Error while setting data, data is Vector Type";
+                return Failure;
+            }
+            if (data->Class() == cScalar && data->Type() == cInteger) {
+                data->value(val);
+                return Success;
+            } else if (data->Class() == cVector) {
+                qInfo() << __FUNCTION__ << " Error while setting data, data is Vector Type";
+            } else if (data->Type() == cReal) {
+                qInfo() << __FUNCTION__ << " Error while setting data, data is Real Type";
+            }
+            return Failure;
+        }
+    }
+    qInfo() << __FUNCTION__ << " Error while setting data, no data dound for that name "<< name;
+    return Failure;
+}
+FbsfSuccess FbsfSetVectorRealData(FbsfComponent ptr, QString name, QVector<double> val) {
+    QList<FbsfDataExchange*> dataList = FbsfDataExchange::sPublicDataMap.values();
+    foreach (FbsfDataExchange* data, dataList)
+    {
+        // Register FbsfDataExchange for remote client
+        if (data->name() == name) {
+            if (!data->isUnresolved()) {
+                qInfo() << __FUNCTION__ << " Error while setting data, data is Vector Type";
+                return Failure;
+            }
+            if (data->Class() == cVector && data->Type() == cReal) {
+                for (int i = 0; i < data->size(); i++) {
+                    data->vectorValue(i, (val)[i]);
+                }
+                return Success;
+            } else if (data->Class() == cScalar) {
+                qInfo() << __FUNCTION__ << " Error while setting data, data is Scalar Type";
+            } else if (data->Type() == cInteger) {
+                qInfo() << __FUNCTION__ << " Error while setting data, data is Integer Type";
+            }
+            return Failure;
+        }
+    }
+    qInfo() << __FUNCTION__ << " Error while setting data, no data dound for that name "<< name;
+    return Failure;
+}
+
+FbsfSuccess FbsfSetVectorIntegerData(FbsfComponent ptr, QString name, QVector<int> val) {
+    QList<FbsfDataExchange*> dataList = FbsfDataExchange::sPublicDataMap.values();
+    foreach (FbsfDataExchange* data, dataList)
+    {
+        // Register FbsfDataExchange for remote client
+        if (data->name() == name) {
+            if (!data->isUnresolved()) {
+                qInfo() << __FUNCTION__ << " Error while setting data, data is Vector Type";
+                return Failure;
+            }
+            if (data->Class() == cVector && data->Type() == cInteger) {
+                for (int i = 0; i < data->size(); i++) {
+                    data->vectorValue(i, (val)[i]);
+                }
+                return Success;
+            } else if (data->Class() == cScalar) {
+                qInfo() << __FUNCTION__ << " Error while setting data, data is Scalar Type";
+            } else if (data->Type() == cReal) {
+                qInfo() << __FUNCTION__ << " Error while setting data, data is Real Type";
+            }
+            return Failure;
+        }
+    }
+    qInfo() << __FUNCTION__ << " Error while setting data, no data dound for that name "<< name;
+    return Failure;
+}
+
+FbsfSuccess API_EXPORT FbsfGetDataNames(FbsfComponent ptr, QStringList *list) {
+    QList<FbsfDataExchange*> dataList = FbsfDataExchange::sPublicDataMap.values();
+    list->clear();
+    foreach (FbsfDataExchange* data, dataList) {
+        list->append(data->name());
+    }
+    return Success;
+}
+
+FbsfSuccess API_EXPORT FbsfGetUnresolvedDataNames(FbsfComponent ptr, QStringList *list) {
+    QList<FbsfDataExchange*> dataList = FbsfDataExchange::sPublicDataMap.values();
+    list->clear();
+    foreach (FbsfDataExchange* data, dataList) {
+        if (data->isUnresolved())
+            list->append(data->name());
+    }
+    return Success;
+}
+
+FbsfSuccess API_EXPORT FbsfGetDataType(FbsfComponent ptr, QString name, FbsfDataType *type) {
+    QList<FbsfDataExchange*> dataList = FbsfDataExchange::sPublicDataMap.values();
+    foreach (FbsfDataExchange* data, dataList) {
+        if (data->name() == name) {
+            if (data->Type() == cInteger)
+                *type = data->Class() == cVector ? FbsfVectorInt : FbsfInt;
+            else
+                *type = data->Class() == cVector ? FbsfVectorReal : FbsfReal;
+            return Success;
+        }
+    }
+    qInfo() << __FUNCTION__ << " Error while retreiving data, no data dound for that name "<< name;
+    return Failure;
+}
+
+FbsfSuccess API_EXPORT FbsfGetDataSize(FbsfComponent ptr, QString name, int *size) {
+    QList<FbsfDataExchange*> dataList = FbsfDataExchange::sPublicDataMap.values();
+    foreach (FbsfDataExchange* data, dataList) {
+        if (data->name() == name) {
+            *size = data->size();
+            return Success;
+        }
+    }
+    qInfo() << __FUNCTION__ << " Error while retreiving data, no data dound for that name "<< name;
+    return Failure;
+}
+
+//                QStringList description;
+    //            description.append(data->TypeToStr());
+    //            description.append(data->producer());
+    //            description.append(data->unit());
+    //            description.append(data->description());
+//                description.append(data->name());
+                // Scalar or Vector
+    //            description.append(data->ClassToStr());
+    //            description.append(QString::number(data->size()));

@@ -63,11 +63,11 @@ public:
     void            initialize();
     void            finalize();
     void            consumeData();
-    void            computeStep();
+    void            computeStep(int timeOut);
 
     virtual int     doInit()=0;         // Executed when thread's model start
     void            preStep();          // Executed before each step to import external values
-    virtual int     doStep()=0;         // Execution of step computation (must be defined)
+    virtual int     doStep(int timeOut)=0;// Execution of step computation (must be defined)
     virtual void    postStep();         // Executed after each step to export external values
     virtual int     doTerminate()=0;    // Executed when application exit
     virtual int     doSaveState();      // Executed when application request dump state to memory

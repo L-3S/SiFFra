@@ -35,7 +35,7 @@ public:
     virtual void    setOptPerfMeter(bool aFlag){sOptPerfMeter=aFlag;}
 
 
-    void            doCycle();                    // execute one cycle
+    void            doCycle(int timeOut);                    // execute one cycle
     fbsfStatus      getStatus()             {return mStatus;};
     uint            getLastStepSuccessTime(){return mLastSuccessfulStep;};
     // configuration settings
@@ -78,13 +78,16 @@ public:
 private :
     QWaitCondition  waitCondition;
     bool            bSuspended;
+    int             mTimeOut = -1; /* Time in ms allowed to each module to execute its computation step,
+                                      it is the module developper responsibility to implement a doStep that is compliant with this timeout mecanic
+                                      A timeout of -1 is considered as infinite timout*/
 
 // signals
 signals:
     void            cycleStart();               // signal start of major cycle
     void            cancelStep();
     void            consume();                  // signal data consumption
-    void            compute();                  // signal step computation
+    void            compute(int timeOut);                  // signal step computation
     void            statusChanged(QVariant  mode,QVariant  state);// signal status change to UI
     void            exit();                     // exit application
 // slots
@@ -111,6 +114,7 @@ private:
     float                   mCycleTime;          // period*speed factor (ms) for computation loop
     uint                    mPeriod;             // period (ms) for computation loop
     float                   mSimulationTime;     // Simulation time
+    float                   mSavedSimulationTime;// Saved simulation time for future retore command
     bool                    bComputeTime;        // Compute or not Simulation time
     uint                    mStepNumber;         // step number for a run
     float                   mSpeedFactor;        // Simulation speed (slow or accelerate)
@@ -135,6 +139,7 @@ private:
     FbsfDataExchange*       mCpuStepTime=nullptr;
     // set the perfmeter
     FbsfPerfMeter*          perfmeter=nullptr;
+    QDataStream             mout;
 };
 
 #endif // FBSFEXECUTIVE_H
