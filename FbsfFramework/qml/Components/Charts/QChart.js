@@ -165,6 +165,10 @@ var Chart = function(canvas, context) {
                 return{index:index,value:data.timeSet[index]}
             }
             //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            this.xAxisInfo = function () {
+                return {width:xAxisLength,xStart:yAxisPosX};
+            }
+            //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             function drawLines() {
                 var labelsWidth=100 /// GRO added legend
                 //~~~~~~~~~~ GRO added display unit ~~~~~~~~~~

@@ -6,4 +6,5 @@ SUBDIRS =  ModuleFMI \
             ModuleMPC \
             ModuleMacroLogic \
             ModuleMini \
-            FbsfApiTest
+            FbsfApiTest \
+            ModuleTEST

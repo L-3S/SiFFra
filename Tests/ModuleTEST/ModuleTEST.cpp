@@ -85,7 +85,7 @@ int ModuleTEST::doInit()
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Computation step
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-int ModuleTEST::doStep()
+int ModuleTEST::doStep(int ms)
 {
     if (name() == "Producer" || name() == "ModuleBatch")
     {

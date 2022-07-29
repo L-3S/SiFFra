@@ -543,8 +543,10 @@ Rectangle {
             {   // Draw zoom rectangle
                 parent.drawRect(pstart.x,pstart.y,pstart.x,pstart.y)
 
-                var wstart = viewStart + Math.floor(viewSize  * (pstart.x/parent.width))
-                var wsize = viewSize * Math.abs(mouseX-pstart.x)/parent.width
+                var xAxis=plotter.chart.xAxisInfo()// bugfix : get the real size and posX of x axis
+
+                var wstart = viewStart + Math.floor(viewSize  * ((pstart.x-xAxis.xStart)/xAxis.width))
+                var wsize = Math.round(viewSize * Math.abs(mouseX-pstart.x)/(xAxis.width))
 
                 if (wsize>2)// at least 2 points
                 {
