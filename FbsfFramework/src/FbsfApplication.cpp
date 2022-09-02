@@ -186,6 +186,9 @@ int FbsfApplication::generateSequences() {
         if (key == "speedfactor")   speedFactor=value.toFloat();
         if (key == "recorder")      recorderSize=value.toUInt();
     }
+    if(timeStep==0)
+        qFatal("[ERROR] null timestep, check the <simulation> section of the configuration file");
+
     qInfo() << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
     //GRO-TM : Setup time manager parameters mode standard or modeMcp
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
