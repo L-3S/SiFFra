@@ -465,9 +465,11 @@ var Chart = function(canvas, context) {
         if (maxValue === minValue)
         {
             if(maxValue===0)
-                {maxValue+=1}
+            {maxValue+=1;minValue-=1}
+            else if (maxValue < 0)
+            {maxValue-=maxValue/10;minValue+=minValue/10}
             else
-                {maxValue+=maxValue/10;minValue-=minValue/10}
+            {maxValue+=maxValue/10;minValue-=minValue/10}
         }// GRO
         valueRange = maxValue - minValue;
         rangeOrderOfMagnitude = Math.floor(Math.log(valueRange) / Math.LN10)
