@@ -36,7 +36,7 @@ bool           FbsfExecutive::sOptPerfMeter=false;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 FbsfExecutive::FbsfExecutive(eApplicationMode aMode)
     : bSuspended(false)
-    , workflowState( eInitialize )
+    , workflowState( ePause )
     , mAppMode(aMode)
     , mExeMode(eCompute)
     , mReplayMode(false)
@@ -216,7 +216,7 @@ void FbsfExecutive::run()
     // start simulation loop
     stepTime.start();
     if (BatchMode()) batchTime.start();
-    workflowState = ePause;
+  
     while (workflowState!=eStop)
     {
         // check state change command
