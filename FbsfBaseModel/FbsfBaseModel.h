@@ -67,7 +67,8 @@ public:
 
     virtual int     doInit()=0;         // Executed when thread's model start
     void            preStep();          // Executed before each step to import external values
-    virtual int     doStep(int timeOut)=0;// Execution of step computation (must be defined)
+    virtual int     doStep();           // Execution of step computation (must be defined)
+    virtual int     doStep(int timeOut);// Execution of step with timeout
     virtual void    postStep();         // Executed after each step to export external values
     virtual int     doTerminate()=0;    // Executed when application exit
     virtual int     doSaveState();      // Executed when application request dump state to memory

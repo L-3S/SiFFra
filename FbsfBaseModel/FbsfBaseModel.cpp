@@ -155,6 +155,16 @@ void FBSFBaseModel::computeStep(int timeOut)
 
     mSimulationTime+=mTimeStep;// seconds
 }
+int FBSFBaseModel::doStep(int timeOut)
+{
+    return doStep();
+}
+int FBSFBaseModel::doStep()
+{
+    //XXX temporary fix waiting for consistency with timeout
+    qDebug() << "Abstract method should not be called";
+    return -1;
+}
 void FBSFBaseModel::cancelStep()
 {
     mStepRunning = false;
