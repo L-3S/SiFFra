@@ -23,7 +23,7 @@ int FbsfNode::addSequence(QString aName, float aPeriod,
     QThread::connect(this , SIGNAL(cycleStart()) , pSequence, SLOT(cycleStart()));
     // connect signal to sequence slots : pre/step computation and finalization
     QThread::connect(this , SIGNAL(consume()) , pSequence, SLOT(consumeData()));
-    QThread::connect(this , SIGNAL(compute(int)) , pSequence, SLOT(computeStep(int)));
+    QThread::connect(this , SIGNAL(compute()) , pSequence, SLOT(computeStep()));
     // release
     QThread::connect(pSequence, SIGNAL(finished()), thread, SLOT(quit()));
     QThread::connect(thread   , SIGNAL(finished()), thread, SLOT(terminate()));
@@ -52,7 +52,7 @@ int FbsfNode::addSequence(QString aName, float aPeriod,
     return pSequence->status();
 }
 
-void FbsfNode::doCycle(int timeOut)
+void FbsfNode::doCycle()
 {
     resetWorking(mSequenceList.size());
     emit cycleStart();
@@ -60,15 +60,15 @@ void FbsfNode::doCycle(int timeOut)
         // loop until all iterations completed for all sequences
         emit consume();// Synchronous consumption of inputs
         waitCompletion(mSequenceList.size());
-        emit compute(timeOut);// compute models
+        emit compute();// compute models
         waitCompletion(mSequenceList.size());
     }
     emit statusChanged("compute", "stepEnd");
 }
 
-void FbsfNode::run(int timeOut)
+void FbsfNode::run()
 {
-    doCycle(timeOut);
+    doCycle();
 }
 
 void FbsfNode::waitCompletion(int aNbTasks)

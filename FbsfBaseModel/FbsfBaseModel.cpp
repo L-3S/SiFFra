@@ -144,26 +144,16 @@ void FBSFBaseModel::consumeData()
 /// \brief FBSFBaseModel::computeStep
 ///        Step computation procedure : signal virtual method call
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void FBSFBaseModel::computeStep(int timeOut)
+void FBSFBaseModel::computeStep()
 {
     QElapsedTimer timer;
     timer.start();
-    mStatus = doStep(timeOut);
+    mStatus = doStep();
     if(mCpuStepTime!=nullptr)
         mCpuStepTime->setIntValue(timer.elapsed());
     postStep();
 
     mSimulationTime+=mTimeStep;// seconds
-}
-int FBSFBaseModel::doStep(int timeOut)
-{
-    return doStep();
-}
-int FBSFBaseModel::doStep()
-{
-    //XXX temporary fix waiting for consistency with timeout
-    qDebug() << "Abstract method should not be called";
-    return -1;
 }
 void FBSFBaseModel::cancelStep()
 {
