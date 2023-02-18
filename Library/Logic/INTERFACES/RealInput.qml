@@ -12,10 +12,18 @@ PartialSO
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Subscription to a external value
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    property real mValue: 0
+    /// Values for Cosimulation mode
+    property real mScaValue: 0
     SubscribeReal{
-        tag1: nodeName;
-        onValueChanged: {mValue = value;} }
+        tag1: (!simuMpc) ? nodeName : "" ;
+        onValueChanged: {mScaValue = value;}
+    }
+
+    /// Values for SimuMPC mode
+    SubscribeVectorReal{
+        id : timeVector;
+        tag1: (simuMpc) ? nodeName : "" ;
+    }
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Intialize
@@ -28,12 +36,43 @@ PartialSO
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Synchronous computation
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    property var statesvar : {"mFirstStep": true,
+                              "mlocSimuTime" : 0}
+
+    property real tempsDeb;
+    property int index;
+
     function compute()
     {
-        output.value = mValue
+
+        if (statesvar.mFirstStep){
+             statesvar.mFirstStep = false;
+         }
+
+
+        if (!simuMpc) {
+            /// Cosimulation mode
+            output.value = mScaValue
+        }
+        else {
+            /// SimuMPC
+
+            // Le simulationTime de FBSF s'incrémente de timeStep à chaque "cycle de calcul"
+            // il devrait s'incrémenter de timeStep * timeshift
+            // tempsDeb: intant physique correspondant au début du vecteur
+            // cette grandeur est calculée à partir du simulationTime modifiée
+            // L'index est calculé en fonction de la différence entre statesvar.mlocSimuTime et tempsDeb
+
+            //console.log(nodeName+" object: temps simulé FBSF et temps simulé local", simulationTime - timeStep, statesvar.mlocSimuTime);
+
+            tempsDeb = (simulationTime - timeStep)/timeStep * timeVector.timeshift * timeStep;
+            index = ((statesvar.mlocSimuTime - tempsDeb) / timeStep) % timeVector.data.length;
+
+            output.value = timeVector.data[index]
+            //index = ++index % timeVector.data.length
+            statesvar.mlocSimuTime += timeStep;
+        }
+
     }
-
-
-
 }
 

@@ -20,14 +20,14 @@ Node
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     property var ports :{"right" :0}
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    property var parameters : {"filename" :"EMPTY", "periodic": false}
+    property var parameters : {"filename" :"EMPTY", "periodic": false};
     property var statesvar : {"mFirstStep": true,
                               "listArray" : [],
                               "tIndex" : 0,
                               "nIndex" : 0,
                               "varList" : [],
                               "mlocSimuTime" : 0
-    }
+    };
 
     FbsfFileIO {
         id: csvFile

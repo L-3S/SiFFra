@@ -10,6 +10,13 @@ Node {
 
     // GENERIC CLASSE TO DEFINE COMMON PROPERTIES
 
+    /// update here with mSimuMPC will be available
+    //property bool mSimuMPC: false
+
+
+
+
+
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Subscription to a external value
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -27,7 +34,7 @@ Node {
 /*    property real mSimuTime : 0.*/
 
 //property bool mFirstStep : true;
-property var statesvar : {"mFirstStep": true}
+property var statesvar : {"mFirstStep": true};
 
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
