@@ -165,7 +165,7 @@ int FmuWrapper::doInit()
 
 
     // Covert QString to const char *
-    QString tmpQstring = "file:////" + fmuDir +"/"+ "resources";
+    QString tmpQstring = "file:///" + fmuDir +"/"+ "resources";
     std::string tmpString = tmpQstring.toStdString();
     fmuResourceLocation = tmpString.c_str();
 
@@ -266,7 +266,7 @@ int FmuWrapper::doStep()
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Compute model step from time to time+mStep
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        fmiFlag = fmu.doStep(component, time, mStep, fmi2False);
+        fmiFlag = fmu.doStep(component, time, mStep, fmi2True);
         if (fmiFlag > fmi2Warning)
         {
             qCritical ("could not complete simulation of the model");
