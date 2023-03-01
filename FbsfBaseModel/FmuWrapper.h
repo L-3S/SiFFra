@@ -63,7 +63,7 @@ class FBSF_BASEMODEL_EXPORT FmuWrapper
 {
 
 public:
-    FmuWrapper(float aStep, double aStart, double aEnd,
+    FmuWrapper(fmi2Real aStep, fmi2Real aStart, fmi2Real aEnd,
                bool aCsvOutput=false, fmi2Boolean aLoggingOn=false,
                int aNCategories=0, char **aCategories=NULL);
 
@@ -86,7 +86,12 @@ protected :
     /// pushFromModelDescriptor:
     /// force value from ModelDescriptor to internal state
     void                   pushFromModelDescriptor();
-    void                   timeStep(double aTimeStep) {mStep=aTimeStep;} // FMU Time step modifier
+
+    void                   startTime(fmi2Real aStartTime) {tStart=aStartTime;} // FMU start time modifier
+    void                   stopTime(fmi2Real aStopTime) {tEnd=aStopTime;} // FMU stop time modifier
+    void                   timeStep(fmi2Real aTimeStep) {mStep=aTimeStep;} // FMU Time step modifier
+
+
     fmi2Component&         getComponent() { return component;} // reference to component
 
 private :
@@ -116,9 +121,9 @@ protected :
 
 private :
     float time;                         // Current simulated time
-    float tStart;                       // Start time
-    float tEnd;                         // End time
-    double mStep;                       // model time step
+    fmi2Real tStart;                       // Start time
+    fmi2Real tEnd;                         // End time
+    fmi2Real mStep;                       // model time step
 
     const char* guid;                   // global unique id of the fmu
     const char *instanceName;           // instance name
@@ -150,7 +155,7 @@ private :
     bool            bSnapshotParam;
 
 
-    Q_LOGGING_CATEGORY(log, "MacroFMU", QtInfoMsg)
+    Q_LOGGING_CATEGORY(log, "fbsf.FMUWrapper", QtInfoMsg)
 };
 
 #endif // FmuWrapper_H
