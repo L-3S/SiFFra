@@ -10,7 +10,7 @@ class MODULE_GRAPHIC_SHARED_EXPORT ModuleGraphic
 public:
     ModuleGraphic();
     int     doInit();
-    int     doStep(int timeOut);
+    int     doStep();
     int     doSaveState(QDataStream& out);
     int     doRestoreState(QDataStream& in);
     int     doTerminate();

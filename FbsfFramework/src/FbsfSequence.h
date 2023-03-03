@@ -71,7 +71,7 @@ public slots:
     void            cycleStart();
     void            cancelSeqStep();
     void            consumeData();
-    void            computeStep(int timeOut);
+    void            computeStep();
 
 signals:
     void            finished();

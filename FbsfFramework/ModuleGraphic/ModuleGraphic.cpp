@@ -26,7 +26,7 @@ int ModuleGraphic::doInit()
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Computation step
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-int ModuleGraphic::doStep(int timeOut)
+int ModuleGraphic::doStep()
 {
     return computeVisualDocument();
 }

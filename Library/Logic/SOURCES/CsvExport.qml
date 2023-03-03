@@ -14,7 +14,7 @@ Node
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     property var ports :{"left" :0}
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    property var parameters : {"filename" :"EMPTY", "variables":"EMPTY"}
+    property var parameters : {"filename" :"EMPTY", "variables":"EMPTY"};
     property var varList:[];
     property var firstLine;
 

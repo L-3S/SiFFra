@@ -37,7 +37,7 @@ Node
 
     Slider {id:sld
         // Case Time Depends no action form actuators alowed
-        enabled: ! simuMpc
+        enabled: ! SimuMpc 
         width:100
     }
 }
