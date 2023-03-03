@@ -3,6 +3,7 @@
 #include "FmuWrapper.h"
 
 #include <QVector>
+#include <QDir>
 #include <QFileInfo>
 #include <QUrl>
 #include <QThread>
@@ -144,11 +145,11 @@ void FBSFBaseModel::consumeData()
 /// \brief FBSFBaseModel::computeStep
 ///        Step computation procedure : signal virtual method call
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void FBSFBaseModel::computeStep(int timeOut)
+void FBSFBaseModel::computeStep()
 {
     QElapsedTimer timer;
     timer.start();
-    mStatus = doStep(timeOut);
+    mStatus = doStep();
     if(mCpuStepTime!=nullptr)
         mCpuStepTime->setIntValue(timer.elapsed());
     postStep();
@@ -340,22 +341,25 @@ int FBSFBaseModel::loadVisualDocument(QString aDocument)
     // get the path of the logic engine and visualization tool
     QUrl visualizer(QString("qrc:/GraphicEditor"));
 
-    // get the path of the logic document and if the visualizer should be visible
-    QUrl document=QUrl::fromLocalFile(aDocument);
-    bool visibility = true;
-    visibility = !(config().value("visibility")=="false");
-    qInfo() << "\t\t" << "document :" << config()["document"] << " Visibility :"<< visibility ;
-
-    QFileInfo check_file(aDocument);
+    QDir    dir;
+    QString docPath = dir.absoluteFilePath(aDocument);
+    QFileInfo check_file(docPath);
     // check if file exists and if yes: Is it really a file and no directory?
-    if(!check_file.exists())
+    if(!check_file.exists() || !check_file.isFile())
         {
-        QString msg("Can't open document file " + config()["document"] );
+        QString msg("Can't open document file: " + docPath );
 //#ifndef MODE_BATCH
 //        QMessageBox::critical(nullptr, "[Fatal]", msg.toStdString().c_str());
 //#endif
         qFatal(msg.toStdString().c_str());return 0;
     }
+
+    // get the path of the logic document and if the visualizer should be visible
+    QUrl document=QUrl::fromLocalFile(docPath);
+    bool visibility = true;
+    visibility = !(config().value("visibility")=="false");
+    qInfo() << "\t\t" << "document :" << document << " Visibility :"<< visibility ;
+
     // get the Application toolbar object
     QObject *appToolbar= rootWindow()->findChild<QObject*>("AppToolbar");
     QMetaObject::invokeMethod(appToolbar,"load",

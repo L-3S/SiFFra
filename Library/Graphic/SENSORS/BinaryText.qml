@@ -4,19 +4,22 @@ import fbsfplugins 1.0
 
 Node
 {
+    /// subscribe to a real value
+    /// compares this value to a threshold
+    /// status = (in > threshold)
+    /// green display if status === true, else red
+
+    property bool status : false
+
     /////////////////////////////////////////////////
     // Inspector parameters:
     /////////////////////////////////////////////////
-    property var parameters : {"varName":"",
-        "unit" :"Bar",
-        "unit conv coeff A" : 1.,
-        "unit conv coeff B" : 0.,
+    property var parameters : {
+        "varName":"",
+        "threshold" :0.5,
         "width":100,
-        "height":30,
-        "ndigit" : 2,
-        "textColor" : "black",
-        "bgColor": "green",
-        "idxShift" : 0
+        "height":20,
+        "text":""
     }
 
     /////////////////////////////////////////////////
@@ -29,26 +32,39 @@ Node
     /////////////////////////////////////////////////
     // Subscribes in standart or SimuMPC mode
     /////////////////////////////////////////////////
-    SubscribeReal{id: inputScalar
+    SubscribeReal{id:inputScalar
         // In SimuMPC mode this variable is not needed
         tag1 : simuMpc ? "" : parameters.varName
         onValueChanged: {
-            /// including unit conversion y = a * x + b
-            var loc = parameters["unit conv coeff A"] * value + parameters["unit conv coeff B"]
-            textValue.text = loc.toFixed(parameters.ndigit)
+            status = (value > parameters.threshold ? true:false)
         }
     }
+
     SubscribeVectorReal {id: inputVector
         // In normal mode this variable is not needed
         tag1 : simuMpc ? parameters.varName  : ""
         onDataChanged: {
-            /// including unit conversion y = a * x + b
             // Case simuMpc mode get last value of the past data[pastSize-1]
-            // we add the idx shift
-            var loc = parameters["unit conv coeff A"] * data[pastSize-1+parameters["idxShift"]] + parameters["unit conv coeff B"]
-            textValue.text = loc.toFixed(parameters.ndigit)
+            status = ( (data[pastSize-1] > parameters.threshold) ? true:false)
         }
     }
+
+//    SubscribeReal{id:inputReal
+//        // In SimuMPC mode this variable is not needed
+//        tag1 : simuMpc ? "" : parameters.varName
+//        onValueChanged: {
+//            status = (value > parameters.threshold ? true:false)
+//        }
+//    }
+
+//    SubscribeVectorReal {id: inputRealVector
+//        // In normal mode this variable is not needed
+//        tag1 : simuMpc ? parameters.varName  : ""
+//        onDataChanged: {
+//            // Case simuMpc mode get last value of the past data[pastSize-1]
+//            status = ( (data[pastSize-1] > parameters.threshold) ? true:false)
+//        }
+//    }
 
     //Control the shape of the Node model
     shape.visible : false
@@ -56,22 +72,16 @@ Node
     shape.height : parameters.height
 
     Rectangle {id: bg
+        visible:!status
+        color:"transparent"
         width: parameters.width
         height: parameters.height
-        border.color: "black"
-        border.width: 2
-        radius: 4
-        color: parameters.bgColor;
+        radius: 4;
         Text {id:textValue
-            text: "0.00"
-            color: parameters.textColor
+            text: parameters.text
             anchors {left: parent.left; leftMargin:10; verticalCenter: parent.verticalCenter}
             font.pointSize: 10
         }
-        Text {id:textUnit
-            text: parameters.unit
-            color: parameters.textColor
-            anchors {right: parent.right; rightMargin:10; verticalCenter: parent.verticalCenter}
-        }
     }
 }
+

@@ -35,7 +35,7 @@ public:
     virtual void    setOptPerfMeter(bool aFlag){sOptPerfMeter=aFlag;}
 
 
-    void            doCycle(int timeOut);                    // execute one cycle
+    void            doCycle();                    // execute one cycle
     fbsfStatus      getStatus()             {return mStatus;};
     uint            getLastStepSuccessTime(){return mLastSuccessfulStep;};
     // configuration settings
@@ -78,16 +78,13 @@ public:
 private :
     QWaitCondition  waitCondition;
     bool            bSuspended;
-    int             mTimeOut = -1; /* Time in ms allowed to each module to execute its computation step,
-                                      it is the module developper responsibility to implement a doStep that is compliant with this timeout mecanic
-                                      A timeout of -1 is considered as infinite timout*/
 
 // signals
 signals:
     void            cycleStart();               // signal start of major cycle
     void            cancelStep();
     void            consume();                  // signal data consumption
-    void            compute(int timeOut);                  // signal step computation
+    void            compute();                  // signal step computation
     void            statusChanged(QVariant  mode,QVariant  state);// signal status change to UI
     void            exit();                     // exit application
 // slots

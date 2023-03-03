@@ -36,7 +36,7 @@ bool           FbsfExecutive::sOptPerfMeter=false;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 FbsfExecutive::FbsfExecutive(eApplicationMode aMode)
     : bSuspended(false)
-    , workflowState( eInitialize )
+    , workflowState( ePause )
     , mAppMode(aMode)
     , mExeMode(eCompute)
     , mReplayMode(false)
@@ -150,7 +150,7 @@ int FbsfExecutive::addSequence(QString aName, float aPeriod,
     connect(this  , SIGNAL(cancelStep()) , pSequence, SLOT(cancelSeqStep()));
     // connect signal to sequence slots : pre/step computation and finalization
     connect(this  , SIGNAL(consume()) , pSequence, SLOT(consumeData()));
-    connect(this  , SIGNAL(compute(int)) , pSequence, SLOT(computeStep(int)));
+    connect(this  , SIGNAL(compute()) , pSequence, SLOT(computeStep()));
     // release
     connect(pSequence, SIGNAL(finished()), thread, SLOT(quit()));
     connect(thread   , SIGNAL(finished()), thread, SLOT(terminate()));
@@ -216,7 +216,6 @@ void FbsfExecutive::run()
     // start simulation loop
     stepTime.start();
     if (BatchMode()) batchTime.start();
-    workflowState = ePause;
     while (workflowState!=eStop)
     {
         // check state change command
@@ -230,7 +229,7 @@ void FbsfExecutive::run()
         stepTime.restart();
         // run major cycle
         emit statusChanged(ExecutionMode(),"computing");
-        doCycle(mTimeOut);
+        doCycle();
         // check state change command
         if (workflowState==eStep)
         {
@@ -291,18 +290,12 @@ void FbsfExecutive::run()
         qDebug() << "Dumped PerfMeter.csv file to" << QDir::currentPath();
         delete perfmeter;
     }
-//    qDebug() << "Antoine Deb EXIT";
-//    for (int i = 0; i < mSequenceList.length(); i++) {
-//        mSequenceList[i]->thread()->terminate();
-//        mSequenceList[i]->thread()->wait();
-//    }
-//    qDebug() << "Antoine EXIT";
     emit exit();// exit from thread
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// SLOT : Control of the executive workflow
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void FbsfExecutive::doCycle(int timeOut)
+void FbsfExecutive::doCycle()
 {
     QElapsedTimer stepDuration;
     stepDuration.start();
@@ -314,7 +307,7 @@ void FbsfExecutive::doCycle(int timeOut)
     {
         emit consume();// Synchronous consumption of inputs
         waitCompletion(mSequenceList.size());
-        emit compute(timeOut);// compute models
+        emit compute();// compute models
         waitCompletion(mSequenceList.size());
         for (auto seq: mSequenceList) {
             if (mStatus == FBSF_OK) {
@@ -392,7 +385,6 @@ void FbsfExecutive::control(QString command, QString param1, QString param2)
     //~~~~~~~~~~~~~ Execute one step simulation ~~~~~~~~~~~~~~~
     else if (command == "step")
     {   // step and pause
-        mTimeOut = param1 != "" ? param1.toInt(): -1;
         if (isSuspended()) wakeup();
         else mPauseCond.release();
         workflowState = eStep;

@@ -17,7 +17,7 @@
     Publish and subscribe public data
 */
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-FmuWrapper::FmuWrapper(float aStep,double aStart, double aEnd,
+FmuWrapper::FmuWrapper(fmi2Real aStep,fmi2Real aStart, fmi2Real aEnd,
                        bool aCsvOutput,fmi2Boolean aLoggingOn,
                        int aNCategories, char **aCategories)
     : FBSFBaseModel()
@@ -165,7 +165,7 @@ int FmuWrapper::doInit()
 
 
     // Covert QString to const char *
-    QString tmpQstring = "file:////" + fmuDir +"/"+ "resources";
+    QString tmpQstring = "file:///" + fmuDir +"/"+ "resources";
     std::string tmpString = tmpQstring.toStdString();
     fmuResourceLocation = tmpString.c_str();
 
@@ -234,7 +234,7 @@ int FmuWrapper::initialConditions()
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /// Manage public data and computation step
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-int FmuWrapper::doStep(int timeOut)
+int FmuWrapper::doStep()
 {
     if (time <= tEnd)
     {
@@ -266,7 +266,7 @@ int FmuWrapper::doStep(int timeOut)
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Compute model step from time to time+mStep
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        fmiFlag = fmu.doStep(component, time, mStep, fmi2False);
+        fmiFlag = fmu.doStep(component, time, mStep, fmi2True);
         if (fmiFlag > fmi2Warning)
         {
             qCritical ("could not complete simulation of the model");
@@ -987,7 +987,7 @@ void FmuWrapper::registerFmiVariable()
 
     if (bPublishParam==true)
     {
-        qCInfo(log) << "## begin exposing parameters to ZE: " << name() <<" ##";
+        qCDebug(log) << "## begin exposing parameters to ZE: " << name() <<" ##";
         for (iter = yParameters.begin(); iter != yParameters.end(); ++iter)
         {
             FmuVariable* var = (*iter);
@@ -1019,7 +1019,7 @@ void FmuWrapper::registerFmiVariable()
                     if (bSnapshotParam==true)
                         state(var->name,&(var->value.mReal));
 
-                    qCInfo(log) << "parameters - real - tunable: " << QString(" #%1#").arg(var->name);
+                    qCDebug(log) << "parameters - real - tunable: " << QString(" #%1#").arg(var->name);
                 }
                 else if (var->variability=="fixed")
                 {
@@ -1029,7 +1029,7 @@ void FmuWrapper::registerFmiVariable()
                                      var->unit,
                                      var->description);
                     yOutputs.append(var);// bugFix
-                    qCInfo(log) << "parameters - real - fixed: " << QString(" #%1#").arg(var->name);
+                    qCDebug(log) << "parameters - real - fixed: " << QString(" #%1#").arg(var->name);
                 }
                 break;
             case elm_Boolean:
@@ -1057,7 +1057,7 @@ void FmuWrapper::registerFmiVariable()
                     if (bSnapshotParam==true)
                         state(var->name,&(var->value.mInteger));
 
-                    qCInfo(log) << "parameters - boolean - tunable: " << QString(" #%1#").arg(var->name);
+                    qCDebug(log) << "parameters - boolean - tunable: " << QString(" #%1#").arg(var->name);
                 }
                 else if (var->variability=="fixed")
                 {
@@ -1068,7 +1068,7 @@ void FmuWrapper::registerFmiVariable()
                                      var->description);
                     yOutputs.append(var);
 
-                    qCInfo(log) << "parameters - boolean - fixed: " << QString(" #%1#").arg(var->name);
+                    qCDebug(log) << "parameters - boolean - fixed: " << QString(" #%1#").arg(var->name);
                 }
                 break;
             case elm_Integer:
@@ -1096,7 +1096,7 @@ void FmuWrapper::registerFmiVariable()
                     if (bSnapshotParam==true)
                         state(var->name,&(var->value.mInteger));
 
-                    qCInfo(log) << "parameters - integer - tunable: " << QString(" #%1#").arg(var->name);
+                    qCDebug(log) << "parameters - integer - tunable: " << QString(" #%1#").arg(var->name);
                 }
                 else if (var->variability=="fixed")
                 {
@@ -1107,13 +1107,13 @@ void FmuWrapper::registerFmiVariable()
                                      var->description);
                     yOutputs.append(var);// bugFix
 
-                    qCInfo(log) << "parameters - ineteger - fixed: " << QString(" #%1#").arg(var->name);
+                    qCDebug(log) << "parameters - ineteger - fixed: " << QString(" #%1#").arg(var->name);
                 }
                 break;
             default : break;
             }
         }
-        qCInfo(log) << "## end exposing parameters to ZE: " << name() <<" ##";
+        qCDebug(log) << "## end exposing parameters to ZE: " << name() <<" ##";
     }
 
     pushFromModelDescriptor();
@@ -1123,7 +1123,7 @@ void FmuWrapper::registerFmiVariable()
 
 void FmuWrapper::pushFromModelDescriptor(){
 
-    qCInfo(log) << "## begin pushing variables from ModelDescription.xml to *.dll (when discrepancy is detected, tolerance 1.e-5 for real value): " << name() <<" ##";
+    qCDebug(log) << "## begin pushing variables from ModelDescription.xml to *.dll (when discrepancy is detected, tolerance 1.e-5 for real value): " << name() <<" ##";
     QList<FmuVariable*>::iterator iter;
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // register FMU parameters and constants
@@ -1140,7 +1140,7 @@ void FmuWrapper::pushFromModelDescriptor(){
                 fmi2Real vRealValue;
                 fmu.getReal(getComponent(), &(var->reference), 1, &vRealValue);
                 if (qAbs(vRealValue - var->value.mReal)>1.e-5) {
-                    qCInfo(log) << "parameters - real" << QString(" #%1# - val xml: #%2# - val dll: #%3# - diff: #%4#").arg(var->name).arg(var->value.mReal).arg(vRealValue).arg(var->value.mReal-vRealValue);
+                    qCDebug(log) << "parameters - real" << QString(" #%1# - val xml: #%2# - val dll: #%3# - diff: #%4#").arg(var->name).arg(var->value.mReal).arg(vRealValue).arg(var->value.mReal-vRealValue);
                     vRealValue=var->value.mReal;
                     fmu.setReal(getComponent(), &(var->reference), 1, &vRealValue);
                 }
@@ -1154,7 +1154,7 @@ void FmuWrapper::pushFromModelDescriptor(){
                 fmi2Boolean vBoolValue;
                 fmu.getBoolean(getComponent(), &(var->reference), 1, &vBoolValue);
                 if (vBoolValue != var->value.mInteger) {
-                    qCInfo(log) << "parameters - bool" << QString(" #%1# - val xml: #%2# - val dll: #%3#").arg(var->name).arg(var->value.mInteger).arg(vBoolValue);
+                    qCDebug(log) << "parameters - bool" << QString(" #%1# - val xml: #%2# - val dll: #%3#").arg(var->name).arg(var->value.mInteger).arg(vBoolValue);
                     fmu.setBoolean(getComponent(), &(var->reference), 1, &(var->value.mInteger));
                 }
             }
@@ -1166,7 +1166,7 @@ void FmuWrapper::pushFromModelDescriptor(){
                 fmi2Integer vIntValue;
                 fmu.getInteger(getComponent(), &(var->reference), 1, &vIntValue);
                 if (vIntValue != var->value.mInteger) {
-                    qCInfo(log) << "parameters - int" << QString(" #%1# - val xml: #%2# - val dll: #%3#").arg(var->name).arg(var->value.mInteger).arg(vIntValue);
+                    qCDebug(log) << "parameters - int" << QString(" #%1# - val xml: #%2# - val dll: #%3#").arg(var->name).arg(var->value.mInteger).arg(vIntValue);
                     fmu.setInteger(getComponent(), &(var->reference), 1, &(var->value.mInteger));
                 }
             }
@@ -1175,7 +1175,7 @@ void FmuWrapper::pushFromModelDescriptor(){
         }
     }
 
-    qCInfo(log) << "## end pushing variables from ModelDescription.xml to *.dll: " << name() <<" ##";
+    qCDebug(log) << "## end pushing variables from ModelDescription.xml to *.dll: " << name() <<" ##";
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
